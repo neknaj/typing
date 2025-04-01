@@ -1,11 +1,10 @@
 import { elm, textelm } from './cdom.js';
 import { initlayout } from "./layout.js";
 
-import initWasm, { greet } from './typing_lib.js';
+import initWasm, { new_model, update } from './typing_lib.js';
 
 async function init() {
     await initWasm(); // Wasmモジュールの初期化
-    console.log(greet('World')); // Rustで書いた関数を呼び出し
     initlayout(
         document.querySelector("#layoutroot"),
         ["h",[5,2],[
@@ -19,6 +18,7 @@ async function init() {
             ]]
         ]],
     );
+    console.log(new_model());
     render();
 }
 
