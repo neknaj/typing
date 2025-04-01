@@ -1,4 +1,4 @@
-import init, { greet } from './tsrust_lib.js';
+import init, { greet } from './typing_lib.js';
 
 async function run() {
   await init(); // Wasmモジュールの初期化

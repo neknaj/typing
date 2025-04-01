@@ -5,6 +5,9 @@
 
 # ts
 /node_modules
+/src/web/typing_lib.d.ts
+/src/web/typing_lib.js
+/src/web/layout.js
 
 # dist
 /dist

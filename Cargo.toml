@@ -1,5 +1,5 @@
 [package]
-name = "tsrust"
+name = "typing"
 version = "0.1.0"
 edition = "2021"
 
@@ -10,11 +10,11 @@ path = "src/rust/main.rs"
 wasm-bindgen = { version = "0.2", optional = true }
 
 [[bin]]
-name = "tsrust_bin"
+name = "typing_bin"
 path = "src/rust/main.rs"
 
 [lib]
-name = "tsrust_lib"
+name = "typing_lib"
 crate-type = ["cdylib"]
 path = "src/rust/lib.rs"
 

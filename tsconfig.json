@@ -12,5 +12,5 @@
             "*": ["pkg/*"]
         }
     },
-    "include": ["src/*", "src/web/tsrust_lib.d.ts"]
+    "include": ["src/*", "src/web/typing_lib.d.ts"]
 }

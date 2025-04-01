@@ -95,16 +95,16 @@ async function main() {
     }
     await copyFiles([
         [
-            "./pkg/tsrust_lib.js",
-            "./src/web/tsrust_lib.js"
+            "./pkg/typing_lib.js",
+            "./src/web/typing_lib.js"
         ],
         [
-            "./pkg/tsrust_lib.d.ts",
-            "./src/web/tsrust_lib.d.ts"
+            "./pkg/typing_lib.d.ts",
+            "./src/web/typing_lib.d.ts"
         ],
         [
-            "./pkg/tsrust_lib_bg.wasm",
-            "./dist/tsrust_lib_bg.wasm"
+            "./pkg/typing_lib_bg.wasm",
+            "./dist/typing_lib_bg.wasm"
         ],
     ]);
     await getFile('./src/web/cdom.ts','https://raw.githubusercontent.com/neknaj/cDom/50a65673454c7286830f0d131f0512ddf46a3844/cdom_module.ts');
