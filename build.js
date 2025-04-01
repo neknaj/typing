@@ -62,6 +62,20 @@ function copyFiles(files) {
     return Promise.all(copyPromises);
 }
 
+async function copyDirectory(source, destination) {
+    await fs.promises.mkdir(destination, { recursive: true });
+    const entries = await fs.promises.readdir(source, { withFileTypes: true });
+    for (let entry of entries) {
+        const srcPath = path.join(source, entry.name);
+        const destPath = path.join(destination, entry.name);
+        if (entry.isDirectory()) {
+            await copyDirectory(srcPath, destPath);
+        } else {
+            await fs.promises.copyFile(srcPath, destPath);
+        }
+    }
+}
+
 async function getFile(savePath,url) {
     // if (fs.existsSync(savePath)) return false; // 既に存在するならダウンロードしない
     await new Promise((resolve, reject) => {
@@ -122,6 +136,7 @@ async function main() {
             "./dist/index.html"
         ],
     ]);
+    await copyDirectory('./examples', './dist/examples');
 }
 
 main()
