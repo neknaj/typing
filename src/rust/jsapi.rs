@@ -1,13 +1,7 @@
 // src/jsapi.rs
 
 use wasm_bindgen::prelude::*;
-use js_sys::Date;
-use serde::Serialize;
 use serde::Deserialize;
-use crate::model::{Model, MenuModel, TypingModel, PauseModel, ResultModel};
-use crate::msg::{Msg, MenuMsg, TypingMsg, PauseMsg, ResultMsg};
-use wasm_bindgen_futures::JsFuture;
-use js_sys::Promise;
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
@@ -22,6 +16,27 @@ extern "C" {
     async fn file_get_js(file_path: &str) -> JsValue;
 }
 
+/**
+ * Asynchronously fetches the content of a file from the given path using JavaScript's fetch API.
+ *
+ * # Arguments
+ * - `file_path`: A string slice that represents the public URL path of the file.
+ *
+ * # Returns
+ * - `Ok(String)` containing the file content if successful.
+ * - `Err(i32)` containing an error code (e.g., HTTP status code or 500 for deserialization failure) on error.
+ * This function calls the JavaScript `file_get_js` function.  
+ * If deserialization fails, it returns an error code of 500.
+ *
+ * # Example
+ * ```rust
+ * let result = file_get("./file.txt").await;
+ * match result {
+ *     Ok(content) => println!("File content: {}", content),
+ *     Err(code) => eprintln!("Error occurred, code: {}", code),
+ * }
+ * ```
+ */
 pub async fn file_get(file_path: &str) -> Result<String, i32> {
     // Call the JS function.
     let js_value = file_get_js(file_path).await;
