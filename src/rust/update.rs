@@ -5,6 +5,8 @@ use js_sys::Date;
 use serde::Serialize;
 use crate::model::{Model, MenuModel, TypingModel, PauseModel, ResultModel};
 use crate::msg::{Msg, MenuMsg, TypingMsg, PauseMsg, ResultMsg};
+use wasm_bindgen_futures::JsFuture;
+use js_sys::Promise;
 
 
 #[wasm_bindgen]
@@ -98,7 +100,7 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
         // If the message does not match the current state, keep the model unchanged.
         (m, _) => m,
     };
-    
+
     // Serialize and return the updated model.
     JsValue::from_serde(&updated_model).map_err(|e| e.to_string().into())
 }
@@ -108,11 +110,25 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
 // ------------------------------------
 
 #[wasm_bindgen]
-pub fn new_model() -> Result<JsValue, JsValue> {
+pub async fn new_model() -> Result<JsValue, JsValue> {
     // Initialize with a Menu state and a default list of available contents.
+    let file_content = file_get("./layouts/japanese.json").await.as_string().expect("String expected");
     let menu_model = MenuModel {
-        available_contents: vec!["Sample text".to_string()],
+        available_contents: vec!["Sample text".to_string(),file_content],
     };
     let model = Model::Menu(menu_model);
     JsValue::from_serde(&model).map_err(|e| e.to_string().into())
+}
+
+
+
+
+
+
+// JavaScript側の`file_get`関数をインポートします
+#[wasm_bindgen(module = "/src/web/api.js")]
+extern "C" {
+    // `file_get`はファイルパスを受け取り、文字列を返すPromiseを返します
+    #[wasm_bindgen(js_name = file_get)]
+    async fn file_get(file_path: &str) -> JsValue;
 }

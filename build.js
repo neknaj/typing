@@ -121,6 +121,7 @@ async function main() {
             "./dist/typing_lib_bg.wasm"
         ],
     ]);
+    await copyDirectory('./pkg/snippets', './src/web/snippets');
     await getFile('./src/web/cdom.ts','https://raw.githubusercontent.com/neknaj/cDom/50a65673454c7286830f0d131f0512ddf46a3844/cdom_module.ts');
     // if (await getFile('./src/web/layout.js','https://raw.githubusercontent.com/neknaj/webSplitLayout/c7e1c52cb37a8bfbf9968b825c05a2e9924ca88e/type1/layout.js')) {
     //     fs.readFile('./src/web/layout.js', 'utf8', (err, data) => {
@@ -141,6 +142,7 @@ async function main() {
         ],
     ]);
     await copyDirectory('./examples', './dist/examples');
+    await copyDirectory('./layouts', './dist/layouts');
 }
 
 main()

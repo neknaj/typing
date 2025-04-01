@@ -18,7 +18,7 @@ async function init() {
             ]]
         ]],
     );
-    console.log(new_model());
+    console.log(await new_model());
     render();
 }
 
