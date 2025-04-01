@@ -3,6 +3,7 @@
 use wasm_bindgen::prelude::*;
 use js_sys::Date;
 use serde::Serialize;
+use serde::Deserialize;
 use crate::model::{Model, MenuModel, TypingModel, PauseModel, ResultModel};
 use crate::msg::{Msg, MenuMsg, TypingMsg, PauseMsg, ResultMsg};
 use wasm_bindgen_futures::JsFuture;
@@ -14,7 +15,7 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
     // Deserialize the incoming model and message
     let model: Model = model_js.into_serde().map_err(|e| e.to_string())?;
     let msg: Msg = msg_js.into_serde().map_err(|e| e.to_string())?;
-    
+
     // Determine the new state based on current model and message
     let updated_model = match (model, msg) {
         // When in Menu state and a Menu message is received:
@@ -112,23 +113,54 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
 #[wasm_bindgen]
 pub async fn new_model() -> Result<JsValue, JsValue> {
     // Initialize with a Menu state and a default list of available contents.
-    let file_content = file_get("./layouts/japanese.json").await.as_string().expect("String expected");
-    let menu_model = MenuModel {
-        available_contents: vec!["Sample text".to_string(),file_content],
-    };
-    let model = Model::Menu(menu_model);
-    JsValue::from_serde(&model).map_err(|e| e.to_string().into())
+    match file_get("./layouts/japanese.json").await {
+        Ok(file_content) => {
+            let menu_model = MenuModel {
+                available_contents: vec!["Sample text".to_string(),file_content],
+            };
+            let model = Model::Menu(menu_model);
+            JsValue::from_serde(&model).map_err(|e| e.to_string().into())
+        },
+        Err(error_code) => {
+            // Handle the error (e.g., log it, return a default model, etc.)
+            let menu_model = MenuModel {
+                available_contents: vec!["Sample text".to_string(),error_code.to_string()],
+            };
+            let model = Model::Menu(menu_model);
+            JsValue::from_serde(&model).map_err(|e| e.to_string().into())
+        }
+    }
 }
 
 
 
 
 
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+enum FileGetResponse {
+    Success { ok: bool, value: String },
+    Failure { ok: bool, error: i32 },
+}
 
-// JavaScript側の`file_get`関数をインポートします
 #[wasm_bindgen(module = "/src/web/api.js")]
 extern "C" {
-    // `file_get`はファイルパスを受け取り、文字列を返すPromiseを返します
     #[wasm_bindgen(js_name = file_get)]
-    async fn file_get(file_path: &str) -> JsValue;
+    async fn file_get_js(file_path: &str) -> JsValue;
+}
+
+pub async fn file_get(file_path: &str) -> Result<String, i32> {
+    // Call the JS function.
+    let js_value = file_get_js(file_path).await;
+    // Deserialize the JsValue into the FileGetResponse enum.
+    let response: FileGetResponse = serde_wasm_bindgen::from_value(js_value)
+        .map_err(|_| {
+            // Use a custom error code for deserialization errors, e.g., 500.
+            500
+        })?;
+    // Convert the deserialized response into a Rust Result.
+    match response {
+        FileGetResponse::Success { value, .. } => Ok(value),
+        FileGetResponse::Failure { error, .. } => Err(error),
+    }
 }
