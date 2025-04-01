@@ -22,8 +22,8 @@ function buildTS() {
         tsconfig: './tsconfig.json', // tsconfig.jsonのパス
         outfile: './dist/index.js',    // 出力先
         bundle: true,                   // 依存関係をバンドル
-        minify: true,                   // 圧縮
-        // minify: false,                   // 圧縮
+        // minify: true,                   // 圧縮
+        minify: false,                   // 圧縮
         // sourcemap: false,                // ソースマップ生成
         target: ['esnext'],             // トランスパイルのターゲット
         loader: { '.ts': 'ts' },        // TypeScriptを処理
@@ -122,18 +122,22 @@ async function main() {
         ],
     ]);
     await getFile('./src/web/cdom.ts','https://raw.githubusercontent.com/neknaj/cDom/50a65673454c7286830f0d131f0512ddf46a3844/cdom_module.ts');
-    if (await getFile('./src/web/layout.js','https://raw.githubusercontent.com/neknaj/webSplitLayout/c7e1c52cb37a8bfbf9968b825c05a2e9924ca88e/type1/layout.js')) {
-        fs.readFile('./src/web/layout.js', 'utf8', (err, data) => {
-            const updatedData = "import { elm } from './cdom.js';\n\n" + data + "\n\nexport { initlayout };";
-            fs.writeFile('./src/web/layout.js', updatedData, (err) => {});
-        });
-    };
+    // if (await getFile('./src/web/layout.js','https://raw.githubusercontent.com/neknaj/webSplitLayout/c7e1c52cb37a8bfbf9968b825c05a2e9924ca88e/type1/layout.js')) {
+    //     fs.readFile('./src/web/layout.js', 'utf8', (err, data) => {
+    //         const updatedData = "import { elm } from './cdom.js';\n\n" + data + "\n\nexport { initlayout };";
+    //         fs.writeFile('./src/web/layout.js', updatedData, (err) => {});
+    //     });
+    // };
     await getFile('./dist/layout.css','https://raw.githubusercontent.com/neknaj/webSplitLayout/c7e1c52cb37a8bfbf9968b825c05a2e9924ca88e/type1/layout.css');
     await buildTS();
     await copyFiles([
         [
             "./src/web/index.html",
             "./dist/index.html"
+        ],
+        [
+            "./src/web/index.css",
+            "./dist/index.css"
         ],
     ]);
     await copyDirectory('./examples', './dist/examples');

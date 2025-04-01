@@ -1,0 +1,14 @@
+:root {
+    color-scheme: dark;
+    user-select: none;
+    font-family: serif;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    height: 100dvh;
+    width: 100dvw;
+    overflow: hidden;
+    background-color: #0a0a0b;
+}

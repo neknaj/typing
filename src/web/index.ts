@@ -1,11 +1,30 @@
-import init, { greet } from './typing_lib.js';
+import { elm, textelm } from './cdom.js';
+import { initlayout } from "./layout.js";
 
-async function run() {
-  await init(); // Wasmモジュールの初期化
-  console.log(greet('World')); // Rustで書いた関数を呼び出し
+import initWasm, { greet } from './typing_lib.js';
+
+async function init() {
+    await initWasm(); // Wasmモジュールの初期化
+    console.log(greet('World')); // Rustで書いた関数を呼び出し
+    initlayout(
+        document.querySelector("#layoutroot"),
+        ["h",[5,2],[
+            ["v",[2,1],[
+                ["c","moduleInfo"],
+                ["c","tsTranspiled"],
+            ]],
+            ["v",[3,3],[
+                ["c","errMsgArea"],
+                ["c","testResult"],
+            ]]
+        ]],
+    );
+    render();
 }
 
-run();
+
+function render() {
+}
 
 
-console.log("hello world from TypeScript!")
+window.addEventListener("load",init);
