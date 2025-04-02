@@ -6,14 +6,12 @@ use crate::parser::Content;
 
 #[derive(Serialize, Deserialize, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
-#[serde(tag = "type")]
 pub enum MenuMsg {
     SelectContent(Content),
 }
 
 #[derive(Serialize, Deserialize, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
-#[serde(tag = "type")]
 pub enum TypingMsg {
     StartTyping,
     UpdateInput(String),
@@ -25,7 +23,6 @@ pub enum TypingMsg {
 
 #[derive(Serialize, Deserialize, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
-#[serde(tag = "type")]
 pub enum PauseMsg {
     Resume,
     Cancel,
@@ -33,7 +30,6 @@ pub enum PauseMsg {
 
 #[derive(Serialize, Deserialize, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
-#[serde(tag = "type")]
 pub enum ResultMsg {
     BackToMenu,
 }
@@ -41,7 +37,6 @@ pub enum ResultMsg {
 // Top-level Msg enum aggregates all screen-specific messages.
 #[derive(Serialize, Deserialize, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
-#[serde(tag = "type")]
 pub enum Msg {
     Menu(MenuMsg),
     Typing(TypingMsg),
