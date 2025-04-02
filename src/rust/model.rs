@@ -3,11 +3,13 @@
 use serde::{Serialize, Deserialize};
 use ts_rs::TS;
 use crate::parser::Content;
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Clone, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
 pub struct MenuModel {
     pub available_contents: Vec<Content>,
+    pub layout: TextConvert,
     pub error_messages: Vec<ErrorMsg>,
 }
 
@@ -16,6 +18,7 @@ pub struct MenuModel {
 pub struct TypingStartModel {
     pub content: Content,
     pub available_contents: Vec<Content>,
+    pub layout: TextConvert,
 }
 
 #[derive(Serialize, Deserialize, Clone, TS)]
@@ -25,6 +28,8 @@ pub struct TypingModel {
     pub user_input: Vec<TypingSession>,
     pub status: TypingStatus,
     pub available_contents: Vec<Content>,
+    pub layout: TextConvert,
+    pub keyboard_remapping: KeyboardRemapping,
 }
 
 #[derive(Serialize, Deserialize, Clone, TS)]
@@ -81,6 +86,18 @@ pub struct TypingInput {
 #[derive(Serialize, Deserialize, Clone, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
 pub struct ErrorMsg {
-    pub content: String,
+    pub message: String,
     pub timestamp: f64,
+}
+
+#[derive(Serialize, Deserialize, Clone, TS)]
+#[ts(export, export_to = "../src/web/model.ts")]
+pub struct TextConvert {
+    pub mapping: HashMap<String, Vec<String>>,
+}
+
+#[derive(Serialize, Deserialize, Clone, TS)]
+#[ts(export, export_to = "../src/web/model.ts")]
+pub struct KeyboardRemapping {
+    pub mapping: HashMap<String, String>,
 }

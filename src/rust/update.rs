@@ -4,8 +4,9 @@ use wasm_bindgen::prelude::*;
 use js_sys::Date;
 use serde::Serialize;
 use serde::Deserialize;
+use std::collections::HashMap;
 use crate::console_log;
-use crate::model::{Model, MenuModel, TypingStartModel, TypingModel, PauseModel, ResultModel, TypingStatus};
+use crate::model::{Model, MenuModel, TypingStartModel, TypingModel, PauseModel, ResultModel, TypingStatus, TextConvert, ErrorMsg, KeyboardRemapping};
 use crate::msg::{Msg, MenuMsg, TypingStartMsg, TypingMsg, PauseMsg, ResultMsg};
 use crate::jsapi::{file_get};
 use crate::parser::{parse_problem, Content};
@@ -24,6 +25,7 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
                 MenuMsg::SelectContent(content) => {
                     Model::TypingStart(TypingStartModel {
                         content,
+                        layout: _menu_model.layout,
                         available_contents: _menu_model.available_contents,
                     })
                 },
@@ -46,11 +48,16 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
                         user_input: vec![],
                         status: TypingStatus { line: 0, segment: 0, char_: 0 },
                         available_contents: _typing_start_model.available_contents,
+                        layout: _typing_start_model.layout,
+                        keyboard_remapping: KeyboardRemapping {
+                            mapping: HashMap::new(),
+                        },
                     })
                 },
                 TypingStartMsg::Cancel => {
                     Model::Menu(MenuModel {
                         available_contents: _typing_start_model.available_contents,
+                        layout: _typing_start_model.layout,
                         error_messages: vec![],
                     })
                 },
@@ -59,7 +66,6 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
         (Model::Typing(mut typing_model), Msg::Typing(typing_msg)) => {
             match typing_msg {
                 TypingMsg::UpdateInput(new_input) => {
-                    // typing_model.user_input = new_input;
                     Model::Typing(typing_model)
                 },
                 TypingMsg::Pause => {
@@ -80,6 +86,7 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
                 PauseMsg::Cancel => {
                     Model::Menu(MenuModel {
                         available_contents: pause_model.typing_model.available_contents,
+                        layout: pause_model.typing_model.layout,
                         error_messages: vec![],
                     })
                 },
@@ -90,6 +97,7 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
                 ResultMsg::BackToMenu => {
                     Model::Menu(MenuModel {
                         available_contents: _result_model.typing_model.available_contents,
+                        layout: _result_model.typing_model.layout,
                         error_messages: vec![],
                     })
                 },
@@ -103,10 +111,31 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
 
 #[wasm_bindgen]
 pub async fn new_model() -> Result<JsValue, JsValue> {
-    let menu_model = MenuModel {
-        available_contents: vec![],
-        error_messages: vec![],
-    };
-    let model = Model::Menu(menu_model);
-    JsValue::from_serde(&model).map_err(|e| e.to_string().into())
+    match file_get("./layouts/japanese.json").await {
+        Ok(json_str) => {
+            // JSONをHashMapとしてパース
+            let layout: HashMap<String, Vec<String>> = serde_json::from_str(&json_str)
+                .map_err(|e| e.to_string())?;
+
+            let menu_model = MenuModel {
+                available_contents: vec![],
+                error_messages: vec![],
+                layout: TextConvert { mapping: layout },
+            };
+            let model = Model::Menu(menu_model);
+            JsValue::from_serde(&model).map_err(|e| e.to_string().into())
+        },
+        Err(error_code) => {
+            let menu_model = MenuModel {
+                available_contents: vec![],
+                error_messages: vec![ErrorMsg {
+                    message: format!("Error loading layout: {}", error_code),
+                    timestamp: Date::now(),
+                }],
+                layout: TextConvert { mapping: HashMap::new() },
+            };
+            let model = Model::Menu(menu_model);
+            JsValue::from_serde(&model).map_err(|e| e.to_string().into())
+        }
+    }
 }
