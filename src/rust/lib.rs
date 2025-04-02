@@ -1,7 +1,6 @@
 // lib.rs
 #![cfg(feature = "web")]
 
-
 mod model;
 mod msg;
 mod update;

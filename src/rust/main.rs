@@ -1,4 +1,4 @@
 // main.rs
-#[cfg(not(feature = "web"))]
+// #[cfg(not(feature = "web"))]
 
 fn main() {}

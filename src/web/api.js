@@ -8,3 +8,8 @@ export async function file_get(file_path) {
     const text = await response.text();
     return { value: text };
 }
+
+export function console_log(json) {
+    console.log(...JSON.parse(json));
+    return true;
+}

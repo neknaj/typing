@@ -4,12 +4,14 @@ use wasm_bindgen::prelude::*;
 use js_sys::Date;
 use serde::Serialize;
 use serde::Deserialize;
+use crate::console_log;
 use crate::model::{Model, MenuModel, TypingModel, PauseModel, ResultModel};
 use crate::msg::{Msg, MenuMsg, TypingMsg, PauseMsg, ResultMsg};
 use crate::jsapi::{file_get};
 use crate::parser::{parse_problem, Content};
 use wasm_bindgen_futures::JsFuture;
 use js_sys::Promise;
+use ts_rs::TS;
 
 #[wasm_bindgen]
 pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
@@ -24,6 +26,7 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
                         content,
                         user_input: String::new(),
                         start_time: None,
+                        available_contents: _menu_model.available_contents,
                     })
                 },
             }
@@ -54,7 +57,8 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
                 },
                 TypingMsg::Cancel => {
                     Model::Menu(MenuModel {
-                        available_contents: vec![parse_problem("Sample text")],
+                        available_contents: typing_model.available_contents,
+                        error_messages: vec![],
                     })
                 },
                 TypingMsg::Tick => {
@@ -69,7 +73,8 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
                 },
                 PauseMsg::Cancel => {
                     Model::Menu(MenuModel {
-                        available_contents: vec![parse_problem("Sample text")],
+                        available_contents: pause_model.typing_model.available_contents,
+                        error_messages: vec![],
                     })
                 },
             }
@@ -78,7 +83,8 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
             match result_msg {
                 ResultMsg::BackToMenu => {
                     Model::Menu(MenuModel {
-                        available_contents: vec![parse_problem("Sample text")],
+                        available_contents: _result_model.typing_model.available_contents,
+                        error_messages: vec![],
                     })
                 },
             }
@@ -91,19 +97,23 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
 
 #[wasm_bindgen]
 pub async fn new_model() -> Result<JsValue, JsValue> {
+    
+    console_log!(Model::inline());
+    
     match file_get("./examples/iroha.ntq").await {
         Ok(file_content) => {
             let content = parse_problem(&file_content);
             let menu_model = MenuModel {
                 available_contents: vec![content],
+                error_messages: vec![],
             };
             let model = Model::Menu(menu_model);
             JsValue::from_serde(&model).map_err(|e| e.to_string().into())
         },
         Err(error_code) => {
-            let default_content = parse_problem("#title Error Loading");
             let menu_model = MenuModel {
-                available_contents: vec![default_content],
+                available_contents: vec![],
+                error_messages: vec![],
             };
             let model = Model::Menu(menu_model);
             JsValue::from_serde(&model).map_err(|e| e.to_string().into())

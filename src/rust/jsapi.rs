@@ -14,6 +14,8 @@ enum FileGetResponse {
 extern "C" {
     #[wasm_bindgen(js_name = file_get)]
     async fn file_get_js(file_path: &str) -> JsValue;
+    #[wasm_bindgen(js_name = console_log)]
+    pub fn console_log_js(JSON: &str) -> JsValue;
 }
 
 /**
@@ -51,4 +53,18 @@ pub async fn file_get(file_path: &str) -> Result<String, i32> {
         FileGetResponse::Success { value, .. } => Ok(value),
         FileGetResponse::Failure { error, .. } => Err(error),
     }
+}
+
+
+
+#[macro_export]
+macro_rules! console_log {
+    ( $( $val:expr ),+ $(,)? ) => {{
+         // Convert each expression to a serde_json::Value and collect them into a vector.
+        let values: Vec<serde_json::Value> = vec![
+            $( serde_json::to_value($val).unwrap() ),+
+        ];
+        // Serialize the vector into a JSON array string.
+        crate::jsapi::console_log_js(&serde_json::to_string(&values).unwrap());
+    }};
 }

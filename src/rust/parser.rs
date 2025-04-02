@@ -1,20 +1,21 @@
 // parser.rs
 
 use serde::{Serialize, Deserialize};
+use ts_rs::TS;
 
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, TS)]
 pub struct Content {
     pub title: String,
     pub lines: Vec<Line>,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, TS)]
 pub struct Line {
     pub segments: Vec<Segment>,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, TS)]
 pub enum Segment {
     Plain(String),
     Annotated { base: String, reading: String },

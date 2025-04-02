@@ -18,12 +18,13 @@ async function init() {
             ]]
         ]],
     );
-    console.log(await new_model());
-    render();
+    let model = await new_model();
+    console.log(model);
+    render(model);
 }
 
 
-function render() {
+function render(model) {
 }
 
 
