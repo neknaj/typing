@@ -24,5 +24,6 @@ crate-type = ["cdylib"]
 path = "src/rust/lib.rs"
 
 [features]
+default = ["native"]
 web = ["wasm-bindgen"]
 native = []

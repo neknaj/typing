@@ -1,11 +1,13 @@
-// src/msg.rs
+// msg.rs
 
 use serde::{Serialize, Deserialize};
+
+use crate::parser::Content;
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum MenuMsg {
-    SelectContent(String),
+    SelectContent(Content),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -16,6 +18,7 @@ pub enum TypingMsg {
     Pause,
     Finish,
     Cancel,
+    Tick,
 }
 
 #[derive(Serialize, Deserialize)]

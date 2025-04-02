@@ -1,4 +1,4 @@
-// src/jsapi.rs
+// jsapi.rs
 
 use wasm_bindgen::prelude::*;
 use serde::Deserialize;
