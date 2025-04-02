@@ -56,7 +56,7 @@ pub async fn file_get(file_path: &str) -> Result<String, i32> {
 }
 
 
-
+/// Javascriptのconsole.log
 #[macro_export]
 macro_rules! console_log {
     ( $( $val:expr ),+ $(,)? ) => {{
@@ -67,4 +67,27 @@ macro_rules! console_log {
         // Serialize the vector into a JSON array string.
         crate::jsapi::console_log_js(&serde_json::to_string(&values).unwrap());
     }};
+}
+
+
+// debug時のみ有効なやつ
+
+/// デバッグビルド時のみ、指定されたコード `code` を実行します。  
+/// リリースビルドでは無視されます。  
+///
+/// ## Examples
+///
+/// ```
+/// debug! {
+///     println!("This is a debug message.");
+/// }
+/// ```
+#[macro_export]
+macro_rules! debug {
+    ($($code:tt)*) => {
+        #[cfg(debug_assertions)]
+        {
+            $($code)*
+        }
+    };
 }

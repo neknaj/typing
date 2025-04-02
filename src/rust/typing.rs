@@ -1,16 +1,20 @@
 // typing.rs
 
-use crate::console_log;
+use crate::{console_log, debug};
 use crate::model::TypingModel;
 use crate::parser::Segment;
 
 pub fn key_input(model_: TypingModel,input: String) -> TypingModel {
-    console_log!("key_input", input);
+    debug! {
+        console_log!("key_input", input);
+    }
     let remaining = match &model_.content.lines[model_.status.line as usize].segments[model_.status.segment as usize] {
         Segment::Plain { text } => text,
         Segment::Annotated { base, reading } => reading,
     };
-    console_log!("remaining", remaining);
+    debug! {
+        console_log!("remaining", remaining);
+    }
 
     let mut expect = Vec::new();
     for (key,value) in model_.layout.mapping.iter() {
@@ -27,7 +31,9 @@ pub fn key_input(model_: TypingModel,input: String) -> TypingModel {
             expect.push(value);
         }
     }
-    console_log!("expect", expect);
+    debug! {
+        console_log!("expect", expect);
+    }
 
     model_
 }

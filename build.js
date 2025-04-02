@@ -33,7 +33,7 @@ function buildTS() {
     }).catch(() => process.exit(1));
 }
 
-async function buildRust() {
+async function buildRust(args) {
     try {
         // wasm-packコマンドを実行
         const { stdout, stderr } = await execPromise('cargo test --features web');
@@ -48,12 +48,14 @@ async function buildRust() {
         throw error.statusCode;
     }
     try {
+        let flag = args.includes("--release")? "--release" : "--debug";
         // wasm-packコマンドを実行
-        const { stdout, stderr } = await execPromise('wasm-pack build --target web --no-default-features --features web');
+        const { stdout, stderr } = await execPromise('wasm-pack build '+flag+' --target web --no-default-features --features web');
         process.stdout.write(stdout);
         if (stderr) {
             process.stderr.write(stderr);
         }
+        console.log(flag)
         console.log('Wasm build complete!');
         return true;
     } catch (error) {
@@ -118,7 +120,7 @@ async function main() {
     const args = process.argv.slice(2);
     makedir();
     if (!args.includes("-tsonly")) {
-        await buildRust();
+        await buildRust(args);
     }
     await copyFiles([
         [
