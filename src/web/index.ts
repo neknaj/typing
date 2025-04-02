@@ -52,6 +52,10 @@ function render(model: Model) {
             ))
         );
     }
+    if (model.type == "TypingStart") {
+        main.Add(elm("h1",{},[textelm(model.content.title)]))
+            .Add(elm("h2",{},[textelm("Press Space to start typing")]));
+    }
 }
 
 

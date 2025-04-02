@@ -13,10 +13,17 @@ pub struct MenuModel {
 
 #[derive(Serialize, Deserialize, Clone, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
+pub struct TypingStartModel {
+    pub content: Content,
+    pub available_contents: Vec<Content>,
+}
+
+#[derive(Serialize, Deserialize, Clone, TS)]
+#[ts(export, export_to = "../src/web/model.ts")]
 pub struct TypingModel {
     pub content: Content,
-    pub user_input: String,
-    pub start_time: Option<f64>,
+    pub user_input: Vec<TypingSession>,
+    pub status: TypingStatus,
     pub available_contents: Vec<Content>,
 }
 
@@ -30,9 +37,9 @@ pub struct PauseModel {
 #[ts(export, export_to = "../src/web/model.ts")]
 pub struct ResultModel {
     pub typing_model: TypingModel,
-    pub start_time: Option<f64>,
-    pub end_time: Option<f64>,
-    pub pause_time: Option<f64>,
+    // pub start_time: Option<f64>,
+    // pub end_time: Option<f64>,
+    // pub pause_time: Option<f64>,
 }
 
 // ------------------------------------
@@ -44,6 +51,7 @@ pub struct ResultModel {
 #[serde(tag = "type")]
 pub enum Model {
     Menu(MenuModel),
+    TypingStart(TypingStartModel),
     Typing(TypingModel),
     Pause(PauseModel),
     Result(ResultModel),
@@ -54,7 +62,20 @@ pub enum Model {
 pub struct TypingStatus {
     pub line: i32,
     pub segment: i32,
-    pub char: i32,
+    pub char_: i32,
+}
+
+#[derive(Serialize, Deserialize, Clone, TS)]
+#[ts(export, export_to = "../src/web/model.ts")]
+pub struct TypingSession {
+    pub inputs: Vec<TypingInput>,
+}
+#[derive(Serialize, Deserialize, Clone, TS)]
+#[ts(export, export_to = "../src/web/model.ts")]
+pub struct TypingInput {
+    pub key: char,
+    pub timestamp: f64,
+    pub is_correct: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone, TS)]

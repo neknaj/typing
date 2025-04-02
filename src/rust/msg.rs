@@ -12,8 +12,14 @@ pub enum MenuMsg {
 
 #[derive(Serialize, Deserialize, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
-pub enum TypingMsg {
+pub enum TypingStartMsg {
     StartTyping,
+    Cancel,
+}
+
+#[derive(Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../src/web/model.ts")]
+pub enum TypingMsg {
     UpdateInput(String),
     Pause,
     Finish,
@@ -40,6 +46,7 @@ pub enum ResultMsg {
 pub enum Msg {
     Menu(MenuMsg),
     Typing(TypingMsg),
+    TypingStart(TypingStartMsg),
     Pause(PauseMsg),
     Result(ResultMsg),
 }

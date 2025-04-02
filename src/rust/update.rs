@@ -5,8 +5,8 @@ use js_sys::Date;
 use serde::Serialize;
 use serde::Deserialize;
 use crate::console_log;
-use crate::model::{Model, MenuModel, TypingModel, PauseModel, ResultModel};
-use crate::msg::{Msg, MenuMsg, TypingMsg, PauseMsg, ResultMsg};
+use crate::model::{Model, MenuModel, TypingStartModel, TypingModel, PauseModel, ResultModel, TypingStatus};
+use crate::msg::{Msg, MenuMsg, TypingStartMsg, TypingMsg, PauseMsg, ResultMsg};
 use crate::jsapi::{file_get};
 use crate::parser::{parse_problem, Content};
 use wasm_bindgen_futures::JsFuture;
@@ -22,24 +22,35 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
         (Model::Menu(_menu_model), Msg::Menu(menu_msg)) => {
             match menu_msg {
                 MenuMsg::SelectContent(content) => {
-                    Model::Typing(TypingModel {
+                    Model::TypingStart(TypingStartModel {
                         content,
-                        user_input: String::new(),
-                        start_time: None,
                         available_contents: _menu_model.available_contents,
+                    })
+                },
+            }
+        },
+        (Model::TypingStart(_typing_start_model), Msg::TypingStart(typing_start_msg)) => {
+            match typing_start_msg {
+                TypingStartMsg::StartTyping => {
+                    Model::Typing(TypingModel {
+                        content: _typing_start_model.content,
+                        user_input: vec![],
+                        status: TypingStatus { line: 0, segment: 0, char_: 0 },
+                        available_contents: _typing_start_model.available_contents,
+                    })
+                },
+                TypingStartMsg::Cancel => {
+                    Model::Menu(MenuModel {
+                        available_contents: _typing_start_model.available_contents,
+                        error_messages: vec![],
                     })
                 },
             }
         },
         (Model::Typing(mut typing_model), Msg::Typing(typing_msg)) => {
             match typing_msg {
-                TypingMsg::StartTyping => {
-                    typing_model.start_time = Some(Date::now());
-                    typing_model.user_input.clear();
-                    Model::Typing(typing_model)
-                },
                 TypingMsg::UpdateInput(new_input) => {
-                    typing_model.user_input = new_input;
+                    // typing_model.user_input = new_input;
                     Model::Typing(typing_model)
                 },
                 TypingMsg::Pause => {
@@ -50,9 +61,9 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
                 TypingMsg::Finish => {
                     Model::Result(ResultModel {
                         typing_model: typing_model.clone(),
-                        start_time: typing_model.start_time,
-                        end_time: Some(Date::now()),
-                        pause_time: None,
+                        // start_time: typing_model.start_time,
+                        // end_time: Some(Date::now()),
+                        // pause_time: None,
                     })
                 },
                 TypingMsg::Cancel => {
