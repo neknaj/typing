@@ -97,9 +97,6 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
 
 #[wasm_bindgen]
 pub async fn new_model() -> Result<JsValue, JsValue> {
-    
-    console_log!(Model::inline());
-    
     match file_get("./examples/iroha.ntq").await {
         Ok(file_content) => {
             let content = parse_problem(&file_content);

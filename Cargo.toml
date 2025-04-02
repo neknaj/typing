@@ -9,11 +9,11 @@ path = "src/rust/main.rs"
 [dependencies]
 wasm-bindgen = { version = "0.2.100", features = ["serde-serialize"] , optional = true}
 wasm-bindgen-futures = "0.4"
-serde = { version = "1.0", features = ["derive"] }
+serde = { version = "1.0", features = ["derive","rc"] }
 serde_json = "1.0"
 serde-wasm-bindgen = "0.6.5"
 js-sys = "0.3"
-ts-rs = "10.1.0"
+ts-rs = { version = "10.1.0", features = ["serde-compat", "uuid-impl"] }
 
 [[bin]]
 name = "typing_bin"

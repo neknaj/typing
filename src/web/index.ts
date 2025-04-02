@@ -1,5 +1,6 @@
 import { elm, textelm } from './cdom.js';
 import { initlayout } from "./layout.js";
+import { Model } from "./model.js";
 
 import initWasm, { new_model, update } from './typing_lib.js';
 
@@ -18,13 +19,14 @@ async function init() {
             ]]
         ]],
     );
-    let model = await new_model();
+    let model = await new_model() as Model;
     console.log(model);
     render(model);
 }
 
 
-function render(model) {
+function render(model: Model) {
+    console.log(model.type);
 }
 
 

@@ -9,6 +9,7 @@
 /src/web/typing_lib.js
 /src/web/snippets
 # /src/web/layout.js
+/src/web/model.ts
 
 # dist
 /dist

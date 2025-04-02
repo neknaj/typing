@@ -36,6 +36,19 @@ function buildTS() {
 async function buildRust() {
     try {
         // wasm-packコマンドを実行
+        const { stdout, stderr } = await execPromise('cargo test --features web');
+        process.stdout.write(stdout);
+        if (stderr) {
+            process.stderr.write(stderr);
+        }
+    } catch (error) {
+        // エラーオブジェクトから終了コードを取得
+        process.stderr.write(error.message+"\n");
+        process.stderr.write(error.statusCode+"\n");
+        throw error.statusCode;
+    }
+    try {
+        // wasm-packコマンドを実行
         const { stdout, stderr } = await execPromise('wasm-pack build --target web --no-default-features --features web');
         process.stdout.write(stdout);
         if (stderr) {

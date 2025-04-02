@@ -3,19 +3,21 @@
 use serde::{Serialize, Deserialize};
 use ts_rs::TS;
 
-
 #[derive(Serialize, Deserialize, Clone, TS)]
+#[ts(export, export_to = "../src/web/model.ts")]
 pub struct Content {
     pub title: String,
     pub lines: Vec<Line>,
 }
 
 #[derive(Serialize, Deserialize, Clone, TS)]
+#[ts(export, export_to = "../src/web/model.ts")]
 pub struct Line {
     pub segments: Vec<Segment>,
 }
 
 #[derive(Serialize, Deserialize, Clone, TS)]
+#[ts(export, export_to = "../src/web/model.ts")]
 pub enum Segment {
     Plain(String),
     Annotated { base: String, reading: String },
