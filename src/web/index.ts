@@ -53,6 +53,44 @@ function view(model: Model) {
                 }
             ))
         );
+
+        // File input in sub1 for local file loading
+        sub2.Add(elm("h2", {}, [textelm("Load a file from your computer")]));
+        sub2.Add(elm("input", { type: "file", id: "file-input" },[]));
+
+        // URL input and button in sub1 for remote file loading via Fetch API
+        sub2.Add(elm("h2", {}, [textelm("Or enter a URL to load content")]));
+        sub2.Add(elm("input", { type: "text", id: "url-input", placeholder: "Enter URL" },[]));
+        sub2.Add(
+            elm("button", {}, [textelm("Fetch Content")]).Listen("click", async () => {
+                const urlInput = document.getElementById("url-input") as HTMLInputElement;
+                const url = urlInput.value;
+                if (url) {
+                    try {
+                        const response = await fetch(url);
+                        const text = await response.text();
+                        msg({ "Menu": { "AddContent": text } });
+                    } catch (error) {
+                        console.error("Fetch error:", error);
+                    }
+                }
+            })
+        );
+
+        // Add event listener for file input changes
+        const fileInput = document.getElementById("file-input") as HTMLInputElement;
+        fileInput.addEventListener("change", () => {
+            const files = fileInput.files;
+            if (files && files.length > 0) {
+                const file = files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const text = e.target?.result;
+                    msg({ "Menu": { "AddContent": text } });
+                };
+                reader.readAsText(file);
+            }
+        });
     }
     if (model.type == "TypingStart") {
         main.Add(elm("h1",{},[textelm(model.content.title)]))
@@ -68,6 +106,20 @@ function view(model: Model) {
                 }
             };
     }
+    if (model.type == "Pause") {
+        main.Add(elm("h1",{},[textelm("Paused")]))
+        .Add(elm("h2",{},[textelm("Press Space to resume typing")]))
+        .Add(elm("h2",{},[textelm("Press Escape to Finish")]));
+        main.onkeydown = (e: KeyboardEvent)=>{
+                console.log("keydown",e.key);
+                if (e.key == " ") {
+                    msg({ "Pause": "Resume" });
+                }
+                if (e.key == "Escape") {
+                    msg({ "Pause": "Cancel" });
+                }
+            };
+    }
     if (model.type == "Typing") {
         main.Add(elm("h1",{},[textelm(model.content.title)]))
             .Add(elm("h2",{},model.content.lines[model.status.line].segments.map((seg: Segment,i)=>{
@@ -79,6 +131,9 @@ function view(model: Model) {
             })));
         main.onkeydown = (e: KeyboardEvent)=>{
                 console.log("keydown",e.key);
+                if (e.key == "Escape") {
+                    msg({ "Typing": "Pause" });
+                }
             };
     }
 }

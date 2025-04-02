@@ -27,6 +27,15 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
                         available_contents: _menu_model.available_contents,
                     })
                 },
+                MenuMsg::AddContent(file_content) => {
+                    let content = parse_problem(&file_content);
+                    let mut new_contents = _menu_model.available_contents;
+                    new_contents.push(content);
+                    Model::Menu(MenuModel {
+                        available_contents: new_contents,
+                        .._menu_model
+                    })
+                },
             }
         },
         (Model::TypingStart(_typing_start_model), Msg::TypingStart(typing_start_msg)) => {
@@ -56,20 +65,6 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
                 TypingMsg::Pause => {
                     Model::Pause(PauseModel {
                         typing_model,
-                    })
-                },
-                TypingMsg::Finish => {
-                    Model::Result(ResultModel {
-                        typing_model: typing_model.clone(),
-                        // start_time: typing_model.start_time,
-                        // end_time: Some(Date::now()),
-                        // pause_time: None,
-                    })
-                },
-                TypingMsg::Cancel => {
-                    Model::Menu(MenuModel {
-                        available_contents: typing_model.available_contents,
-                        error_messages: vec![],
                     })
                 },
                 TypingMsg::Tick => {
@@ -108,23 +103,10 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
 
 #[wasm_bindgen]
 pub async fn new_model() -> Result<JsValue, JsValue> {
-    match file_get("./examples/iroha.ntq").await {
-        Ok(file_content) => {
-            let content = parse_problem(&file_content);
-            let menu_model = MenuModel {
-                available_contents: vec![content],
-                error_messages: vec![],
-            };
-            let model = Model::Menu(menu_model);
-            JsValue::from_serde(&model).map_err(|e| e.to_string().into())
-        },
-        Err(error_code) => {
-            let menu_model = MenuModel {
-                available_contents: vec![],
-                error_messages: vec![],
-            };
-            let model = Model::Menu(menu_model);
-            JsValue::from_serde(&model).map_err(|e| e.to_string().into())
-        }
-    }
+    let menu_model = MenuModel {
+        available_contents: vec![],
+        error_messages: vec![],
+    };
+    let model = Model::Menu(menu_model);
+    JsValue::from_serde(&model).map_err(|e| e.to_string().into())
 }

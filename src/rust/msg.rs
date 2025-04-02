@@ -7,6 +7,7 @@ use crate::parser::Content;
 #[derive(Serialize, Deserialize, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
 pub enum MenuMsg {
+    AddContent(String),
     SelectContent(Content),
 }
 
@@ -22,8 +23,6 @@ pub enum TypingStartMsg {
 pub enum TypingMsg {
     UpdateInput(String),
     Pause,
-    Finish,
-    Cancel,
     Tick,
 }
 
