@@ -18,8 +18,9 @@ pub struct Line {
 
 #[derive(Serialize, Deserialize, Clone, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
+#[serde(tag = "type")]
 pub enum Segment {
-    Plain(String),
+    Plain { text: String },
     Annotated { base: String, reading: String },
 }
 
@@ -60,7 +61,7 @@ fn parse_line(line: &str) -> Vec<Segment> {
                 literal.push(chars[pos]);
                 pos += 1;
             }
-            segments.push(Segment::Plain(literal));
+            segments.push(Segment::Plain { text: literal });
         } else if chars[pos] == '(' {
             // Parse an annotated segment starting with '('
             let (annotated, new_pos) = parse_annotated(&chars, pos);
@@ -83,7 +84,7 @@ fn parse_line(line: &str) -> Vec<Segment> {
                 }
             }
             if !plain.is_empty() {
-                segments.push(Segment::Plain(plain));
+                segments.push(Segment::Plain { text: plain });
             }
         }
     }

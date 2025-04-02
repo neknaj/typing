@@ -2,6 +2,8 @@
     color-scheme: dark;
     user-select: none;
     font-family: serif;
+    --background-color: #090c16;
+    --text-color: #ffffff;
 }
 
 body {
@@ -10,5 +12,18 @@ body {
     height: 100dvh;
     width: 100dvw;
     overflow: hidden;
-    background-color: #0a0a0b;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+/* Styling the div */
+#main {
+    border: 1px solid var(--text-color);
+    text-align: center;
+    cursor: pointer;
+}
+/* Focus style */
+#main:focus {
+    outline: none;
+    border-color: #00ff00;
 }
