@@ -94,7 +94,7 @@ pub struct ErrorMsg {
 #[derive(Serialize, Deserialize, Clone, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
 pub struct TextConvert {
-    pub mapping: HashMap<String, Vec<String>>,
+    pub mapping: Vec<(String, String)>,
 }
 
 #[derive(Serialize, Deserialize, Clone, TS)]

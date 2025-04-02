@@ -114,9 +114,19 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
 pub async fn new_model() -> Result<JsValue, JsValue> {
     match file_get("./layouts/japanese.json").await {
         Ok(json_str) => {
-            // JSONをHashMapとしてパース
-            let layout: HashMap<String, Vec<String>> = serde_json::from_str(&json_str)
+            // JSONをHashMapとして一旦パース
+            let map: HashMap<String, Vec<String>> = serde_json::from_str(&json_str)
                 .map_err(|e| e.to_string())?;
+
+            // HashMapをVec<(String, String)>に変換
+            let layout: Vec<(String, String)> = map.into_iter()
+                .flat_map(|(kana, romaji_list)| {
+                    // 各かなに対する最初のローマ字表記を使用
+                    romaji_list.into_iter()
+                        .take(1)  // 最初の要素のみを使用
+                        .map(move |romaji| (kana.clone(), romaji))
+                })
+                .collect();
 
             let menu_model = MenuModel {
                 available_contents: vec![],
@@ -127,13 +137,14 @@ pub async fn new_model() -> Result<JsValue, JsValue> {
             JsValue::from_serde(&model).map_err(|e| e.to_string().into())
         },
         Err(error_code) => {
+            // エラー時の処理
             let menu_model = MenuModel {
                 available_contents: vec![],
                 error_messages: vec![ErrorMsg {
                     message: format!("Error loading layout: {}", error_code),
                     timestamp: Date::now(),
                 }],
-                layout: TextConvert { mapping: HashMap::new() },
+                layout: TextConvert { mapping: Vec::new() },
             };
             let model = Model::Menu(menu_model);
             JsValue::from_serde(&model).map_err(|e| e.to_string().into())
