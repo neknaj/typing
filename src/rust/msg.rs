@@ -21,7 +21,7 @@ pub enum TypingStartMsg {
 #[derive(Serialize, Deserialize, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
 pub enum TypingMsg {
-    UpdateInput(String),
+    KeyInput(String),
     Pause,
     Tick,
 }

@@ -68,6 +68,7 @@ pub struct TypingStatus {
     pub line: i32,
     pub segment: i32,
     pub char_: i32,
+    pub unconfirmed: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, TS)]

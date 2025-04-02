@@ -10,6 +10,7 @@ use crate::model::{Model, MenuModel, TypingStartModel, TypingModel, PauseModel, 
 use crate::msg::{Msg, MenuMsg, TypingStartMsg, TypingMsg, PauseMsg, ResultMsg};
 use crate::jsapi::{file_get};
 use crate::parser::{parse_problem, Content};
+use crate::typing::key_input;
 use wasm_bindgen_futures::JsFuture;
 use js_sys::Promise;
 use ts_rs::TS;
@@ -46,7 +47,7 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
                     Model::Typing(TypingModel {
                         content: _typing_start_model.content,
                         user_input: vec![],
-                        status: TypingStatus { line: 0, segment: 0, char_: 0 },
+                        status: TypingStatus { line: 0, segment: 0, char_: 0, unconfirmed: Vec::new() },
                         available_contents: _typing_start_model.available_contents,
                         layout: _typing_start_model.layout,
                         keyboard_remapping: KeyboardRemapping {
@@ -65,8 +66,8 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
         },
         (Model::Typing(mut typing_model), Msg::Typing(typing_msg)) => {
             match typing_msg {
-                TypingMsg::UpdateInput(new_input) => {
-                    Model::Typing(typing_model)
+                TypingMsg::KeyInput(input) => {
+                    Model::Typing(key_input(typing_model,input))
                 },
                 TypingMsg::Pause => {
                     Model::Pause(PauseModel {

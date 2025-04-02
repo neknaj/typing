@@ -130,9 +130,12 @@ function view(model: Model) {
                 }
             })));
         main.onkeydown = (e: KeyboardEvent)=>{
-                console.log("keydown",e.key);
+                // console.log("keydown",e.key);
                 if (e.key == "Escape") {
                     msg({ "Typing": "Pause" });
+                }
+                else {
+                    msg({ "Typing": { "KeyInput": e.key } });
                 }
             };
     }

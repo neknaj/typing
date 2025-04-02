@@ -6,6 +6,7 @@ mod msg;
 mod update;
 mod jsapi;
 mod parser;
+mod typing;
 
 pub use update::update;
 pub use update::new_model;
