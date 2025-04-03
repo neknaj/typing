@@ -64,7 +64,7 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
                 },
             }
         },
-        (Model::Typing(mut typing_model), Msg::Typing(typing_msg)) => {
+        (Model::Typing(typing_model), Msg::Typing(typing_msg)) => {
             match typing_msg {
                 TypingMsg::KeyInput(input) => {
                     Model::Typing(key_input(typing_model,input))
@@ -119,14 +119,7 @@ pub async fn new_model() -> Result<JsValue, JsValue> {
                 .map_err(|e| e.to_string())?;
 
             // HashMapをVec<(String, String)>に変換
-            let layout: Vec<(String, String)> = map.into_iter()
-                .flat_map(|(kana, romaji_list)| {
-                    // 各かなに対する最初のローマ字表記を使用
-                    romaji_list.into_iter()
-                        .take(1)  // 最初の要素のみを使用
-                        .map(move |romaji| (kana.clone(), romaji))
-                })
-                .collect();
+            let layout: Vec<(String, Vec<String>)> = map.into_iter().collect();
 
             let menu_model = MenuModel {
                 available_contents: vec![],

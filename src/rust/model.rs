@@ -68,7 +68,7 @@ pub struct TypingStatus {
     pub line: i32,
     pub segment: i32,
     pub char_: i32,
-    pub unconfirmed: Vec<String>,
+    pub unconfirmed: Vec<char>,
 }
 
 #[derive(Serialize, Deserialize, Clone, TS)]
@@ -94,11 +94,11 @@ pub struct ErrorMsg {
 #[derive(Serialize, Deserialize, Clone, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
 pub struct TextConvert {
-    pub mapping: Vec<(String, String)>,
+    pub mapping: Vec<(String, Vec<String>)>,
 }
 
 #[derive(Serialize, Deserialize, Clone, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
 pub struct KeyboardRemapping {
-    pub mapping: HashMap<String, String>,
+    pub mapping: HashMap<char, char>,
 }

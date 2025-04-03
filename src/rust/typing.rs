@@ -4,35 +4,94 @@ use crate::{console_log, debug};
 use crate::model::TypingModel;
 use crate::parser::Segment;
 
-pub fn key_input(model_: TypingModel,input: String) -> TypingModel {
+pub fn key_input(mut model_: TypingModel,input: char) -> TypingModel {
     debug! {
         console_log!("key_input", input);
     }
-    let remaining = match &model_.content.lines[model_.status.line as usize].segments[model_.status.segment as usize] {
+    let remaining_s = match &model_.content.lines[model_.status.line as usize].segments[model_.status.segment as usize] {
         Segment::Plain { text } => text,
         Segment::Annotated { base, reading } => reading,
     };
+    let remaining = remaining_s.chars().collect::<Vec<char>>();
     debug! {
-        console_log!("remaining", remaining);
+        console_log!("remaining", &remaining);
+        console_log!("unconfirmed", &model_.status.unconfirmed);
     }
 
     let mut expect = Vec::new();
     for (key,value) in model_.layout.mapping.iter() {
-        // console_log!("key",key);
-        let mut flag = true;
-        for c in key.chars() {
-            // console_log!(s.to_string());
-            if c!=remaining.chars().nth(model_.status.char_ as usize + model_.status.unconfirmed.len()).unwrap() {
-                flag = false;
-                break;
+        for v in value {
+            // console_log!("key",key);
+            let mut flag = true;
+            for c in key.chars() {
+                // console_log!(s.to_string());
+                if c!=remaining_s.chars().nth(model_.status.char_ as usize).unwrap() {
+                    flag = false;
+                    break;
+                }
             }
-        }
-        if flag {
-            expect.push(value);
+            if flag==false {
+                continue;
+            }
+            for i in 0..model_.status.unconfirmed.len() {
+                if model_.status.unconfirmed[i]!=v.chars().nth(i).unwrap() {
+                    flag = false;
+                    break;
+                }
+            }
+            if flag {
+                expect.push(v.chars().collect::<Vec<char>>());
+            }
         }
     }
     debug! {
-        console_log!("expect", expect);
+        console_log!(format!("expect {:?}",&expect));
+    }
+    for e in expect {
+        if e[model_.status.unconfirmed.len()] == input {
+            // expectに一致
+            if e.len() == model_.status.unconfirmed.len() + 1 {
+                // 完全一致
+                // 1文字進める
+                if remaining.len() == model_.status.char_ as usize + 1 {
+                    if model_.content.lines[model_.status.line as usize].segments.len()==model_.status.segment as usize + 1 {
+                        // lineを進める
+                        model_.status.char_ = 0;
+                        model_.status.segment = 0;
+                        model_.status.line += 1;
+                        model_.status.unconfirmed.clear();
+                    } else {
+                        // segmentを進める
+                        model_.status.char_ = 0;
+                        model_.status.segment += 1;
+                        model_.status.unconfirmed.clear();
+                    }
+                    debug! {
+                        console_log!("correctA1", input);
+                    }
+                } else {
+                    debug! {
+                        console_log!("correctA2", input);
+                    }
+                    // charを進める
+                    model_.status.char_ += 1;
+                    model_.status.unconfirmed.clear();
+                }
+            } else {
+                debug! {
+                    console_log!("correctB", input);
+                }
+                // 一致したが、まだ続く
+                model_.status.unconfirmed.push(e[model_.status.unconfirmed.len()]);
+            }
+            break;
+        }
+    }
+    debug! {
+        console_log!("remaining", remaining);
+        console_log!("unconfirmed", &model_.status.unconfirmed);
+        console_log!(&model_.status.segment);
+        console_log!(&model_.status.char_);
     }
 
     model_
