@@ -82,11 +82,11 @@ p {
     }
     & #main {
         writing-mode: vertical-rl;
-        text-orientation: upright;
+        /* text-orientation: upright; */
     }
     & #sub1 {
         writing-mode: vertical-rl;
-        text-orientation: upright;
+        /* text-orientation: upright; */
     }
     & .activeline {
         & .triangle {
@@ -95,6 +95,9 @@ p {
             height: 1.1em;
         }
         margin-top: -1.1em;
+    }
+    & .unconfirmed, & .wrong {
+        font-size: 80%;
     }
 }
 
@@ -113,5 +116,8 @@ p {
             width: 1.1em;
         }
         margin-left: -1.1em;
+    }
+    & .unconfirmed, & .wrong {
+        font-size: 80%;
     }
 }

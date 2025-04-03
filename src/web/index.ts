@@ -64,11 +64,11 @@ function view(model: Model,layout: "v"|"h") {
         );
 
         // File input in sub1 for local file loading
-        sub2.Add(elm("h2", {}, [textelm("Load a file from your computer")]));
+        sub2.Add(elm("p", {}, [textelm("Load a file from your computer")]));
         sub2.Add(elm("input", { type: "file", id: "file-input" },[]));
 
         // URL input and button in sub1 for remote file loading via Fetch API
-        sub2.Add(elm("h2", {}, [textelm("Or enter a URL to load content")]));
+        sub2.Add(elm("p", {}, [textelm("Or enter a URL to load content")]));
         sub2.Add(elm("input", { type: "text", id: "url-input", placeholder: "Enter URL" },[]));
         sub2.Add(
             elm("button", {}, [textelm("Fetch Content")]).Listen("click", async () => {
@@ -200,7 +200,7 @@ function view(model: Model,layout: "v"|"h") {
                             .split("")
                             .map((c,ci)=>elm("span",{class:model.typing_correctness.lines[model.status.line].segments[model.status.segment].chars[ci].type},[textelm(c)]))
                     ),
-                    elm("span",{},[textelm(model.status.unconfirmed.join(""))]),
+                    elm("span",{class: "unconfirmed"},[textelm(model.status.unconfirmed.join(""))]),
                     elm("span",{class: "cursor"},[]),
                     elm("span",{class: "wrong"},[textelm(model.status.last_wrong_keydown!=null?model.status.last_wrong_keydown:"")]),
                 ]
