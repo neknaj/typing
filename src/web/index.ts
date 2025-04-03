@@ -166,7 +166,7 @@ function view(model: Model,layout: "v"|"h") {
     }
     if (model.type == "Typing") {
         let segment = model.content.lines[model.status.line].segments[model.status.segment];
-        main.Add(elm("h1",{},[textelm(model.content.title)]))
+        main.Add(elm("h1",{},[textelm(model.content.title)])).Add(elm("br",{},[]))
             .Add(elm("p",{class:"typing"},model.content.lines[model.status.line].segments.map((seg: Segment,i)=>{
                 if (seg.type == "Plain") {
                     return elm("span",{},[textelm(seg.text)]);
