@@ -2,7 +2,7 @@
 
 use serde::{Serialize, Deserialize};
 use ts_rs::TS;
-use crate::parser::Content;
+use crate::{parser::Content, typing};
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Clone, TS)]
@@ -25,6 +25,7 @@ pub struct TypingStartModel {
 #[ts(export, export_to = "../src/web/model.ts")]
 pub struct TypingModel {
     pub content: Content,
+    pub typing_correctness: TypingCorrectnessContent,
     pub user_input: Vec<TypingSession>,
     pub status: TypingStatus,
     pub available_contents: Vec<Content>,
@@ -61,6 +62,11 @@ pub enum Model {
     Pause(PauseModel),
     Result(ResultModel),
 }
+
+
+// ------------------------------------
+// Typing
+// ------------------------------------
 
 #[derive(Serialize, Deserialize, Clone, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
@@ -102,4 +108,33 @@ pub struct TextConvert {
 #[ts(export, export_to = "../src/web/model.ts")]
 pub struct KeyboardRemapping {
     pub mapping: HashMap<char, char>,
+}
+
+
+#[derive(Serialize, Deserialize, Clone, TS)]
+#[ts(export, export_to = "../src/web/model.ts")]
+pub struct TypingCorrectnessContent {
+    pub lines: Vec<TypingCorrectnessLine>,
+}
+
+#[derive(Serialize, Deserialize, Clone, TS)]
+#[ts(export, export_to = "../src/web/model.ts")]
+pub struct TypingCorrectnessLine {
+    pub segments: Vec<TypingCorrectnessSegment>,
+}
+
+#[derive(Serialize, Deserialize, Clone, TS)]
+#[ts(export, export_to = "../src/web/model.ts")]
+pub struct TypingCorrectnessSegment {
+    pub chars: Vec<TypingCorrectnessChar>,
+}
+
+
+#[derive(Serialize, Deserialize, Clone, TS)]
+#[ts(export, export_to = "../src/web/model.ts")]
+#[serde(tag = "type")]
+pub enum TypingCorrectnessChar {
+    Pending,
+    Correct,
+    Incorrect,
 }

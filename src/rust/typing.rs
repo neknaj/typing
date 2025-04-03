@@ -1,10 +1,10 @@
 // typing.rs
 
 use crate::{console_log, debug};
-use crate::model::{Model,TypingModel,ResultModel};
-use crate::parser::Segment;
+use crate::model::{Model, TypingModel, ResultModel, TypingCorrectnessContent, TypingSession, TypingCorrectnessLine, TypingCorrectnessSegment, TypingCorrectnessChar};
+use crate::parser::{Content, Line, Segment};
 
-pub fn key_input(mut model_: TypingModel,input: char) -> Model {
+pub fn key_input(mut model_: TypingModel, input: char) -> Model {
     debug! {
         console_log!("key_input", input);
     }
@@ -19,22 +19,22 @@ pub fn key_input(mut model_: TypingModel,input: char) -> Model {
     }
 
     let mut expect = Vec::new();
-    for (key,value) in model_.layout.mapping.iter() {
+    for (key, value) in model_.layout.mapping.iter() {
         for v in value {
             // console_log!("key",key);
             let mut flag = true;
             for c in key.chars() {
                 // console_log!(s.to_string());
-                if c!=remaining_s.chars().nth(model_.status.char_ as usize).unwrap() {
+                if c != remaining_s.chars().nth(model_.status.char_ as usize).unwrap() {
                     flag = false;
                     break;
                 }
             }
-            if flag==false {
+            if flag == false {
                 continue;
             }
             for i in 0..model_.status.unconfirmed.len() {
-                if model_.status.unconfirmed[i]!=v.chars().nth(i).unwrap() {
+                if model_.status.unconfirmed[i] != v.chars().nth(i).unwrap() {
                     flag = false;
                     break;
                 }
@@ -45,7 +45,7 @@ pub fn key_input(mut model_: TypingModel,input: char) -> Model {
         }
     }
     debug! {
-        console_log!(format!("expect {:?}",&expect));
+        console_log!(format!("expect {:?}", &expect));
     }
     let mut is_correct = false;
     let mut is_finished = false;
@@ -58,7 +58,7 @@ pub fn key_input(mut model_: TypingModel,input: char) -> Model {
                 // 完全一致
                 // 1文字進める
                 if remaining.len() == model_.status.char_ as usize + 1 {
-                    if model_.content.lines[model_.status.line as usize].segments.len()==model_.status.segment as usize + 1 {
+                    if model_.content.lines[model_.status.line as usize].segments.len() == model_.status.segment as usize + 1 {
                         if model_.content.lines.len() == model_.status.line as usize + 1 {
                             // typing終了
                             model_.status.char_ = 0;
@@ -89,8 +89,7 @@ pub fn key_input(mut model_: TypingModel,input: char) -> Model {
                 model_.status.unconfirmed.push(e[model_.status.unconfirmed.len()]);
             }
             break;
-        }
-        else {
+        } else {
             model_.status.last_wrong_keydown = Some(input);
         }
     }
@@ -105,8 +104,30 @@ pub fn key_input(mut model_: TypingModel,input: char) -> Model {
         Model::Result(ResultModel {
             typing_model: model_,
         })
-    }
-    else {
+    } else {
         Model::Typing(model_)
     }
+}
+
+// typing正誤の記録をpending状態で新規作成する関数
+pub fn create_typing_correctness_model(content: Content) -> TypingCorrectnessContent {
+    let mut lines = Vec::new();
+    // ContentのLine構造に合わせてTypingCorrectnessLineを作成
+    for line in content.lines {
+        let mut segments = Vec::new();
+        // 各セグメントを処理
+        for segment in line.segments {
+            let target_text = match segment {
+                Segment::Plain { text } => text,
+                Segment::Annotated { base: _, reading } => reading,
+            };
+            // 文字ごとにPending状態で初期化
+            let chars = target_text.chars()
+                .map(|_| TypingCorrectnessChar::Pending)
+                .collect();
+            segments.push(TypingCorrectnessSegment { chars });
+        }
+        lines.push(TypingCorrectnessLine { segments });
+    }
+    TypingCorrectnessContent { lines }
 }

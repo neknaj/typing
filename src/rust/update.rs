@@ -10,6 +10,7 @@ use crate::model::{Model, MenuModel, TypingStartModel, TypingModel, PauseModel, 
 use crate::msg::{Msg, MenuMsg, TypingStartMsg, TypingMsg, PauseMsg, ResultMsg};
 use crate::jsapi::{file_get};
 use crate::parser::{parse_problem, Content};
+use crate::typing;
 use crate::typing::key_input;
 use wasm_bindgen_futures::JsFuture;
 use js_sys::Promise;
@@ -45,7 +46,8 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
             match typing_start_msg {
                 TypingStartMsg::StartTyping => {
                     Model::Typing(TypingModel {
-                        content: _typing_start_model.content,
+                        content: _typing_start_model.clone().content,
+                        typing_correctness: typing::create_typing_correctness_model(_typing_start_model.content),
                         user_input: vec![],
                         status: TypingStatus { line: 0, segment: 0, char_: 0, unconfirmed: Vec::new(), last_wrong_keydown: None },
                         available_contents: _typing_start_model.available_contents,
