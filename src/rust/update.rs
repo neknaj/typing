@@ -173,6 +173,18 @@ pub async fn init_model(to: JsValue) {
 }
 
 #[wasm_bindgen]
+pub async fn add_contents(data: JsValue) {
+    let content: String = data.into_serde().unwrap();
+    let mut model = Module_resource.lock().unwrap();
+    match *model {
+        Model::Menu(ref menu_model) => {
+            *model = update(model.clone(), Msg::Menu(MenuMsg::AddContent(content)));
+        },
+        _ => {}
+    }
+}
+
+#[wasm_bindgen]
 pub fn event_receive_keyboard(event: JsValue) {
     let key: String = event.into_serde().unwrap();
     console_log!(format!("key event {:?}",key));

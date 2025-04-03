@@ -2,7 +2,8 @@ import { elm, textelm } from './cdom.js';
 import { initlayout } from "./layout.js";
 import { Model, Msg, Segment, TextOrientation, TypingCorrectnessSegment, TypingStatus } from "./model.js";
 
-import initWasm, { init_model, event_receive_keyboard, fetch_render_data } from './typing_lib.js';
+import initWasm, { init_model, event_receive_keyboard, fetch_render_data, add_contents } from './typing_lib.js';
+
 
 async function init() {
     const queryString = window.location.search;
@@ -32,6 +33,29 @@ async function init() {
         event_receive_keyboard(e.key);
     })
     render();
+
+    const dropzone = document.querySelector("#layoutroot");
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        }, false);
+    });
+    // Handle drop event
+    dropzone.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const file = files[0];
+            // Only proceed if file is a text file
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    // Log the file content to console
+                    console.log(event.target.result);
+                    add_contents(event.target.result);
+                };
+                reader.readAsText(file);
+        }
+    });
 }
 
 window.addEventListener("load",init);
