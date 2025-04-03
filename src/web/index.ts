@@ -121,6 +121,7 @@ function view(model: Model) {
             };
     }
     if (model.type == "Typing") {
+        let segment = model.content.lines[model.status.line].segments[model.status.segment];
         main.Add(elm("h1",{},[textelm(model.content.title)]))
             .Add(elm("h2",{},model.content.lines[model.status.line].segments.map((seg: Segment,i)=>{
                 if (seg.type == "Plain") {
@@ -128,7 +129,20 @@ function view(model: Model) {
                 } else if (seg.type == "Annotated") {
                     return elm("ruby",{},[elm("rb",{},[textelm(seg.base)]),elm("rt",{},[textelm(seg.reading)])]);
                 }
-            })));
+            })))
+            .Add(elm("h2",{},
+                [
+                    ...model.content.lines[model.status.line].segments.slice(0,model.status.segment).map((seg: Segment,i)=>{
+                        if (seg.type == "Plain") {
+                            return elm("span",{},[textelm(seg.text)]);
+                        } else if (seg.type == "Annotated") {
+                            return elm("ruby",{},[elm("rb",{},[textelm(seg.base)]),elm("rt",{},[textelm(seg.reading)])]);
+                        }
+                    }),
+                    elm("span",{},[textelm((segment.type=="Annotated"?segment.reading:segment.text).slice(0,model.status.char_))]),
+                    elm("span",{},[textelm(model.status.unconfirmed.join(""))]),
+                ]
+            ));
         main.onkeydown = (e: KeyboardEvent)=>{
                 // console.log("keydown",e.key);
                 if (e.key == "Escape") {
