@@ -60,14 +60,28 @@ async function init() {
 
 window.addEventListener("load",init);
 
+// Variables for tracking time and frame count
+let lastFpsUpdate = performance.now();  // Last time FPS was updated
+let frameCount = 0;                     // Counter for rendered frames
+let fps = 0;                            // Current FPS value
+
 function render() {
     let data = JSON.parse(fetch_render_data());
-    console.log("render")
 
     let main = (document.querySelector("#main") as HTMLDivElement).Clear();
     let sub1 = (document.querySelector("#sub1") as HTMLDivElement).Clear();
-    let sub2 = (document.querySelector("#sub2") as HTMLDivElement).Clear();
+    let sub2 = (document.querySelector("#sub2") as HTMLDivElement);
     let sub3 = (document.querySelector("#sub3") as HTMLDivElement).Clear();
+
+    let now = performance.now();
+    frameCount++;
+    // Update the FPS value every 1000 milliseconds (1 second)
+    if (now - lastFpsUpdate >= 1000) {
+        fps = frameCount;
+        frameCount = 0;
+        lastFpsUpdate = now;
+        sub2.Clear().Add(elm("p",{},[textelm("FPS: "),textelm(fps.toString())]))
+    }
     if (data[0] == "Menu") {
         let menu = data[2];
         main.Add(elm("h1",{},[textelm("Neknaj Typing Game")])).Add(
