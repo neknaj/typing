@@ -153,13 +153,14 @@ function render() {
         ]))
         const elements = document.querySelectorAll('.plain, .annotated');
         const lastElement = elements[elements.length-1];
-        let anchor = (elements.length>0?lastElement:document.querySelector(".pendingSegment")).getBoundingClientRect();
+        let anchor1 = (elements.length>0?lastElement:document.querySelector(".pendingSegment")).getBoundingClientRect();
+        let anchor2 = document.querySelector(".cursor").getBoundingClientRect();
         let target = 200;
         if (text_orientation=="Horizontal") {
-            (document.querySelector(".typing_scroll") as HTMLDivElement).style.setProperty("--scroll",`${target-anchor.x}px`);
+            (document.querySelector(".typing_scroll") as HTMLDivElement).style.setProperty("--scroll",`${target-(anchor1.x*2+anchor2.x)/3}px`);
         }
         else {
-            (document.querySelector(".typing_scroll") as HTMLDivElement).style.setProperty("--scroll",`${target-anchor.y}px`);
+            (document.querySelector(".typing_scroll") as HTMLDivElement).style.setProperty("--scroll",`${target-(anchor1.y*2+anchor2.y)/3}px`);
         }
     }
     requestAnimationFrame(render);
