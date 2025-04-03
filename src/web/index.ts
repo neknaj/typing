@@ -20,7 +20,12 @@ async function init() {
         ]],
     );
     let model = await new_model() as Model;
-    view(model);
+    const msg = (msg: Msg) => view(update(model,msg));
+    { // irohaを追加
+        const response = await fetch("./examples/iroha.ntq");
+        const text = await response.text();
+        msg({ "Menu": { "AddContent": text } });
+    }
 }
 
 
