@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
         "target": "es5",
-        "lib": ["dom", "es2015"],
-        "module": "esnext",
+        "lib": ["dom", "ESNext"],
+        "module": "ESNext",
         "moduleResolution": "node",
         "outDir": "./dist",
         "esModuleInterop": true,

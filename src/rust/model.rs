@@ -130,7 +130,7 @@ pub struct TypingCorrectnessSegment {
 }
 
 
-#[derive(Serialize, Deserialize, Clone, TS)]
+#[derive(Serialize, Deserialize, Clone, TS, PartialEq)]
 #[ts(export, export_to = "../src/web/model.ts")]
 #[serde(tag = "type")]
 pub enum TypingCorrectnessChar {

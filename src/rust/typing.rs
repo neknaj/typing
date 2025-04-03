@@ -55,7 +55,13 @@ pub fn key_input(mut model_: TypingModel, input: char) -> Model {
             model_.status.last_wrong_keydown = None;
             // expectに一致
             if e.len() == model_.status.unconfirmed.len() + 1 {
-                // 完全一致
+                // 完全一致時、typing_correctnessを更新
+                let char_pos = model_.status.char_ as usize;
+                let segment = &mut model_.typing_correctness.lines[model_.status.line as usize].segments[model_.status.segment as usize];
+                if segment.chars[char_pos]==TypingCorrectnessChar::Pending {
+                    segment.chars[char_pos] = TypingCorrectnessChar::Correct;
+                }
+
                 // 1文字進める
                 if remaining.len() == model_.status.char_ as usize + 1 {
                     if model_.content.lines[model_.status.line as usize].segments.len() == model_.status.segment as usize + 1 {
@@ -91,6 +97,10 @@ pub fn key_input(mut model_: TypingModel, input: char) -> Model {
             break;
         } else {
             model_.status.last_wrong_keydown = Some(input);
+            // 不正解時、typing_correctnessを更新
+            let char_pos = model_.status.char_ as usize;
+            let segment = &mut model_.typing_correctness.lines[model_.status.line as usize].segments[model_.status.segment as usize];
+            segment.chars[char_pos] = TypingCorrectnessChar::Incorrect;
         }
     }
     debug! {

@@ -160,14 +160,30 @@ function view(model: Model) {
             })))
             .Add(elm("p",{class:"typing"},
                 [
-                    ...model.content.lines[model.status.line].segments.slice(0,model.status.segment).map((seg: Segment,i)=>{
+                    ...model.content.lines[model.status.line].segments.slice(0,model.status.segment).map((seg: Segment,si)=>{
                         if (seg.type == "Plain") {
-                            return elm("span",{},[textelm(seg.text)]);
+                            return elm("span",{class:"plain"},
+                                seg.text.split("").map((c,ci)=>elm("span",{class:model.typing_correctness.lines[model.status.line].segments[si].chars[ci].type},[textelm(c)]))
+                            );
                         } else if (seg.type == "Annotated") {
-                            return elm("ruby",{},[elm("rb",{},[textelm(seg.base)]),elm("rt",{},[textelm(seg.reading)])]);
+                            return elm("ruby",{class:"annotated"},[
+                                elm("rb",{
+                                        class:seg.reading.split("").map((c,ci)=>model.typing_correctness.lines[model.status.line].segments[si].chars[ci].type).includes("Incorrect")?"Incorrect":"Correct"
+                                    },
+                                    [textelm(seg.base)]
+                                ),
+                                elm("rt",{},
+                                    seg.reading.split("")
+                                        .map((c,ci)=>elm("span",{class:model.typing_correctness.lines[model.status.line].segments[si].chars[ci].type},[textelm(c)]))
+                                ),
+                            ]);
                         }
                     }),
-                    elm("span",{},[textelm((segment.type=="Annotated"?segment.reading:segment.text).slice(0,model.status.char_))]),
+                    elm("span",{class:"pendingSegment"},
+                        (segment.type=="Annotated"?segment.reading:segment.text).slice(0,model.status.char_)
+                            .split("")
+                            .map((c,ci)=>elm("span",{class:model.typing_correctness.lines[model.status.line].segments[model.status.segment].chars[ci].type},[textelm(c)]))
+                    ),
                     elm("span",{},[textelm(model.status.unconfirmed.join(""))]),
                     elm("span",{class: "cursor"},[]),
                     elm("span",{class: "wrong"},[textelm(model.status.last_wrong_keydown!=null?model.status.last_wrong_keydown:"")]),
@@ -185,9 +201,9 @@ function view(model: Model) {
             sub2.Add(elm("div",{},model.content.lines.slice(model.status.line).map((line)=>{
                 return elm("p",{},line.segments.map((seg: Segment,i)=>{
                     if (seg.type == "Plain") {
-                        return elm("span",{class:"pending"},[textelm(seg.text)]);
+                        return elm("span",{class:"Pending"},[textelm(seg.text)]);
                     } else if (seg.type == "Annotated") {
-                        return elm("ruby",{class:"pending"},[elm("rb",{},[textelm(seg.base)]),elm("rt",{},[textelm(seg.reading)])]);
+                        return elm("ruby",{class:"Pending"},[elm("rb",{},[textelm(seg.base)]),elm("rt",{},[textelm(seg.reading)])]);
                     }
                 }));
             })));

@@ -10,8 +10,9 @@
     --background-color: #090c16;
     --text-color: #ffffff;
     --text-typing-pending: #6c757d;
-    --text-typing-correct: #3e4383;
-    --text-typing-wrong: #b95151;
+    --text-typing-correct: #9097ff;
+    --text-typing-incorrect: #ff9898;
+    --text-typing-wrong: #f55252;
 }
 
 body {
@@ -45,11 +46,14 @@ body {
     font-size: 50px;
     line-height: 110px;
 }
-.pending {
+.Pending {
     color: var(--text-typing-pending);
 }
-.correct {
+.Correct {
     color: var(--text-typing-correct);
+}
+.Incorrect {
+    color: var(--text-typing-incorrect);
 }
 .wrong {
     color: var(--text-typing-wrong);
