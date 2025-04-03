@@ -67,7 +67,7 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
         (Model::Typing(typing_model), Msg::Typing(typing_msg)) => {
             match typing_msg {
                 TypingMsg::KeyInput(input) => {
-                    Model::Typing(key_input(typing_model,input))
+                    key_input(typing_model,input)
                 },
                 TypingMsg::Pause => {
                     Model::Pause(PauseModel {
@@ -85,10 +85,8 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
                     Model::Typing(pause_model.typing_model)
                 },
                 PauseMsg::Cancel => {
-                    Model::Menu(MenuModel {
-                        available_contents: pause_model.typing_model.available_contents,
-                        layout: pause_model.typing_model.layout,
-                        error_messages: vec![],
+                    Model::Result(ResultModel {
+                        typing_model: pause_model.typing_model,
                     })
                 },
             }
@@ -100,6 +98,13 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
                         available_contents: _result_model.typing_model.available_contents,
                         layout: _result_model.typing_model.layout,
                         error_messages: vec![],
+                    })
+                },
+                ResultMsg::Retry => {
+                    Model::TypingStart(TypingStartModel {
+                        content: _result_model.typing_model.content,
+                        layout: _result_model.typing_model.layout,
+                        available_contents: _result_model.typing_model.available_contents,
                     })
                 },
             }

@@ -9,6 +9,7 @@
     font-style: normal;
     --background-color: #090c16;
     --text-color: #ffffff;
+    --text-typing-pending: #6c757d;
     --text-typing-correct: #3e4383;
     --text-typing-wrong: #b95151;
 }
@@ -23,18 +24,30 @@ body {
     color: var(--text-color);
 }
 
+.layoutcontent {
+    padding: 20px;
+    height: calc(100% - 40px - 2px) !important;
+}
+
 /* Styling the div */
 #main {
-    border: 1px solid var(--text-color);
-    text-align: center;
+    border: 1px solid #c7c3c3;
+    text-align: left;
     cursor: pointer;
 }
 /* Focus style */
 #main:focus {
     outline: none;
-    border-color: #00ff00;
+    border-color: #8bf38b;
 }
 
+.typing {
+    font-size: 50px;
+    line-height: 110px;
+}
+.pending {
+    color: var(--text-typing-pending);
+}
 .correct {
     color: var(--text-typing-correct);
 }
@@ -46,6 +59,6 @@ body {
     display: inline-block;
     width: 2px;
     margin-right: -2px;
-    height: 20px;
+    height: 50px;
     background-color: #fff9;
 }

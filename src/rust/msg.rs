@@ -37,6 +37,7 @@ pub enum PauseMsg {
 #[ts(export, export_to = "../src/web/model.ts")]
 pub enum ResultMsg {
     BackToMenu,
+    Retry,
 }
 
 // Top-level Msg enum aggregates all screen-specific messages.

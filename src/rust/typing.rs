@@ -1,10 +1,10 @@
 // typing.rs
 
 use crate::{console_log, debug};
-use crate::model::TypingModel;
+use crate::model::{Model,TypingModel,ResultModel};
 use crate::parser::Segment;
 
-pub fn key_input(mut model_: TypingModel,input: char) -> TypingModel {
+pub fn key_input(mut model_: TypingModel,input: char) -> Model {
     debug! {
         console_log!("key_input", input);
     }
@@ -63,7 +63,7 @@ pub fn key_input(mut model_: TypingModel,input: char) -> TypingModel {
                             // typing終了
                             model_.status.char_ = 0;
                             model_.status.segment = 0;
-                            model_.status.line = 0;
+                            model_.status.line += 1;
                             model_.status.unconfirmed.clear();
                             is_finished = true;
                         } else {
@@ -101,5 +101,12 @@ pub fn key_input(mut model_: TypingModel,input: char) -> TypingModel {
         console_log!(&model_.status.char_);
     }
 
-    model_
+    if is_finished {
+        Model::Result(ResultModel {
+            typing_model: model_,
+        })
+    }
+    else {
+        Model::Typing(model_)
+    }
 }
