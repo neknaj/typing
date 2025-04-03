@@ -4,6 +4,8 @@
     font-family: serif;
     --background-color: #090c16;
     --text-color: #ffffff;
+    --text-typing-correct: #3e4383;
+    --text-typing-wrong: #b95151;
 }
 
 body {
@@ -26,4 +28,19 @@ body {
 #main:focus {
     outline: none;
     border-color: #00ff00;
+}
+
+.correct {
+    color: var(--text-typing-correct);
+}
+.wrong {
+    color: var(--text-typing-wrong);
+}
+
+.cursor {
+    display: inline-block;
+    width: 2px;
+    margin-right: -2px;
+    height: 20px;
+    background-color: #fff9;
 }

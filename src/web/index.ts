@@ -141,6 +141,8 @@ function view(model: Model) {
                     }),
                     elm("span",{},[textelm((segment.type=="Annotated"?segment.reading:segment.text).slice(0,model.status.char_))]),
                     elm("span",{},[textelm(model.status.unconfirmed.join(""))]),
+                    elm("span",{class: "cursor"},[]),
+                    elm("span",{class: "wrong"},[textelm(model.status.last_wrong_keydown!=null?model.status.last_wrong_keydown:"")]),
                 ]
             ));
         main.onkeydown = (e: KeyboardEvent)=>{

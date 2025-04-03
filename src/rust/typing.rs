@@ -52,6 +52,7 @@ pub fn key_input(mut model_: TypingModel,input: char) -> TypingModel {
     for e in expect {
         if e[model_.status.unconfirmed.len()] == input {
             is_correct = true;
+            model_.status.last_wrong_keydown = None;
             // expectに一致
             if e.len() == model_.status.unconfirmed.len() + 1 {
                 // 完全一致
@@ -88,6 +89,9 @@ pub fn key_input(mut model_: TypingModel,input: char) -> TypingModel {
                 model_.status.unconfirmed.push(e[model_.status.unconfirmed.len()]);
             }
             break;
+        }
+        else {
+            model_.status.last_wrong_keydown = Some(input);
         }
     }
     debug! {

@@ -47,7 +47,7 @@ pub fn update(model_js: JsValue, msg_js: JsValue) -> Result<JsValue, JsValue> {
                     Model::Typing(TypingModel {
                         content: _typing_start_model.content,
                         user_input: vec![],
-                        status: TypingStatus { line: 0, segment: 0, char_: 0, unconfirmed: Vec::new() },
+                        status: TypingStatus { line: 0, segment: 0, char_: 0, unconfirmed: Vec::new(), last_wrong_keydown: None },
                         available_contents: _typing_start_model.available_contents,
                         layout: _typing_start_model.layout,
                         keyboard_remapping: KeyboardRemapping {
