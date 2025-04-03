@@ -1,7 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300&display=swap');
+
 :root {
     color-scheme: dark;
     user-select: none;
-    font-family: serif;
+    font-family: "Noto Serif JP", serif;
+    font-optical-sizing: auto;
+    font-weight: 300;
+    font-style: normal;
     --background-color: #090c16;
     --text-color: #ffffff;
     --text-typing-correct: #3e4383;
