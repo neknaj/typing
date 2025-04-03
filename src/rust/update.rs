@@ -46,9 +46,9 @@ pub fn update(model: Model, msg: Msg) -> Model {
                         .._menu_model
                     }})
                 }
-                MenuMsg::SelectContent(content) => {
+                MenuMsg::Start => {
                     Model::TypingStart(TypingStartModel {
-                        content,
+                        content: _menu_model.available_contents[_menu_model.selecting].clone(),
                         layout: _menu_model.layout,
                         text_orientation: _menu_model.text_orientation,
                         available_contents: _menu_model.available_contents,
@@ -190,13 +190,36 @@ pub fn event_receive_keyboard(event: JsValue) {
                         *model = update(model.clone(), Msg::Menu(MenuMsg::MoveCursor(menu_model.selecting-1)));
                     }
                 },
+                (" ",_) => {
+                    *model = update(model.clone(), Msg::Menu(MenuMsg::Start));
+                }
                 _ => {
                 }
             }
         },
         Model::TypingStart(ref typing_start_model) => {
+            match key.as_str() {
+                " " => {
+                    *model = update(model.clone(), Msg::TypingStart(TypingStartMsg::StartTyping));
+                },
+                "Escape" => {
+                    *model = update(model.clone(), Msg::TypingStart(TypingStartMsg::Cancel));
+                },
+                _ => {
+                }
+            }
         },
         Model::Typing(ref typing_model) => {
+            match key.as_str() {
+                "Escape" => {
+                    *model = update(model.clone(), Msg::Typing(TypingMsg::Pause));
+                },
+                key if key.chars().collect::<Vec<char>>().len()==1 => {
+                    *model = update(model.clone(), Msg::Typing(TypingMsg::KeyInput(key.chars().nth(0).unwrap())));
+                }
+                _ => {
+                }
+            }
         },
         Model::Pause(ref pause_model) => {
         },
@@ -211,12 +234,18 @@ pub fn event_receive_keyboard(event: JsValue) {
 pub fn fetch_render_data() -> String {
     let mut model = Module_resource.lock().unwrap();
     match *model {
-        Model::Menu(ref menu_model) => {
-            let menu: Vec<String> = menu_model.available_contents
+        Model::Menu(ref scene_model) => {
+            let menu: Vec<String> = scene_model.available_contents
                 .iter()
                 .map(|content| content.title.clone())
                 .collect();
-            jsvalue!("Menu",menu_model.selecting,menu)
+            jsvalue!("Menu",scene_model.selecting,menu)
+        },
+        Model::TypingStart(ref scene_model) => {
+            jsvalue!("TypingStart",&scene_model.content.title)
+        },
+        Model::Typing(ref scene_model) => {
+            jsvalue!("Typing",&scene_model.content.title,&scene_model.content.lines[scene_model.status.line as usize].segments,&scene_model.typing_correctness.lines[scene_model.status.line as usize].segments,&scene_model.status)
         },
         _ => jsvalue!("Other")
     }

@@ -1,6 +1,6 @@
 import { elm, textelm } from './cdom.js';
 import { initlayout } from "./layout.js";
-import { Model, Msg, Segment, TextOrientation } from "./model.js";
+import { Model, Msg, Segment, TextOrientation, TypingCorrectnessSegment, TypingStatus } from "./model.js";
 
 import initWasm, { init_model, event_receive_keyboard, fetch_render_data } from './typing_lib.js';
 
@@ -44,8 +44,7 @@ function render() {
     let sub1 = (document.querySelector("#sub1") as HTMLDivElement).Clear();
     let sub2 = (document.querySelector("#sub2") as HTMLDivElement).Clear();
     let sub3 = (document.querySelector("#sub3") as HTMLDivElement).Clear();
-    if (false) {}
-    else if (data[0]=="Menu") {
+    if (data[0] == "Menu") {
         let menu = data[2];
         main.Add(elm("h1",{},[textelm("Neknaj Typing Game")])).Add(
             elm("ul", {}, menu.map(
@@ -59,6 +58,58 @@ function render() {
                     return e;
                 }
             )))
+    }
+    if (data[0] == "TypingStart") {
+        main.Add(elm("h1",{},[textelm(data[1])]))
+            .Add(elm("p",{},[textelm("Press Space to start typing")]))
+            .Add(elm("p",{},[textelm("Press Escape to cancel")]));
+    }
+    if (data[0] == "Typing") {
+        let title = data[1] as string;
+        let segments = data[2] as Segment[];
+        let correct = data[3] as TypingCorrectnessSegment[];
+        let status = data[4] as TypingStatus;
+        let segment = segments[status.segment];
+        // console.log(data)
+        main.Add(elm("h1",{},[textelm(title)])).Add(elm("br",{},[]))
+            .Add(elm("p",{class:"typing"},segments.map((seg: Segment,i)=>{
+                if (seg.type == "Plain") {
+                    return elm("span",{},[textelm(seg.text)]);
+                } else if (seg.type == "Annotated") {
+                    return elm("ruby",{},[elm("rb",{},[textelm(seg.base)]),elm("rt",{},[textelm(seg.reading)])]);
+                }
+            })))
+            .Add(elm("p",{class:"typing"},
+                [
+                    ...segments.slice(0,status.segment).map((seg: Segment,si)=>{
+                        if (seg.type == "Plain") {
+                            return elm("span",{class:"plain"},
+                                seg.text.split("").map((c,ci)=>elm("span",{class:correct[si].chars[ci]},[textelm(c)]))
+                            );
+                        } else if (seg.type == "Annotated") {
+                            return elm("ruby",{class:"annotated"},[
+                                elm("rb",{
+                                        class:seg.reading.split("").map((c,ci)=>correct[si].chars[ci]).includes("Incorrect")?"Incorrect":"Correct"
+                                    },
+                                    [textelm(seg.base)]
+                                ),
+                                elm("rt",{},
+                                    seg.reading.split("")
+                                        .map((c,ci)=>elm("span",{class:correct[si].chars[ci]},[textelm(c)]))
+                                ),
+                            ]);
+                        }
+                    }),
+                    elm("span",{class:"pendingSegment"},
+                        (segment.type=="Annotated"?segment.reading:segment.text).slice(0,status.char_)
+                            .split("")
+                            .map((c,ci)=>elm("span",{class:correct[status.segment].chars[ci]},[textelm(c)]))
+                    ),
+                    elm("span",{class: "unconfirmed"},[textelm(status.unconfirmed.join(""))]),
+                    elm("span",{class: "cursor"},[]),
+                    elm("span",{class: "wrong"},[textelm(status.last_wrong_keydown!=null?status.last_wrong_keydown:"")]),
+                ]
+            ));
     }
     requestAnimationFrame(render);
 }

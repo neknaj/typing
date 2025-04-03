@@ -9,7 +9,7 @@ use crate::parser::Content;
 pub enum MenuMsg {
     MoveCursor(usize),
     AddContent(String),
-    SelectContent(Content),
+    Start,
 }
 
 #[derive(Serialize, Deserialize, TS)]
