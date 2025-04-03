@@ -110,14 +110,15 @@ function render() {
         let segment = segments[status.segment];
         // console.log(data)
         main.Add(elm("h1",{},[textelm(title)])).Add(elm("br",{},[]))
-            .Add(elm("p",{class:"typing"},segments.map((seg: Segment,i)=>{
+        .Add(elm("div",{class:"typing_scroll"},[
+            elm("p",{class:"typing"},segments.map((seg: Segment,i)=>{
                 if (seg.type == "Plain") {
                     return elm("span",{},[textelm(seg.text)]);
                 } else if (seg.type == "Annotated") {
                     return elm("ruby",{},[elm("rb",{},[textelm(seg.base)]),elm("rt",{},[textelm(seg.reading)])]);
                 }
-            })))
-            .Add(elm("p",{class:"typing"},
+            })),
+            elm("p",{class:"typing"},
                 [
                     ...segments.slice(0,status.segment).map((seg: Segment,si)=>{
                         if (seg.type == "Plain") {
@@ -147,7 +148,13 @@ function render() {
                     elm("span",{class: "cursor"},[]),
                     elm("span",{class: "wrong"},[textelm(status.last_wrong_keydown!=null?status.last_wrong_keydown:"")]),
                 ]
-            ));
+            )
+        ]))
+        const elements = document.querySelectorAll('.plain, .annotated');
+        const lastElement = elements[elements.length-1];
+        let anchor = (elements.length>0?lastElement:document.querySelector(".pendingSegment")).getBoundingClientRect();
+        let target = 400;
+        (document.querySelector(".typing_scroll") as HTMLDivElement).style.setProperty("--scroll-left",`${target-anchor.x}px`);
     }
     requestAnimationFrame(render);
 }

@@ -53,6 +53,11 @@ p {
     border-color: #8bf38b;
 }
 
+.typing_scroll {
+    width: max-content;
+    display: block;
+    margin-left: var(--scroll-left);
+}
 .typing {
     font-size: 60px;
     line-height: 110px;
