@@ -19,18 +19,22 @@ pub fn key_input(mut model_: TypingModel, input: char) -> Model {
     }
 
     let mut expect = Vec::new();
-    for (key, value) in model_.layout.mapping.iter() {
-        for v in value {
-            // console_log!("key",key);
+    for (key, values) in model_.layout.mapping.iter() {
+        for v in values {
             let mut flag = true;
-            for c in key.chars() {
-                // console_log!(s.to_string());
-                if c != remaining_s.chars().nth(model_.status.char_ as usize).unwrap() {
+            let start_index = model_.status.char_ as usize;
+            for (i, c) in key.chars().enumerate() {
+                if let Some(rs_char) = remaining_s.chars().nth(start_index + i) {
+                    if c != rs_char {
+                        flag = false;
+                        break;
+                    }
+                } else {
                     flag = false;
                     break;
                 }
             }
-            if flag == false {
+            if !flag {
                 continue;
             }
             for i in 0..model_.status.unconfirmed.len() {
@@ -40,7 +44,7 @@ pub fn key_input(mut model_: TypingModel, input: char) -> Model {
                 }
             }
             if flag {
-                expect.push(v.chars().collect::<Vec<char>>());
+                expect.push((key,v.chars().collect::<Vec<char>>()));
             }
         }
     }
@@ -49,7 +53,7 @@ pub fn key_input(mut model_: TypingModel, input: char) -> Model {
     }
     let mut is_correct = false;
     let mut is_finished = false;
-    for e in expect {
+    for (key,e) in expect {
         if e[model_.status.unconfirmed.len()] == input {
             is_correct = true;
             model_.status.last_wrong_keydown = None;
@@ -58,12 +62,23 @@ pub fn key_input(mut model_: TypingModel, input: char) -> Model {
                 // 完全一致時、typing_correctnessを更新
                 let char_pos = model_.status.char_ as usize;
                 let segment = &mut model_.typing_correctness.lines[model_.status.line as usize].segments[model_.status.segment as usize];
-                if segment.chars[char_pos]==TypingCorrectnessChar::Pending {
-                    segment.chars[char_pos] = TypingCorrectnessChar::Correct;
+                let mut flag = false;
+                for i in 0..key.chars().collect::<Vec<char>>().len() {
+                    if segment.chars[char_pos+i] == TypingCorrectnessChar::Incorrect {
+                        flag = true;
+                    }
+                }
+                for i in 0..key.chars().collect::<Vec<char>>().len() {
+                    if !flag {
+                        segment.chars[char_pos+i] = TypingCorrectnessChar::Correct;
+                    }
+                    else {
+                        segment.chars[char_pos+i] = TypingCorrectnessChar::Incorrect;
+                    }
                 }
 
                 // 1文字進める
-                if remaining.len() == model_.status.char_ as usize + 1 {
+                if remaining.len() == model_.status.char_ as usize + key.chars().collect::<Vec<char>>().len() {
                     if model_.content.lines[model_.status.line as usize].segments.len() == model_.status.segment as usize + 1 {
                         if model_.content.lines.len() == model_.status.line as usize + 1 {
                             // typing終了
@@ -87,7 +102,7 @@ pub fn key_input(mut model_: TypingModel, input: char) -> Model {
                     }
                 } else {
                     // charを進める
-                    model_.status.char_ += 1;
+                    model_.status.char_ += key.chars().collect::<Vec<char>>().len() as i32;
                     model_.status.unconfirmed.clear();
                 }
             } else {
@@ -95,13 +110,14 @@ pub fn key_input(mut model_: TypingModel, input: char) -> Model {
                 model_.status.unconfirmed.push(e[model_.status.unconfirmed.len()]);
             }
             break;
-        } else {
-            model_.status.last_wrong_keydown = Some(input);
-            // 不正解時、typing_correctnessを更新
-            let char_pos = model_.status.char_ as usize;
-            let segment = &mut model_.typing_correctness.lines[model_.status.line as usize].segments[model_.status.segment as usize];
-            segment.chars[char_pos] = TypingCorrectnessChar::Incorrect;
         }
+    }
+    if !is_correct {
+        model_.status.last_wrong_keydown = Some(input);
+        // 不正解時、typing_correctnessを更新
+        let char_pos = model_.status.char_ as usize;
+        let segment = &mut model_.typing_correctness.lines[model_.status.line as usize].segments[model_.status.segment as usize];
+        segment.chars[char_pos] = TypingCorrectnessChar::Incorrect;
     }
     debug! {
         console_log!("remaining", remaining);
