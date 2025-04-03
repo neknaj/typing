@@ -9,6 +9,8 @@ use std::collections::HashMap;
 #[ts(export, export_to = "../src/web/model.ts")]
 pub struct MenuModel {
     pub available_contents: Vec<Content>,
+    pub selecting: usize,
+    pub text_orientation: TextOrientation,
     pub layout: TextConvert,
     pub error_messages: Vec<ErrorMsg>,
 }
@@ -18,6 +20,7 @@ pub struct MenuModel {
 pub struct TypingStartModel {
     pub content: Content,
     pub available_contents: Vec<Content>,
+    pub text_orientation: TextOrientation,
     pub layout: TextConvert,
 }
 
@@ -29,6 +32,7 @@ pub struct TypingModel {
     pub user_input: Vec<TypingSession>,
     pub status: TypingStatus,
     pub available_contents: Vec<Content>,
+    pub text_orientation: TextOrientation,
     pub layout: TextConvert,
     pub keyboard_remapping: KeyboardRemapping,
 }
@@ -56,6 +60,7 @@ pub struct ResultModel {
 #[ts(export, export_to = "../src/web/model.ts")]
 #[serde(tag = "type")]
 pub enum Model {
+    Empty,
     Menu(MenuModel),
     TypingStart(TypingStartModel),
     Typing(TypingModel),
@@ -132,9 +137,15 @@ pub struct TypingCorrectnessSegment {
 
 #[derive(Serialize, Deserialize, Clone, TS, PartialEq)]
 #[ts(export, export_to = "../src/web/model.ts")]
-#[serde(tag = "type")]
 pub enum TypingCorrectnessChar {
     Pending,
     Correct,
     Incorrect,
+}
+
+#[derive(Serialize, Deserialize, Clone, TS, PartialEq)]
+#[ts(export, export_to = "../src/web/model.ts")]
+pub enum TextOrientation {
+    Vertical,
+    Horizontal,
 }

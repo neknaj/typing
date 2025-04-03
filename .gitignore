@@ -10,6 +10,7 @@
 /src/web/snippets
 # /src/web/layout.js
 /src/web/model.ts
+/src/web/view.js
 
 # dist
 /dist

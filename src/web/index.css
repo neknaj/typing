@@ -71,6 +71,10 @@ p {
 }
 
 
+.selecting {
+    border: 1px solid wheat;
+}
+
 
 [data-layout="v"] {
     & .cursor {

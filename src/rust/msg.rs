@@ -7,6 +7,7 @@ use crate::parser::Content;
 #[derive(Serialize, Deserialize, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
 pub enum MenuMsg {
+    MoveCursor(usize),
     AddContent(String),
     SelectContent(Content),
 }

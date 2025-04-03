@@ -8,5 +8,5 @@ mod jsapi;
 mod parser;
 mod typing;
 
-pub use update::update;
-pub use update::new_model;
+pub use update::init_model;
+pub use update::event_receive_keyboard;
