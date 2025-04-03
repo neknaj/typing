@@ -5,22 +5,26 @@ import { Model, Msg, Segment } from "./model.js";
 import initWasm, { new_model, update } from './typing_lib.js';
 
 async function init() {
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const layout = urlParams.get('layout')?urlParams.get('layout'):"h";
     await initWasm(); // Wasmモジュールの初期化
+    document.querySelector("html").dataset.layout = layout;
     initlayout(
         document.querySelector("#layoutroot"),
-        ["h",[5,2],[
-            ["v",[2,1],[
-                ["c","main"],
-                ["c","sub1"],
+        ["h",[5,3],[
+            [layout=="h"?"v":"h",[1,1],[
+                ["c",layout=="h"?"main":"sub1"],
+                ["c",layout=="h"?"sub1":"main"],
             ]],
-            ["v",[3,3],[
+            ["v",[2,5],[
                 ["c","sub2"],
                 ["c","sub3"],
             ]]
         ]],
     );
     let model = await new_model() as Model;
-    const msg = (msg: Msg) => view(update(model,msg));
+    const msg = (msg: Msg) => view(update(model,msg),layout=="h"?"h":"v");
     { // irohaを追加
         const response = await fetch("./examples/iroha.ntq");
         const text = await response.text();
@@ -29,7 +33,7 @@ async function init() {
 }
 
 
-function view(model: Model) {
+function view(model: Model,layout: "v"|"h") {
     console.log("render",model);
     document.querySelector("#layoutroot").addProp({ data: { type: model.type} });
     let main = (document.querySelector("#main") as HTMLDivElement).Clear().addProp({tabindex: 0});
@@ -37,7 +41,7 @@ function view(model: Model) {
     let sub2 = (document.querySelector("#sub2") as HTMLDivElement).Clear();
     let sub3 = (document.querySelector("#sub3") as HTMLDivElement).Clear();
     main.onkeydown = ()=>{}
-    const msg = (msg: Msg) => view(update(model,msg));
+    const msg = (msg: Msg) => view(update(model,msg),layout);
     if (model.type == "Menu") {
         main.Add(elm("h1",{},[textelm("Neknaj Typing Game")])).Add(
             elm("ul", {}, model.available_contents.map(
@@ -138,12 +142,24 @@ function view(model: Model) {
                     msg({ "Result": "Retry" });
                 }
             };
-        sub2.Add(elm("div",{},model.typing_model.content.lines.slice(0,model.typing_model.status.line).map((line)=>{
-            return elm("p",{},line.segments.map((seg: Segment,i)=>{
+        sub1.Add(elm("div",{},model.typing_model.content.lines.slice(0,model.typing_model.status.line).map((line,li)=>{
+            return elm("p",{},line.segments.map((seg: Segment,si)=>{
                 if (seg.type == "Plain") {
-                    return elm("span",{},[textelm(seg.text)]);
+                    return elm("span",{class:"plain"},
+                        seg.text.split("").map((c,ci)=>elm("span",{class:model.typing_model.typing_correctness.lines[li].segments[si].chars[ci].type},[textelm(c)]))
+                    );
                 } else if (seg.type == "Annotated") {
-                    return elm("ruby",{},[elm("rb",{},[textelm(seg.base)]),elm("rt",{},[textelm(seg.reading)])]);
+                    return elm("ruby",{class:"annotated"},[
+                        elm("rb",{
+                                class:seg.reading.split("").map((c,ci)=>model.typing_model.typing_correctness.lines[li].segments[si].chars[ci].type).includes("Incorrect")?"Incorrect":"Correct"
+                            },
+                            [textelm(seg.base)]
+                        ),
+                        elm("rt",{},
+                            seg.reading.split("")
+                                .map((c,ci)=>elm("span",{class:model.typing_model.typing_correctness.lines[li].segments[si].chars[ci].type},[textelm(c)]))
+                        ),
+                    ]);
                 }
             }));
         })));
@@ -189,16 +205,47 @@ function view(model: Model) {
                     elm("span",{class: "wrong"},[textelm(model.status.last_wrong_keydown!=null?model.status.last_wrong_keydown:"")]),
                 ]
             ));
-            sub2.Add(elm("div",{},model.content.lines.slice(0,model.status.line).map((line)=>{
-                return elm("p",{},line.segments.map((seg: Segment,i)=>{
+            sub1.Add(elm("div",{},model.content.lines.slice(0,model.status.line).map((line,li)=>{
+                return elm("p",{},line.segments.map((seg: Segment,si)=>{
                     if (seg.type == "Plain") {
-                        return elm("span",{},[textelm(seg.text)]);
+                        return elm("span",{class:"plain"},
+                            seg.text.split("").map((c,ci)=>elm("span",{class:model.typing_correctness.lines[li].segments[si].chars[ci].type},[textelm(c)]))
+                        );
                     } else if (seg.type == "Annotated") {
-                        return elm("ruby",{},[elm("rb",{},[textelm(seg.base)]),elm("rt",{},[textelm(seg.reading)])]);
+                        return elm("ruby",{class:"annotated"},[
+                            elm("rb",{
+                                    class:seg.reading.split("").map((c,ci)=>model.typing_correctness.lines[li].segments[si].chars[ci].type).includes("Incorrect")?"Incorrect":"Correct"
+                                },
+                                [textelm(seg.base)]
+                            ),
+                            elm("rt",{},
+                                seg.reading.split("")
+                                    .map((c,ci)=>elm("span",{class:model.typing_correctness.lines[li].segments[si].chars[ci].type},[textelm(c)]))
+                            ),
+                        ]);
                     }
                 }));
             })));
-            sub2.Add(elm("div",{},model.content.lines.slice(model.status.line).map((line)=>{
+            sub1.Add(
+                elm("div", { class: "activeline" }, [model.content.lines[model.status.line]].map((line) => {
+                    return elm("p", {}, [
+                        // Add the triangle marker at the start
+                        elm("span", { class: "triangle" }, [textelm(layout=="h"?"▷":"▽")]),
+                        // Then add the rest of the line segments inline
+                        ...line.segments.map((seg: Segment, i) => {
+                            if (seg.type == "Plain") {
+                                return elm("span", { class: "Pending" }, [textelm(seg.text)]);
+                            } else if (seg.type == "Annotated") {
+                                return elm("ruby", { class: "Pending" }, [
+                                    elm("rb", {}, [textelm(seg.base)]),
+                                    elm("rt", {}, [textelm(seg.reading)])
+                                ]);
+                            }
+                        })
+                    ]);
+                }))
+            );
+            sub1.Add(elm("div",{},model.content.lines.slice(model.status.line+1).map((line)=>{
                 return elm("p",{},line.segments.map((seg: Segment,i)=>{
                     if (seg.type == "Plain") {
                         return elm("span",{class:"Pending"},[textelm(seg.text)]);
