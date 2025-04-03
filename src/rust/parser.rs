@@ -52,41 +52,46 @@ fn parse_line(line: &str) -> Vec<Segment> {
     let mut segments = Vec::new();
     let chars: Vec<char> = line.chars().collect();
     let mut pos = 0;
+    let mut plain = String::new(); // Accumulate plain text
+
     while pos < chars.len() {
-        if chars[pos] == '\\' {
-            // Escape sequence in plain text: add the next character as literal.
-            let mut literal = String::new();
-            pos += 1; // Skip the backslash
-            if pos < chars.len() {
-                literal.push(chars[pos]);
-                pos += 1;
-            }
-            segments.push(Segment::Plain { text: literal });
-        } else if chars[pos] == '(' {
-            // Parse an annotated segment starting with '('
-            let (annotated, new_pos) = parse_annotated(&chars, pos);
-            segments.push(annotated);
-            pos = new_pos;
-        } else {
-            // Parse plain text until the next '(', or until an escape sequence is encountered.
-            let start = pos;
-            let mut plain = String::new();
-            while pos < chars.len() && chars[pos] != '(' {
-                if chars[pos] == '\\' {
-                    pos += 1; // Skip the backslash
-                    if pos < chars.len() {
-                        plain.push(chars[pos]);
-                        pos += 1;
-                    }
-                } else {
+        match chars[pos] {
+            '\\' => {
+                // Escape sequence in plain text: add the next character as literal.
+                pos += 1; // Skip the backslash
+                if pos < chars.len() {
                     plain.push(chars[pos]);
                     pos += 1;
                 }
             }
-            if !plain.is_empty() {
-                segments.push(Segment::Plain { text: plain });
+            '(' => {
+                // Before parsing annotated segment, push any accumulated plain text
+                if !plain.is_empty() {
+                    segments.push(Segment::Plain { text: plain.clone() });
+                    plain.clear();
+                }
+                // Parse an annotated segment starting with '('
+                let (annotated, new_pos) = parse_annotated(&chars, pos);
+                segments.push(annotated);
+                pos = new_pos;
+            }
+            '/' => {
+                // Slash in plain text acts as a delimiter.
+                if !plain.is_empty() {
+                    segments.push(Segment::Plain { text: plain.clone() });
+                    plain.clear();
+                }
+                pos += 1; // Skip the slash delimiter.
+            }
+            ch => {
+                plain.push(ch);
+                pos += 1;
             }
         }
+    }
+    // Push any remaining plain text after loop finishes.
+    if !plain.is_empty() {
+        segments.push(Segment::Plain { text: plain });
     }
     segments
 }
