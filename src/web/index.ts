@@ -107,6 +107,7 @@ function render() {
         let segments = data[2] as Segment[];
         let correct = data[3] as TypingCorrectnessSegment[];
         let status = data[4] as TypingStatus;
+        let text_orientation = data[5] as TextOrientation;
         let segment = segments[status.segment];
         // console.log(data)
         main.Add(elm("h1",{},[textelm(title)])).Add(elm("br",{},[]))
@@ -153,8 +154,13 @@ function render() {
         const elements = document.querySelectorAll('.plain, .annotated');
         const lastElement = elements[elements.length-1];
         let anchor = (elements.length>0?lastElement:document.querySelector(".pendingSegment")).getBoundingClientRect();
-        let target = 400;
-        (document.querySelector(".typing_scroll") as HTMLDivElement).style.setProperty("--scroll-left",`${target-anchor.x}px`);
+        let target = 200;
+        if (text_orientation=="Horizontal") {
+            (document.querySelector(".typing_scroll") as HTMLDivElement).style.setProperty("--scroll",`${target-anchor.x}px`);
+        }
+        else {
+            (document.querySelector(".typing_scroll") as HTMLDivElement).style.setProperty("--scroll",`${target-anchor.y}px`);
+        }
     }
     requestAnimationFrame(render);
 }

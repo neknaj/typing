@@ -53,11 +53,6 @@ p {
     border-color: #8bf38b;
 }
 
-.typing_scroll {
-    width: max-content;
-    display: block;
-    margin-left: var(--scroll-left);
-}
 .typing {
     font-size: 60px;
     line-height: 110px;
@@ -108,6 +103,12 @@ p {
     & .unconfirmed, & .wrong {
         font-size: 80%;
     }
+    .typing_scroll {
+        width: max-content;
+        height: max-content;
+        display: block;
+        margin-top: var(--scroll);
+    }
 }
 
 [data-layout="h"] {
@@ -128,5 +129,11 @@ p {
     }
     & .unconfirmed, & .wrong {
         font-size: 80%;
+    }
+    .typing_scroll {
+        width: max-content;
+        height: max-content;
+        display: block;
+        margin-left: var(--scroll);
     }
 }

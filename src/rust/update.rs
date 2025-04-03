@@ -257,7 +257,7 @@ pub fn fetch_render_data() -> String {
             jsvalue!("TypingStart",&scene_model.content.title)
         },
         Model::Typing(ref scene_model) => {
-            jsvalue!("Typing",&scene_model.content.title,&scene_model.content.lines[scene_model.status.line as usize].segments,&scene_model.typing_correctness.lines[scene_model.status.line as usize].segments,&scene_model.status)
+            jsvalue!("Typing",&scene_model.content.title,&scene_model.content.lines[scene_model.status.line as usize].segments,&scene_model.typing_correctness.lines[scene_model.status.line as usize].segments,&scene_model.status,&scene_model.text_orientation)
         },
         _ => jsvalue!("Other")
     }
