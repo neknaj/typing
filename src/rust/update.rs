@@ -333,3 +333,37 @@ pub fn fetch_render_data() -> String {
         _ => jsvalue!("Other")
     }
 }
+
+#[wasm_bindgen]
+pub fn start_gui() -> Result<(), JsValue> {
+    use wasm_bindgen::JsCast;
+    use web_sys::HtmlCanvasElement;
+    use crate::gui;
+
+    // Redirect panic messages to the browser console
+    console_error_panic_hook::set_once();
+
+    // Get the canvas element and convert it to the correct type
+    let canvas = web_sys::window()
+        .unwrap()
+        .document()
+        .unwrap()
+        .get_element_by_id("screen")
+        .unwrap()
+        .dyn_into::<HtmlCanvasElement>()
+        .unwrap();
+
+    wasm_bindgen_futures::spawn_local(async move {
+        let web_options = eframe::WebOptions::default();
+        eframe::WebRunner::new()
+            .start(
+                canvas,
+                web_options,
+                Box::new(|cc| Ok(Box::new(gui::MyApp::default()))),
+            )
+            .await
+            .expect("failed to start eframe");
+    });
+
+    Ok(())
+}

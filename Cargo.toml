@@ -14,9 +14,18 @@ serde_json = "1.0"
 serde-wasm-bindgen = "0.6.5"
 js-sys = "0.3"
 ts-rs = { version = "10.1.0", features = ["serde-compat", "uuid-impl"] }
+egui = "0.31.1"
+eframe = { version = "0.31.1", features = ["glow", "web_screen_reader"] }
 rand = "0.8.5"
 getrandom = { version = "0.2.2", features = ["js"] }
 lazy_static = "1.4"
+web-sys = { version = "0.3", features = [
+    'Document',
+    'Element',
+    'HtmlCanvasElement',
+    'Window'
+], optional = true }
+console_error_panic_hook = { version = "0.1.7", optional = true }
 
 [[bin]]
 name = "typing_bin"
@@ -29,5 +38,5 @@ path = "src/rust/lib.rs"
 
 [features]
 default = ["native"]
-web = ["wasm-bindgen"]
+web = ["wasm-bindgen", "web-sys", "console_error_panic_hook"]
 native = []
