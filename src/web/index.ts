@@ -14,7 +14,7 @@ async function init() {
     initlayout(
         document.querySelector("#layoutroot"),
         ["h",[5,3],[
-            [layout=="h"?"v":"h",[1,1],[
+            [layout=="h"?"v":"h",layout=="h"?[3,2]:[2,3],[
                 ["c",layout=="h"?"main":"sub1"],
                 ["c",layout=="h"?"sub1":"main"],
             ]],
@@ -178,6 +178,115 @@ function render() {
             typing_scroll((anchor1.y+anchor2.y*3)/4-target,-w);
             (document.querySelector(".typing_scroll") as HTMLDivElement).style.setProperty("--scroll",`${-scroll}px`);
         }
+        sub3.Add(
+            elm("div", { class: "metrics" }, [
+                elm("table", {}, [
+                    elm("tr", {}, [
+                        elm("td", { class: "metric-label" }, [textelm("Accuracy")]),
+                        elm("td", {}, [textelm(`: ${(metrics.accuracy * 100).toFixed(2)}`)]),
+                        elm("td", {}, [textelm(`%`)]),
+                    ]),
+                    elm("tr", {}, [
+                        elm("td", { class: "metric-label" }, [textelm("Speed")]),
+                        elm("td", {}, [textelm(`: ${metrics.speed.toFixed(2)}`)]),
+                        elm("td", {}, [textelm(`chars/sec`)]),
+                    ]),
+                    elm("tr", {}, [
+                        elm("td", { class: "metric-label" }, [textelm("Miss Count")]),
+                        elm("td", {}, [textelm(`: ${metrics.miss_count}`)]),
+                        elm("td", {}, [textelm(``)]),
+                    ]),
+                    elm("tr", {}, [
+                        elm("td", { class: "metric-label" }, [textelm("Type Count")]),
+                        elm("td", {}, [textelm(`: ${metrics.type_count}`)]),
+                        elm("td", {}, [textelm(``)]),
+                    ]),
+                    elm("tr", {}, [
+                        elm("td", { class: "metric-label" }, [textelm("Time")]),
+                        elm("td", {}, [textelm(`: ${(metrics.total_time / 1000).toFixed(1)}`)]),
+                        elm("td", {}, [textelm(`sec`)]),
+                    ]),
+                ]),
+            ])
+        );
+    }
+    if (data[0] == "Result") {
+        let title = data[1] as string;
+        let metrics = data[2] as TypingMetrics;
+        main.Add(elm("h1",{},[textelm("Result")]))
+            .Add(elm("h2",{},[textelm(title)]))
+            .Add(elm("p",{},[textelm("Press Space to Restart typing")]))
+            .Add(elm("p",{},[textelm("Press Escape to Back to Menu")]));
+        sub3.Add(
+            elm("div", { class: "metrics" }, [
+                elm("table", {}, [
+                    elm("tr", {}, [
+                        elm("td", { class: "metric-label" }, [textelm("Accuracy")]),
+                        elm("td", {}, [textelm(`: ${(metrics.accuracy * 100).toFixed(2)}`)]),
+                        elm("td", {}, [textelm(`%`)]),
+                    ]),
+                    elm("tr", {}, [
+                        elm("td", { class: "metric-label" }, [textelm("Speed")]),
+                        elm("td", {}, [textelm(`: ${metrics.speed.toFixed(2)}`)]),
+                        elm("td", {}, [textelm(`chars/sec`)]),
+                    ]),
+                    elm("tr", {}, [
+                        elm("td", { class: "metric-label" }, [textelm("Miss Count")]),
+                        elm("td", {}, [textelm(`: ${metrics.miss_count}`)]),
+                        elm("td", {}, [textelm(``)]),
+                    ]),
+                    elm("tr", {}, [
+                        elm("td", { class: "metric-label" }, [textelm("Type Count")]),
+                        elm("td", {}, [textelm(`: ${metrics.type_count}`)]),
+                        elm("td", {}, [textelm(``)]),
+                    ]),
+                    elm("tr", {}, [
+                        elm("td", { class: "metric-label" }, [textelm("Time")]),
+                        elm("td", {}, [textelm(`: ${(metrics.total_time / 1000).toFixed(1)}`)]),
+                        elm("td", {}, [textelm(`sec`)]),
+                    ]),
+                ]),
+            ])
+        );
+    }
+    if (data[0] == "Pause") {
+        let title = data[1] as string;
+        let metrics = data[2] as TypingMetrics;
+        main.Add(elm("h1",{},[textelm("Pause")]))
+            .Add(elm("h2",{},[textelm(title)]))
+            .Add(elm("p",{},[textelm("Press Space to Resume typing")]))
+            .Add(elm("p",{},[textelm("Press Escape to Finish")]));
+        sub3.Add(
+            elm("div", { class: "metrics" }, [
+                elm("table", {}, [
+                    elm("tr", {}, [
+                        elm("td", { class: "metric-label" }, [textelm("Accuracy")]),
+                        elm("td", {}, [textelm(`: ${(metrics.accuracy * 100).toFixed(2)}`)]),
+                        elm("td", {}, [textelm(`%`)]),
+                    ]),
+                    elm("tr", {}, [
+                        elm("td", { class: "metric-label" }, [textelm("Speed")]),
+                        elm("td", {}, [textelm(`: ${metrics.speed.toFixed(2)}`)]),
+                        elm("td", {}, [textelm(`chars/sec`)]),
+                    ]),
+                    elm("tr", {}, [
+                        elm("td", { class: "metric-label" }, [textelm("Miss Count")]),
+                        elm("td", {}, [textelm(`: ${metrics.miss_count}`)]),
+                        elm("td", {}, [textelm(``)]),
+                    ]),
+                    elm("tr", {}, [
+                        elm("td", { class: "metric-label" }, [textelm("Type Count")]),
+                        elm("td", {}, [textelm(`: ${metrics.type_count}`)]),
+                        elm("td", {}, [textelm(``)]),
+                    ]),
+                    elm("tr", {}, [
+                        elm("td", { class: "metric-label" }, [textelm("Time")]),
+                        elm("td", {}, [textelm(`: ${(metrics.total_time / 1000).toFixed(1)}`)]),
+                        elm("td", {}, [textelm(`sec`)]),
+                    ]),
+                ]),
+            ])
+        );
     }
     requestAnimationFrame(render);
 }

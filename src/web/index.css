@@ -75,6 +75,22 @@ p {
     border: 1px solid wheat;
 }
 
+.metrics {
+    padding: 1em;
+}
+
+.metrics table {
+    border-collapse: collapse;
+}
+
+.metrics td {
+    padding: 0.1em 0.5em;
+}
+
+.metric-label {
+    text-align: center;
+    white-space: nowrap;
+}
 
 [data-layout="v"] {
     & .cursor {
