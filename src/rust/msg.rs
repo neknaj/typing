@@ -17,6 +17,7 @@ pub enum MenuMsg {
 pub enum TypingStartMsg {
     StartTyping,
     Cancel,
+    ScrollMax(f64),
 }
 
 #[derive(Serialize, Deserialize, TS)]
@@ -24,7 +25,7 @@ pub enum TypingStartMsg {
 pub enum TypingMsg {
     KeyInput(char),
     Pause,
-    Tick,
+    ScrollTo(f64,f64),
 }
 
 #[derive(Serialize, Deserialize, TS)]

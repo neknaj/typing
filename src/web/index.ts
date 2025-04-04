@@ -2,7 +2,7 @@ import { elm, textelm } from './cdom.js';
 import { initlayout } from "./layout.js";
 import { Model, Msg, Segment, TextOrientation, TypingCorrectnessSegment, TypingStatus } from "./model.js";
 
-import initWasm, { init_model, event_receive_keyboard, fetch_render_data, add_contents } from './typing_lib.js';
+import initWasm, { init_model, event_receive_keyboard, fetch_render_data, add_contents, typing_scroll } from './typing_lib.js';
 
 
 async function init() {
@@ -101,6 +101,15 @@ function render() {
         main.Add(elm("h1",{},[textelm(data[1])]))
             .Add(elm("p",{},[textelm("Press Space to start typing")]))
             .Add(elm("p",{},[textelm("Press Escape to cancel")]));
+        let text_orientation = data[2] as TextOrientation;
+        if (text_orientation=="Horizontal") {
+            let w = main.getBoundingClientRect().width;
+            typing_scroll(-w,-w);
+        }
+        else {
+            let w = main.getBoundingClientRect().height;
+            typing_scroll(-w,-w);
+        }
     }
     if (data[0] == "Typing") {
         let title = data[1] as string;
@@ -108,6 +117,7 @@ function render() {
         let correct = data[3] as TypingCorrectnessSegment[];
         let status = data[4] as TypingStatus;
         let text_orientation = data[5] as TextOrientation;
+        let scroll = data[6] as number;
         let segment = segments[status.segment];
         // console.log(data)
         main.Add(elm("h1",{},[textelm(title)])).Add(elm("br",{},[]))
@@ -155,12 +165,17 @@ function render() {
         const lastElement = elements[elements.length-1];
         let anchor1 = (elements.length>0?lastElement:document.querySelector(".pendingSegment")).getBoundingClientRect();
         let anchor2 = document.querySelector(".cursor").getBoundingClientRect();
-        let target = 200;
         if (text_orientation=="Horizontal") {
-            (document.querySelector(".typing_scroll") as HTMLDivElement).style.setProperty("--scroll",`${target-(anchor1.x*2+anchor2.x)/3}px`);
+            let w = main.getBoundingClientRect().width;
+            let target = w*0.3;
+            typing_scroll((anchor1.x+anchor2.x*3)/4-target,-w);
+            (document.querySelector(".typing_scroll") as HTMLDivElement).style.setProperty("--scroll",`${-scroll}px`);
         }
         else {
-            (document.querySelector(".typing_scroll") as HTMLDivElement).style.setProperty("--scroll",`${target-(anchor1.y*2+anchor2.y)/3}px`);
+            let w = main.getBoundingClientRect().height;
+            let target = w*0.3;
+            typing_scroll((anchor1.y+anchor2.y*3)/4-target,-w);
+            (document.querySelector(".typing_scroll") as HTMLDivElement).style.setProperty("--scroll",`${-scroll}px`);
         }
     }
     requestAnimationFrame(render);

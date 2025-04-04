@@ -22,6 +22,7 @@ pub struct TypingStartModel {
     pub available_contents: Vec<Content>,
     pub text_orientation: TextOrientation,
     pub layout: TextConvert,
+    pub scroll_max: f64,
 }
 
 #[derive(Serialize, Deserialize, Clone, TS)]
@@ -35,6 +36,7 @@ pub struct TypingModel {
     pub text_orientation: TextOrientation,
     pub layout: TextConvert,
     pub keyboard_remapping: KeyboardRemapping,
+    pub scroll: TypingScroll,
 }
 
 #[derive(Serialize, Deserialize, Clone, TS)]
@@ -148,4 +150,12 @@ pub enum TypingCorrectnessChar {
 pub enum TextOrientation {
     Vertical,
     Horizontal,
+}
+
+#[derive(Serialize, Deserialize, Clone, TS)]
+#[ts(export, export_to = "../src/web/model.ts")]
+pub struct TypingScroll {
+    pub last_update: f64,
+    pub scroll: f64,
+    pub max: f64,
 }

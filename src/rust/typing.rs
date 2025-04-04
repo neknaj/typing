@@ -93,6 +93,7 @@ pub fn key_input(mut model_: TypingModel, input: char) -> Model {
                             model_.status.segment = 0;
                             model_.status.line += 1;
                             model_.status.unconfirmed.clear();
+                            model_.scroll.scroll = model_.scroll.max;
                         }
                     } else {
                         // segmentを進める

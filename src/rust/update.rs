@@ -10,7 +10,7 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use crate::console_log;
 use crate::jsapi;
-use crate::model::{Model, MenuModel, TypingStartModel, TypingModel, PauseModel, ResultModel, TypingStatus, TextConvert, ErrorMsg, KeyboardRemapping, TextOrientation};
+use crate::model::{Model, MenuModel, TypingStartModel, TypingModel, PauseModel, ResultModel, TypingStatus, TextConvert, ErrorMsg, KeyboardRemapping, TextOrientation, TypingScroll};
 use crate::msg::{Msg, MenuMsg, TypingStartMsg, TypingMsg, PauseMsg, ResultMsg};
 use crate::jsapi::{*};
 use crate::parser::{parse_problem, Content};
@@ -52,6 +52,7 @@ pub fn update(model: Model, msg: Msg) -> Model {
                         layout: _menu_model.layout,
                         text_orientation: _menu_model.text_orientation,
                         available_contents: _menu_model.available_contents,
+                        scroll_max: 0.0,
                     })
                 },
                 MenuMsg::AddContent(file_content) => {
@@ -79,6 +80,11 @@ pub fn update(model: Model, msg: Msg) -> Model {
                         keyboard_remapping: KeyboardRemapping {
                             mapping: HashMap::new(),
                         },
+                        scroll: TypingScroll {
+                            last_update: Date::now(),
+                            scroll: _typing_start_model.scroll_max,
+                            max: _typing_start_model.scroll_max,
+                        },
                     })
                 },
                 TypingStartMsg::Cancel => {
@@ -88,6 +94,12 @@ pub fn update(model: Model, msg: Msg) -> Model {
                         layout: _typing_start_model.layout,
                         text_orientation: _typing_start_model.text_orientation,
                         error_messages: vec![],
+                    })
+                },
+                TypingStartMsg::ScrollMax(max) => {
+                    Model::TypingStart(TypingStartModel {
+                        scroll_max: max,
+                        .._typing_start_model
                     })
                 },
             }
@@ -102,8 +114,15 @@ pub fn update(model: Model, msg: Msg) -> Model {
                         typing_model,
                     })
                 },
-                TypingMsg::Tick => {
-                    Model::Typing(typing_model)
+                TypingMsg::ScrollTo(input,max) => {
+                    Model::Typing(TypingModel {
+                        scroll: TypingScroll {
+                            last_update: Date::now(),
+                            scroll: input,
+                            max,
+                        },
+                        ..typing_model
+                    })
                 },
             }
         },
@@ -136,6 +155,7 @@ pub fn update(model: Model, msg: Msg) -> Model {
                         layout: _result_model.typing_model.layout,
                         text_orientation: _result_model.typing_model.text_orientation,
                         available_contents: _result_model.typing_model.available_contents,
+                        scroll_max: 0.0,
                     })
                 },
             }
@@ -179,6 +199,26 @@ pub async fn add_contents(data: JsValue) {
     match *model {
         Model::Menu(ref menu_model) => {
             *model = update(model.clone(), Msg::Menu(MenuMsg::AddContent(content)));
+        },
+        _ => {}
+    }
+}
+
+#[wasm_bindgen]
+pub fn typing_scroll(data1: JsValue,data2: JsValue) {
+    let anchor: f64 = data1.into_serde().unwrap();
+    let max: f64 = data2.into_serde().unwrap();
+    console_log!(anchor);
+    let mut model = Module_resource.lock().unwrap();
+    match *model {
+        Model::Typing(ref typing_model) => {
+            let now = typing_model.scroll.scroll;
+            let d = anchor-now;
+            let new = now+d* (d*d/(1000000.0+d*d));
+            *model = update(model.clone(), Msg::Typing(TypingMsg::ScrollTo(new,max)));
+        },
+        Model::TypingStart(ref typing_start_model) => {
+            *model = update(model.clone(), Msg::TypingStart(TypingStartMsg::ScrollMax(max)));
         },
         _ => {}
     }
@@ -254,10 +294,10 @@ pub fn fetch_render_data() -> String {
             jsvalue!("Menu",scene_model.selecting,menu)
         },
         Model::TypingStart(ref scene_model) => {
-            jsvalue!("TypingStart",&scene_model.content.title)
+            jsvalue!("TypingStart",&scene_model.content.title,&scene_model.text_orientation)
         },
         Model::Typing(ref scene_model) => {
-            jsvalue!("Typing",&scene_model.content.title,&scene_model.content.lines[scene_model.status.line as usize].segments,&scene_model.typing_correctness.lines[scene_model.status.line as usize].segments,&scene_model.status,&scene_model.text_orientation)
+            jsvalue!("Typing",&scene_model.content.title,&scene_model.content.lines[scene_model.status.line as usize].segments,&scene_model.typing_correctness.lines[scene_model.status.line as usize].segments,&scene_model.status,&scene_model.text_orientation,&scene_model.scroll.scroll)
         },
         _ => jsvalue!("Other")
     }
