@@ -88,6 +88,7 @@ pub struct TypingStatus {
 #[derive(Serialize, Deserialize, Clone, TS)]
 #[ts(export, export_to = "../src/web/model.ts")]
 pub struct TypingSession {
+    pub line: i32,
     pub inputs: Vec<TypingInput>,
 }
 #[derive(Serialize, Deserialize, Clone, TS)]

@@ -1,13 +1,41 @@
 // typing.rs
 
 use crate::{console_log, debug};
-use crate::model::{Model, TypingModel, ResultModel, TypingCorrectnessContent, TypingSession, TypingCorrectnessLine, TypingCorrectnessSegment, TypingCorrectnessChar};
+use crate::model::{Model, TypingModel, ResultModel, TypingCorrectnessContent, TypingSession, TypingInput, TypingCorrectnessLine, TypingCorrectnessSegment, TypingCorrectnessChar};
 use crate::parser::{Content, Line, Segment};
+use js_sys::Date;
 
 pub fn key_input(mut model_: TypingModel, input: char) -> Model {
+    let current_time = Date::now();
+    let current_line = model_.status.line;
+    
+    // 新しいセッションを開始するかどうかを判断
+    let should_start_new_session = if model_.user_input.is_empty() {
+        true
+    } else {
+        let last_session = model_.user_input.last().unwrap();
+        if let Some(last_input) = last_session.inputs.last() {
+            // 前回の入力から1秒以上経過している場合は新しいセッション
+            (current_time - last_input.timestamp) > 1000.0
+        } else {
+            true
+        }
+    };
+
+    if should_start_new_session {
+        model_.user_input.push(TypingSession {
+            line: current_line,
+            inputs: Vec::new(),
+        });
+    }
+
+    let current_session = model_.user_input.last_mut().unwrap();
+    let current_line = model_.status.line;
+
     debug! {
         console_log!("key_input", input);
     }
+
     let remaining_s = match &model_.content.lines[model_.status.line as usize].segments[model_.status.segment as usize] {
         Segment::Plain { text } => text,
         Segment::Annotated { base, reading } => reading,
@@ -113,6 +141,22 @@ pub fn key_input(mut model_: TypingModel, input: char) -> Model {
             break;
         }
     }
+
+    // 入力履歴を記録
+    current_session.inputs.push(TypingInput {
+        key: input,
+        timestamp: current_time,
+        is_correct,
+    });
+
+    // line変更時に新しいセッションを開始
+    if current_line != model_.status.line {
+        model_.user_input.push(TypingSession {
+            line: model_.status.line,
+            inputs: Vec::new(),
+        });
+    }
+
     if !is_correct {
         model_.status.last_wrong_keydown = Some(input);
         // 不正解時、typing_correctnessを更新
@@ -134,6 +178,15 @@ pub fn key_input(mut model_: TypingModel, input: char) -> Model {
     } else {
         Model::Typing(model_)
     }
+}
+
+// 一時停止から再開時の新しいセッション開始用の関数を追加
+pub fn start_new_session(mut typing_model: TypingModel) -> TypingModel {
+    typing_model.user_input.push(TypingSession {
+        line: typing_model.status.line,
+        inputs: Vec::new(),
+    });
+    typing_model
 }
 
 // typing正誤の記録をpending状態で新規作成する関数

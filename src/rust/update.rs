@@ -10,7 +10,7 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use crate::console_log;
 use crate::jsapi;
-use crate::model::{Model, MenuModel, TypingStartModel, TypingModel, PauseModel, ResultModel, TypingStatus, TextConvert, ErrorMsg, KeyboardRemapping, TextOrientation, TypingScroll};
+use crate::model::{Model, MenuModel, TypingStartModel, TypingModel, PauseModel, ResultModel, TypingStatus, TextConvert, ErrorMsg, KeyboardRemapping, TextOrientation, TypingScroll,TypingSession};
 use crate::msg::{Msg, MenuMsg, TypingStartMsg, TypingMsg, PauseMsg, ResultMsg};
 use crate::jsapi::{*};
 use crate::parser::{parse_problem, Content};
@@ -72,7 +72,10 @@ pub fn update(model: Model, msg: Msg) -> Model {
                     Model::Typing(TypingModel {
                         content: _typing_start_model.clone().content,
                         typing_correctness: typing::create_typing_correctness_model(_typing_start_model.content),
-                        user_input: vec![],
+                        user_input: vec![TypingSession {
+                            line: 0,
+                            inputs: Vec::new(),
+                        }],
                         status: TypingStatus { line: 0, segment: 0, char_: 0, unconfirmed: Vec::new(), last_wrong_keydown: None },
                         available_contents: _typing_start_model.available_contents,
                         layout: _typing_start_model.layout,
@@ -129,7 +132,8 @@ pub fn update(model: Model, msg: Msg) -> Model {
         (Model::Pause(pause_model), Msg::Pause(pause_msg)) => {
             match pause_msg {
                 PauseMsg::Resume => {
-                    Model::Typing(pause_model.typing_model)
+                    // 一時停止から再開時に新しいセッションを開始
+                    Model::Typing(typing::start_new_session(pause_model.typing_model))
                 },
                 PauseMsg::Cancel => {
                     Model::Result(ResultModel {
@@ -274,6 +278,16 @@ pub fn event_receive_keyboard(event: JsValue) {
             }
         },
         Model::Pause(ref pause_model) => {
+            match key.as_str() {
+                " " => {
+                    *model = update(model.clone(), Msg::Pause(PauseMsg::Resume));
+                },
+                "Escape" => {
+                    *model = update(model.clone(), Msg::Pause(PauseMsg::Cancel));
+                },
+                _ => {
+                }
+            }
         },
         Model::Result(ref result_model) => {
         },
