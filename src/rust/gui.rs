@@ -273,6 +273,7 @@ impl eframe::App for MyApp {
             ui.label("下記は横書きと縦書きのルビ付きテキストです。");
 
             let sample_text = "#title いろは歌
+　いろはうた
 (色/いろ)は(匂/にほ)へ/ど(散/ち)り/ぬる/を
 (我/わ)が(世/よ)(誰/たれ)ぞ(常/つね)なら/む
 (有為/うゐ)の(奥山/おくやま)(今日/けふ)(越/こ)え/て
@@ -288,7 +289,7 @@ impl eframe::App for MyApp {
             }
             // 縦書きテキスト / Vertical text
             let available_rect = ui.available_rect_before_wrap();
-            let mut pos = available_rect.min + egui::vec2(240.0, 300.0);
+            let mut pos = available_rect.min + egui::vec2(270.0, 380.0);
             for line in &sample_content.lines {
                 draw_vertical_ruby_text(ui, pos, line);
                 pos.x -= 60.0; // Adjust spacing as needed.
