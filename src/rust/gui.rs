@@ -13,29 +13,26 @@ impl Default for MyApp {
 }
 
 // Helper function to extract base text and ruby texts.
-// It checks if the base text is a single character. If so, the entire reading is kept.
+// If the reading's length does not match the base text's length,
+// treat the entire reading as a single annotation.
 fn extract_ruby(segment: &Segment) -> (String, Vec<String>) {
     match segment {
         Segment::Plain { text } => {
-            (text.clone(), text.chars().map(|_| "".to_string()).collect::<Vec<_>>())
+            (text.clone(), text.chars().map(|_| "".to_string()).collect())
         }
         Segment::Annotated { base, reading } => {
             let base_chars: Vec<char> = base.chars().collect();
-            if base_chars.len() == 1 {
-                // For single-character base, keep the entire reading.
+            let reading_chars: Vec<char> = reading.chars().collect();
+            if base_chars.len() != reading_chars.len() {
+                // Use the entire reading as one annotation.
                 (base.clone(), vec![reading.clone()])
             } else {
-                // For multiple-character base, split the reading by character.
-                let reading_chars: Vec<char> = reading.chars().collect();
-                let mut ruby_vec = Vec::new();
-                for i in 0..base_chars.len() {
-                    let ruby = if i < reading_chars.len() {
-                        reading_chars[i].to_string()
-                    } else {
-                        "".to_string()
-                    };
-                    ruby_vec.push(ruby);
-                }
+                // Map each character of the base with the corresponding reading.
+                let ruby_vec = base_chars
+                    .iter()
+                    .enumerate()
+                    .map(|(i, _)| reading_chars[i].to_string())
+                    .collect();
                 (base.clone(), ruby_vec)
             }
         }
@@ -43,8 +40,8 @@ fn extract_ruby(segment: &Segment) -> (String, Vec<String>) {
 }
 
 /// Draw horizontal ruby text.
-/// This function iterates through each segment in the provided line and renders
-/// both the main text and its ruby annotations.
+/// If a segment’s ruby annotation is provided as a single unit for a multi-character base,
+/// draw the annotation centered above the entire base text.
 fn draw_horizontal_ruby_text(ui: &egui::Ui, pos: Pos2, line: &Line) {
     let painter = ui.painter();
     let main_font = FontId::new(30.0, egui::FontFamily::Proportional);
@@ -58,32 +55,41 @@ fn draw_horizontal_ruby_text(ui: &egui::Ui, pos: Pos2, line: &Line) {
     for segment in &line.segments {
         let (base_text, ruby_texts) = extract_ruby(segment);
 
-        // Draw each character with its ruby annotation.
-        for (i, ch) in base_text.chars().enumerate() {
-            let char_str = ch.to_string();
-            // Measure the size of the main character.
-            let galley = ui.fonts(|fonts| {
-                fonts.layout_no_wrap(char_str.clone(), main_font.clone(), Color32::WHITE)
-            });
-            let char_width = galley.size().x;
-            // Use the entire ruby text (if exists) for the current character.
-            let ruby = if i < ruby_texts.len() { &ruby_texts[i] } else { "" };
-            // Measure the size of the ruby text.
+        // If the ruby annotation is a single unit for multi-character base text.
+        if ruby_texts.len() == 1 && base_text.chars().count() > 1 {
+            // Calculate total width of the base text.
+            let segment_start_x = x;
+            let mut total_width = 0.0;
+            for ch in base_text.chars() {
+                let char_str = ch.to_string();
+                let galley = ui.fonts(|fonts| {
+                    fonts.layout_no_wrap(char_str, main_font.clone(), Color32::WHITE)
+                });
+                total_width += galley.size().x;
+            }
+            // Draw the base text character by character.
+            for ch in base_text.chars() {
+                let char_str = ch.to_string();
+                let galley = ui.fonts(|fonts| {
+                    fonts.layout_no_wrap(char_str.clone(), main_font.clone(), Color32::WHITE)
+                });
+                painter.text(
+                    Pos2::new(x, y_main),
+                    egui::Align2::LEFT_TOP,
+                    char_str,
+                    main_font.clone(),
+                    Color32::WHITE,
+                );
+                x += galley.size().x;
+            }
+            // Draw the entire ruby annotation centered above the base text.
+            let segment_center = segment_start_x + total_width / 2.0;
+            let ruby = &ruby_texts[0];
             let ruby_galley = ui.fonts(|fonts| {
                 fonts.layout_no_wrap(ruby.to_string(), ruby_font.clone(), Color32::GRAY)
             });
             let ruby_width = ruby_galley.size().x;
-            // Center the ruby text above the main text.
-            let x_ruby = x + (char_width - ruby_width) / 2.0;
-            // Draw the main character.
-            painter.text(
-                Pos2::new(x, y_main),
-                egui::Align2::LEFT_TOP,
-                char_str,
-                main_font.clone(),
-                Color32::WHITE,
-            );
-            // Draw the ruby annotation.
+            let x_ruby = segment_center - ruby_width / 2.0;
             painter.text(
                 Pos2::new(x_ruby, y_ruby),
                 egui::Align2::LEFT_BOTTOM,
@@ -91,83 +97,169 @@ fn draw_horizontal_ruby_text(ui: &egui::Ui, pos: Pos2, line: &Line) {
                 ruby_font.clone(),
                 Color32::GRAY,
             );
-            x += char_width;
+        } else {
+            // Otherwise, perform per-character drawing.
+            for (i, ch) in base_text.chars().enumerate() {
+                let char_str = ch.to_string();
+                // Measure the size of the main character.
+                let galley = ui.fonts(|fonts| {
+                    fonts.layout_no_wrap(char_str.clone(), main_font.clone(), Color32::WHITE)
+                });
+                let char_width = galley.size().x;
+                // Use per-character ruby if available.
+                let ruby = if i < ruby_texts.len() { &ruby_texts[i] } else { "" };
+                // Measure the size of the ruby text.
+                let ruby_galley = ui.fonts(|fonts| {
+                    fonts.layout_no_wrap(ruby.to_string(), ruby_font.clone(), Color32::GRAY)
+                });
+                let ruby_width = ruby_galley.size().x;
+                // Center the ruby text above the main text.
+                let x_ruby = x + (char_width - ruby_width) / 2.0;
+                // Draw the main character.
+                painter.text(
+                    Pos2::new(x, y_main),
+                    egui::Align2::LEFT_TOP,
+                    char_str,
+                    main_font.clone(),
+                    Color32::WHITE,
+                );
+                // Draw the ruby annotation.
+                painter.text(
+                    Pos2::new(x_ruby, y_ruby),
+                    egui::Align2::LEFT_BOTTOM,
+                    ruby,
+                    ruby_font.clone(),
+                    Color32::GRAY,
+                );
+                x += char_width;
+            }
         }
     }
 }
 
 /// Draw vertical ruby text.
-/// This function iterates over each segment in the line and draws the main text vertically
-/// with its ruby annotation rendered to the right.
+/// If a segment’s ruby annotation is provided as a single unit for a multi-character base,
+/// draw the annotation once, centered to the right of the vertically arranged base text.
 fn draw_vertical_ruby_text(ui: &egui::Ui, pos: Pos2, line: &Line) {
     let painter = ui.painter();
     let main_font = FontId::new(30.0, egui::FontFamily::Proportional);
     let ruby_font = FontId::new(15.0, egui::FontFamily::Proportional);
 
-    // Initialize vertical starting position.
     let mut y = pos.y;
 
-    // Process each segment in the provided line.
+    // Iterate through each segment in the line.
     for segment in &line.segments {
         let (base_text, ruby_texts) = extract_ruby(segment);
 
-        // Draw each character with its ruby annotation vertically.
-        for (i, ch) in base_text.chars().enumerate() {
-            let char_str = ch.to_string();
-            // Measure the size of the main character.
-            let galley = ui.fonts(|fonts| {
-                fonts.layout_no_wrap(char_str.clone(), main_font.clone(), Color32::WHITE)
-            });
-            let char_height = galley.size().y-10.0;
-            // Obtain the ruby text for the current character.
-            let ruby = if i < ruby_texts.len() { &ruby_texts[i] } else { "" };
-            // Calculate the total height of the ruby annotation.
-            let total_ruby_height: f32 = ruby.chars().map(|r_ch| {
+        // Check if we have a single ruby annotation for a multi-character base text.
+        if ruby_texts.len() == 1 && base_text.chars().count() > 1 {
+            // Calculate total height for the base text.
+            let segment_start_y = y;
+            let mut total_height = 0.0;
+            for ch in base_text.chars() {
+                let char_str = ch.to_string();
+                let galley = ui.fonts(|fonts| {
+                    fonts.layout_no_wrap(char_str, main_font.clone(), Color32::WHITE)
+                });
+                total_height += galley.size().y;
+            }
+            // Draw the base text vertically.
+            for ch in base_text.chars() {
+                let char_str = ch.to_string();
+                let galley = ui.fonts(|fonts| {
+                    fonts.layout_no_wrap(char_str.clone(), main_font.clone(), Color32::WHITE)
+                });
+                painter.text(
+                    Pos2::new(pos.x, y),
+                    egui::Align2::LEFT_TOP,
+                    char_str,
+                    main_font.clone(),
+                    Color32::WHITE,
+                );
+                y += galley.size().y;
+            }
+            // Split the ruby annotation into individual characters.
+            let ruby = &ruby_texts[0];
+            let ruby_chars: Vec<char> = ruby.chars().collect();
+            // Calculate total height of the ruby characters.
+            let mut total_ruby_height = 0.0;
+            for r_ch in &ruby_chars {
                 let r_str = r_ch.to_string();
                 let r_galley = ui.fonts(|fonts| {
                     fonts.layout_no_wrap(r_str, ruby_font.clone(), Color32::GRAY)
                 });
-                r_galley.size().y
-            }).sum();
-            // Compute starting y position for ruby so it is centered relative to the main text.
-            let start_ruby_y = y + (char_height - total_ruby_height) / 2.0;
-            // Draw the main character.
-            painter.text(
-                Pos2::new(pos.x, y),
-                egui::Align2::LEFT_TOP,
-                char_str,
-                main_font.clone(),
-                Color32::WHITE,
-            );
-            // If the ruby text has multiple characters, draw them vertically.
-            if ruby.chars().count() > 1 {
-                let mut current_ruby_y = start_ruby_y;
-                for r_ch in ruby.chars() {
-                    let r_str = r_ch.to_string();
-                    let r_galley = ui.fonts(|fonts| {
-                        fonts.layout_no_wrap(r_str.clone(), ruby_font.clone(), Color32::GRAY)
-                    });
-                    painter.text(
-                        Pos2::new(pos.x + galley.size().x + 2.0, current_ruby_y + 5.0),
-                        egui::Align2::LEFT_TOP,
-                        r_str,
-                        ruby_font.clone(),
-                        Color32::GRAY,
-                    );
-                    current_ruby_y += r_galley.size().y;
-                }
-            } else {
-                // Otherwise, draw the ruby text as a whole.
+                total_ruby_height += r_galley.size().y;
+            }
+            // Compute starting y position for ruby so it is centered relative to the base text.
+            let segment_center_y = segment_start_y + total_height / 2.0;
+            let start_ruby_y = segment_center_y - total_ruby_height / 2.0;
+            // Draw each ruby character vertically.
+            let mut current_ruby_y = start_ruby_y;
+            for r_ch in ruby_chars {
+                let r_str = r_ch.to_string();
+                let r_galley = ui.fonts(|fonts| {
+                    fonts.layout_no_wrap(r_str.clone(), ruby_font.clone(), Color32::GRAY)
+                });
                 painter.text(
-                    Pos2::new(pos.x + galley.size().x + 2.0, start_ruby_y + 5.0),
+                    Pos2::new(pos.x + 30.0, current_ruby_y),
                     egui::Align2::LEFT_TOP,
-                    ruby,
+                    r_str,
                     ruby_font.clone(),
                     Color32::GRAY,
                 );
+                current_ruby_y += r_galley.size().y;
             }
-            // Increment y position for the next character.
-            y += char_height;
+        } else {
+            // Otherwise, perform per-character drawing.
+            for (i, ch) in base_text.chars().enumerate() {
+                let char_str = ch.to_string();
+                let galley = ui.fonts(|fonts| {
+                    fonts.layout_no_wrap(char_str.clone(), main_font.clone(), Color32::WHITE)
+                });
+                let char_height = galley.size().y - 10.0;
+                let ruby = if i < ruby_texts.len() { &ruby_texts[i] } else { "" };
+                let total_ruby_height: f32 = ruby.chars().map(|r_ch| {
+                    let r_str = r_ch.to_string();
+                    let r_galley = ui.fonts(|fonts| {
+                        fonts.layout_no_wrap(r_str, ruby_font.clone(), Color32::GRAY)
+                    });
+                    r_galley.size().y
+                }).sum();
+                let start_ruby_y = y + (char_height - total_ruby_height) / 2.0;
+                painter.text(
+                    Pos2::new(pos.x, y),
+                    egui::Align2::LEFT_TOP,
+                    char_str,
+                    main_font.clone(),
+                    Color32::WHITE,
+                );
+                if ruby.chars().count() > 1 {
+                    let mut current_ruby_y = start_ruby_y;
+                    for r_ch in ruby.chars() {
+                        let r_str = r_ch.to_string();
+                        let r_galley = ui.fonts(|fonts| {
+                            fonts.layout_no_wrap(r_str.clone(), ruby_font.clone(), Color32::GRAY)
+                        });
+                        painter.text(
+                            Pos2::new(pos.x + galley.size().x + 2.0, current_ruby_y + 5.0),
+                            egui::Align2::LEFT_TOP,
+                            r_str,
+                            ruby_font.clone(),
+                            Color32::GRAY,
+                        );
+                        current_ruby_y += r_galley.size().y;
+                    }
+                } else {
+                    painter.text(
+                        Pos2::new(pos.x + galley.size().x + 2.0, start_ruby_y + 5.0),
+                        egui::Align2::LEFT_TOP,
+                        ruby,
+                        ruby_font.clone(),
+                        Color32::GRAY,
+                    );
+                }
+                y += char_height;
+            }
         }
     }
 }
@@ -187,25 +279,19 @@ impl eframe::App for MyApp {
 (浅/あさ)き(夢/ゆめ)(見/み)じ(酔/ゑ)ひ/も/せ/ず";
             let sample_content: Content = parse_problem(sample_text);
 
-            // 横書きテキスト
+            // 横書きテキスト / Horizontal text
             let available_rect = ui.available_rect_before_wrap();
-            // Set initial offset for horizontal text.
             let mut pos = available_rect.min + egui::vec2(10.0, 70.0);
-            // Iterate over all lines and draw them horizontally.
             for line in &sample_content.lines {
                 draw_horizontal_ruby_text(ui, pos, line);
-                // Update vertical offset for the next line.
-                pos.y += 60.0; // Adjust the spacing as needed.
+                pos.y += 60.0; // Adjust spacing as needed.
             }
-            // 縦書きテキスト
+            // 縦書きテキスト / Vertical text
             let available_rect = ui.available_rect_before_wrap();
-            // Set initial offset for vertical text.
             let mut pos = available_rect.min + egui::vec2(240.0, 300.0);
-            // Iterate over all lines and draw them vertically.
             for line in &sample_content.lines {
                 draw_vertical_ruby_text(ui, pos, line);
-                // Update horizontal offset for the next vertical line.
-                pos.x -= 60.0; // Adjust the spacing as needed.
+                pos.x -= 60.0; // Adjust spacing as needed.
             }
         });
     }
