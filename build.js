@@ -16,6 +16,23 @@ function makedir() {
     console.log('Directory created:', destDir);
 }
 
+function buildTSapi() {
+    esbuild.build({
+        entryPoints: ['./src/web/api.ts'], // エントリーポイント
+        tsconfig: './tsconfig.json', // tsconfig.jsonのパス
+        outfile: './src/web/api.js',    // 出力先
+        bundle: true,                   // 依存関係をバンドル
+        // minify: true,                   // 圧縮
+        minify: false,                   // 圧縮
+        // sourcemap: false,                // ソースマップ生成
+        target: ['esnext'],             // トランスパイルのターゲット
+        loader: { '.ts': 'ts' },        // TypeScriptを処理
+        format: 'esm',  // 出力形式をESモジュールにする
+    }).then(() => {
+        console.log('TS Build succeeded!');
+    }).catch(() => process.exit(1));
+}
+
 function buildTS() {
     esbuild.build({
         entryPoints: ['./src/web/index.ts'], // エントリーポイント
@@ -119,6 +136,7 @@ async function getFile(savePath,url) {
 async function main() {
     const args = process.argv.slice(2);
     makedir();
+    await buildTSapi();
     if (!args.includes("-tsonly")) {
         await buildRust(args);
     }

@@ -1,5 +1,6 @@
 import { elm, textelm } from './cdom.js';
 import { initlayout } from "./layout.js";
+import { layout_switch } from "./api.js";
 import { Model, Msg, Segment, TextOrientation, TypingCorrectnessSegment, TypingMetrics, TypingStatus } from "./model.js";
 
 import initWasm, { init_model, event_receive_keyboard, fetch_render_data, add_contents, typing_scroll } from './typing_lib.js';
@@ -10,28 +11,24 @@ async function init() {
     const urlParams = new URLSearchParams(queryString);
     const layout = urlParams.get('layout')=="h"?"h":"v";
     await initWasm(); // Wasmモジュールの初期化
-    document.querySelector("html").dataset.layout = layout;
-    initlayout(
-        document.querySelector("#layoutroot"),
-        ["h",[5,3],[
-            [layout=="h"?"v":"h",layout=="h"?[3,2]:[2,3],[
-                ["c",layout=="h"?"main":"sub1"],
-                ["c",layout=="h"?"sub1":"main"],
-            ]],
-            ["v",[2,5],[
-                ["c","sub2"],
-                ["c","sub3"],
-            ]]
-        ]],
-    );
-    await init_model(layout=="h"?"Horizontal":"Vertical" as TextOrientation);
-    let main = (document.querySelector("#main") as HTMLDivElement).Clear().addProp({tabindex: 0});
-    let sub1 = (document.querySelector("#sub1") as HTMLDivElement).Clear();
-    let sub2 = (document.querySelector("#sub2") as HTMLDivElement).Clear();
-    let sub3 = (document.querySelector("#sub3") as HTMLDivElement).Clear();
-    main.Listen("keydown",(e: KeyboardEvent)=>{
+    // document.querySelector("html").dataset.layout = layout;
+    // initlayout(
+    //     document.querySelector("#layoutroot"),
+    //     ["h",[5,3],[
+    //         [layout=="h"?"v":"h",layout=="h"?[3,2]:[2,3],[
+    //             ["c",layout=="h"?"main":"sub1"],
+    //             ["c",layout=="h"?"sub1":"main"],
+    //         ]],
+    //         ["v",[2,5],[
+    //             ["c","sub2"],
+    //             ["c","sub3"],
+    //         ]]
+    //     ]],
+    // );
+    document.querySelector("#layoutroot").addProp({tabindex: 0}).Listen("keydown",(e: KeyboardEvent)=>{
         event_receive_keyboard(e.key);
-    })
+    });
+    await init_model(layout=="h"?"Horizontal":"Vertical" as TextOrientation);
     render();
 
     const dropzone = document.querySelector("#layoutroot");
@@ -68,11 +65,6 @@ let fps = 0;                            // Current FPS value
 function render() {
     let data = JSON.parse(fetch_render_data());
 
-    let main = (document.querySelector("#main") as HTMLDivElement).Clear();
-    let sub1 = (document.querySelector("#sub1") as HTMLDivElement).Clear();
-    let sub2 = (document.querySelector("#sub2") as HTMLDivElement);
-    let sub3 = (document.querySelector("#sub3") as HTMLDivElement).Clear();
-
     let now = performance.now();
     frameCount++;
     // Update the FPS value every 1000 milliseconds (1 second)
@@ -80,17 +72,24 @@ function render() {
         fps = frameCount;
         frameCount = 0;
         lastFpsUpdate = now;
-        sub2.Clear().Add(elm("p",{},[textelm("FPS: "),textelm(fps.toString())]))
+        document.querySelector("#overlay").Clear().Add(elm("p",{},[textelm("FPS: "),textelm(fps.toString())]))
     }
     if (data[0] == "Menu") {
-        let menu = data[2];
+        let selecting = data[1] as number;
+        let menu = data[2] as string[];
+        let layout = data[3] as TextOrientation;
+        let [main,sub1,sub2,sub3] = layout_switch(layout);
+        main.Clear();
+        sub1.Clear();
+        sub2.Clear();
+        sub3.Clear();
         main.Add(elm("h1",{},[textelm("Neknaj Typing Game")])).Add(
             elm("ul", {}, menu.map(
                 (content,i) => {
                     let e =elm("li", {}, [
                         textelm(content)
                     ]);
-                    if (i==data[1]) {
+                    if (i==selecting) {
                         e.classList.add("selecting")
                     }
                     return e;
@@ -98,7 +97,14 @@ function render() {
             )))
     }
     if (data[0] == "TypingStart") {
-        main.Add(elm("h1",{},[textelm(data[1])]))
+        let title = data[1] as string;
+        let layout = data[2] as TextOrientation;
+        let [main,sub1,sub2,sub3] = layout_switch(layout);
+        main.Clear();
+        sub1.Clear();
+        sub2.Clear();
+        sub3.Clear();
+        main.Add(elm("h1",{},[textelm(title)]))
             .Add(elm("p",{},[textelm("Press Space to start typing")]))
             .Add(elm("p",{},[textelm("Press Escape to cancel")]));
         let text_orientation = data[2] as TextOrientation;
@@ -121,6 +127,11 @@ function render() {
         let metrics = data[7] as TypingMetrics;
         let segment = segments[status.segment];
         console.log(metrics);
+        let [main,sub1,sub2,sub3] = layout_switch(text_orientation);
+        main.Clear();
+        sub1.Clear();
+        sub2.Clear();
+        sub3.Clear();
         main.Add(elm("h1",{},[textelm(title)])).Add(elm("br",{},[]))
         .Add(elm("div",{class:"typing_scroll"},[
             elm("p",{class:"typing"},segments.map((seg: Segment,i)=>{
@@ -213,6 +224,12 @@ function render() {
     if (data[0] == "Result") {
         let title = data[1] as string;
         let metrics = data[2] as TypingMetrics;
+        let layout = data[3] as TextOrientation;
+        let [main,sub1,sub2,sub3] = layout_switch(layout);
+        main.Clear();
+        sub1.Clear();
+        sub2.Clear();
+        sub3.Clear();
         main.Add(elm("h1",{},[textelm("Result")]))
             .Add(elm("h2",{},[textelm(title)]))
             .Add(elm("p",{},[textelm("Press Space to Restart typing")]))
@@ -252,6 +269,12 @@ function render() {
     if (data[0] == "Pause") {
         let title = data[1] as string;
         let metrics = data[2] as TypingMetrics;
+        let layout = data[3] as TextOrientation;
+        let [main,sub1,sub2,sub3] = layout_switch(layout);
+        main.Clear();
+        sub1.Clear();
+        sub2.Clear();
+        sub3.Clear();
         main.Add(elm("h1",{},[textelm("Pause")]))
             .Add(elm("h2",{},[textelm(title)]))
             .Add(elm("p",{},[textelm("Press Space to Resume typing")]))
@@ -289,4 +312,34 @@ function render() {
         );
     }
     requestAnimationFrame(render);
+}
+
+function layout_switch(layout: TextOrientation) {
+    let h = layout=="Horizontal";
+    if (document.querySelector("html").dataset.layout == layout) {
+        let main = (document.querySelector("#main") as HTMLDivElement);
+        let sub1 = (document.querySelector("#sub1") as HTMLDivElement);
+        let sub2 = (document.querySelector("#sub2") as HTMLDivElement);
+        let sub3 = (document.querySelector("#sub3") as HTMLDivElement);
+        return [main,sub1,sub2,sub3];
+    }
+    document.querySelector("html").dataset.layout = layout;
+    initlayout(
+        document.querySelector("#layoutroot"),
+        ["h",[5,3],[
+            [h?"v":"h",h?[3,2]:[2,3],[
+                ["c",h?"main":"sub1"],
+                ["c",h?"sub1":"main"],
+            ]],
+            ["v",[2,5],[
+                ["c","sub2"],
+                ["c","sub3"],
+            ]]
+        ]],
+    );
+    let main = (document.querySelector("#main") as HTMLDivElement);
+    let sub1 = (document.querySelector("#sub1") as HTMLDivElement);
+    let sub2 = (document.querySelector("#sub2") as HTMLDivElement);
+    let sub3 = (document.querySelector("#sub3") as HTMLDivElement);
+    return [main,sub1,sub2,sub3];
 }

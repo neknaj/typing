@@ -247,7 +247,7 @@ pub fn event_receive_keyboard(event: JsValue) {
                         *model = update(model.clone(), Msg::Menu(MenuMsg::MoveCursor(menu_model.selecting-1)));
                     }
                 },
-                (" ",_) => {
+                (" ",_) | ("Enter",_) => {
                     *model = update(model.clone(), Msg::Menu(MenuMsg::Start));
                 }
                 _ => {
@@ -316,19 +316,19 @@ pub fn fetch_render_data() -> String {
                 .iter()
                 .map(|content| content.title.clone())
                 .collect();
-            jsvalue!("Menu",scene_model.selecting,menu)
+            jsvalue!("Menu",scene_model.selecting,menu,&scene_model.text_orientation)
         },
         Model::TypingStart(ref scene_model) => {
             jsvalue!("TypingStart",&scene_model.content.title,&scene_model.text_orientation)
         },
         Model::Typing(ref scene_model) => {
-            jsvalue!("Typing",&scene_model.content.title,&scene_model.content.lines[scene_model.status.line as usize].segments,&scene_model.typing_correctness.lines[scene_model.status.line as usize].segments,&scene_model.status,&scene_model.text_orientation,&scene_model.scroll.scroll,calculate_total_metrics(scene_model))
+            jsvalue!("Typing",&scene_model.content.title,&scene_model.content.lines[scene_model.status.line as usize].segments,&scene_model.typing_correctness.lines[scene_model.status.line as usize].segments,&scene_model.status,&scene_model.text_orientation,&scene_model.scroll.scroll,calculate_total_metrics(scene_model),&scene_model.text_orientation)
         },
         Model::Result(ref scene_model) => {
-            jsvalue!("Result",&scene_model.typing_model.content.title,calculate_total_metrics(&scene_model.typing_model))
+            jsvalue!("Result",&scene_model.typing_model.content.title,calculate_total_metrics(&scene_model.typing_model),&scene_model.typing_model.text_orientation)
         },
         Model::Pause(ref scene_model) => {
-            jsvalue!("Pause",&scene_model.typing_model.content.title,calculate_total_metrics(&scene_model.typing_model))
+            jsvalue!("Pause",&scene_model.typing_model.content.title,calculate_total_metrics(&scene_model.typing_model),&scene_model.typing_model.text_orientation)
         },
         _ => jsvalue!("Other")
     }
