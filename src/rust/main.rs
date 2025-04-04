@@ -7,7 +7,12 @@ fn main() {
     // Print a greeting message for native execution
     println!("Hello World in Native");
 
-    let native_options = eframe::NativeOptions::default();
+    let native_options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default(),
+            // .with_inner_size([1500.0, 1300.0]),
+        ..Default::default()
+    };
+
     eframe::run_native(
         "My egui App",
         native_options,
