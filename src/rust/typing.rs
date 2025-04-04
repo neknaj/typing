@@ -1,7 +1,7 @@
 // typing.rs
 
 use crate::{console_log, debug};
-use crate::model::{Model, TypingModel, ResultModel, TypingCorrectnessContent, TypingSession, TypingInput, TypingCorrectnessLine, TypingCorrectnessSegment, TypingCorrectnessChar};
+use crate::model::{Model, TypingModel, ResultModel, TypingCorrectnessContent, TypingSession, TypingInput, TypingCorrectnessLine, TypingCorrectnessSegment, TypingCorrectnessChar, TypingMetrics};
 use crate::parser::{Content, Line, Segment};
 use js_sys::Date;
 
@@ -210,4 +210,88 @@ pub fn create_typing_correctness_model(content: Content) -> TypingCorrectnessCon
         lines.push(TypingCorrectnessLine { segments });
     }
     TypingCorrectnessContent { lines }
+}
+
+
+impl TypingMetrics {
+    fn new() -> Self {
+        TypingMetrics {
+            miss_count: 0,
+            type_count: 0,
+            total_time: 0.0,
+            accuracy: 0.0,
+            speed: 0.0,
+        }
+    }
+
+    fn calculate(&mut self) {
+        // 正確さと速さの計算
+        if self.type_count > 0 {
+            self.accuracy = 1.0 - (self.miss_count as f64 / self.type_count as f64);
+        }
+        if self.total_time > 0.0 {
+            self.speed = (self.type_count as f64) / (self.total_time / 1000.0); // 秒あたりのタイプ数
+        }
+    }
+}
+
+/// 特定の行のタイピング統計を計算
+pub fn calculate_line_metrics(model: &TypingModel, line: i32) -> TypingMetrics {
+    let mut metrics = TypingMetrics::new();
+    
+    // 指定された行のセッションを取得
+    let line_sessions: Vec<&TypingSession> = model.user_input.iter()
+        .filter(|session| session.line == line)
+        .collect();
+
+    for session in line_sessions {
+        let mut consecutive_errors = 0;
+        
+        if let (Some(first), Some(last)) = (session.inputs.first(), session.inputs.last()) {
+            metrics.total_time += last.timestamp - first.timestamp;
+        }
+
+        for input in &session.inputs {
+            if input.is_correct {
+                metrics.type_count += 1;
+                consecutive_errors = 0;
+            } else {
+                consecutive_errors += 1;
+                if consecutive_errors == 1 {  // 連続エラーの最初のみカウント
+                    metrics.miss_count += 1;
+                }
+            }
+        }
+    }
+
+    metrics.calculate();
+    metrics
+}
+
+/// 全体のタイピング統計を計算
+pub fn calculate_total_metrics(model: &TypingModel) -> TypingMetrics {
+    let mut metrics = TypingMetrics::new();
+
+    for session in &model.user_input {
+        let mut consecutive_errors = 0;
+        
+        if let (Some(first), Some(last)) = (session.inputs.first(), session.inputs.last()) {
+            metrics.total_time += last.timestamp - first.timestamp;
+        }
+
+        for input in &session.inputs {
+            if input.is_correct {
+                metrics.type_count += 1;
+                consecutive_errors = 0;
+            } else {
+                consecutive_errors += 1;
+                if consecutive_errors == 1 {  // 連続エラーの最初のみカウント
+                    metrics.miss_count += 1;
+                }
+            }
+        }
+    }
+
+    metrics.calculate();
+    metrics
 }

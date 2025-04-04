@@ -160,3 +160,13 @@ pub struct TypingScroll {
     pub scroll: f64,
     pub max: f64,
 }
+
+#[derive(Serialize, Deserialize, Clone, TS)]
+#[ts(export, export_to = "../src/web/model.ts")]
+pub struct TypingMetrics {
+    pub miss_count: i32,      // タイプミス数
+    pub type_count: i32,      // タイプ数（正解のみ）
+    pub total_time: f64,      // 合計時間（ミリ秒）
+    pub accuracy: f64,        // 正確さ（0.0 - 1.0）
+    pub speed: f64,           // 速さ（タイプ/秒）
+}

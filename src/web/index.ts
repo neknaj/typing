@@ -1,6 +1,6 @@
 import { elm, textelm } from './cdom.js';
 import { initlayout } from "./layout.js";
-import { Model, Msg, Segment, TextOrientation, TypingCorrectnessSegment, TypingStatus } from "./model.js";
+import { Model, Msg, Segment, TextOrientation, TypingCorrectnessSegment, TypingMetrics, TypingStatus } from "./model.js";
 
 import initWasm, { init_model, event_receive_keyboard, fetch_render_data, add_contents, typing_scroll } from './typing_lib.js';
 
@@ -118,8 +118,9 @@ function render() {
         let status = data[4] as TypingStatus;
         let text_orientation = data[5] as TextOrientation;
         let scroll = data[6] as number;
+        let metrics = data[7] as TypingMetrics;
         let segment = segments[status.segment];
-        // console.log(data)
+        console.log(metrics);
         main.Add(elm("h1",{},[textelm(title)])).Add(elm("br",{},[]))
         .Add(elm("div",{class:"typing_scroll"},[
             elm("p",{class:"typing"},segments.map((seg: Segment,i)=>{

@@ -15,6 +15,7 @@ use crate::msg::{Msg, MenuMsg, TypingStartMsg, TypingMsg, PauseMsg, ResultMsg};
 use crate::jsapi::{*};
 use crate::parser::{parse_problem, Content};
 use crate::typing;
+use crate::typing::calculate_total_metrics;
 use crate::typing::key_input;
 use wasm_bindgen_futures::JsFuture;
 use js_sys::Promise;
@@ -311,7 +312,7 @@ pub fn fetch_render_data() -> String {
             jsvalue!("TypingStart",&scene_model.content.title,&scene_model.text_orientation)
         },
         Model::Typing(ref scene_model) => {
-            jsvalue!("Typing",&scene_model.content.title,&scene_model.content.lines[scene_model.status.line as usize].segments,&scene_model.typing_correctness.lines[scene_model.status.line as usize].segments,&scene_model.status,&scene_model.text_orientation,&scene_model.scroll.scroll)
+            jsvalue!("Typing",&scene_model.content.title,&scene_model.content.lines[scene_model.status.line as usize].segments,&scene_model.typing_correctness.lines[scene_model.status.line as usize].segments,&scene_model.status,&scene_model.text_orientation,&scene_model.scroll.scroll,calculate_total_metrics(scene_model))
         },
         _ => jsvalue!("Other")
     }
