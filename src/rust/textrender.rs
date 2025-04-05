@@ -52,6 +52,11 @@ fn is_japanese_kana(c: char) -> bool {
     (code >= 0x30A0 && code <= 0x30FF)    // カタカナ
 }
 
+fn is_japanese_hiragana(c: char) -> bool {
+    let code = c as u32;
+    (code >= 0x3040 && code <= 0x309F) // ひらがな
+}
+
 /// RenderText widget: renders a string by calling RenderChar for each character.
 pub struct RenderText {
     text: String,
@@ -129,9 +134,11 @@ impl egui::Widget for RenderText {
             match (&self.orientation,is_japanese(ch)) {
                 (CharOrientation::Horizontal,true) => {
                     let dx = if is_japanese_kana(ch) { size.x*0.8 } else { size.x };
-                    let oy = if is_japanese_kana(ch) { size.y*0.01 } else { 0.0 };
+                    let oy = if is_japanese_kana(ch) { if is_japanese_hiragana(ch) { size.y*0.05 } else { size.y*0.01 } } else { 0.0 };
                     let pos = egui::pos2(x_offset+dx/2.0, y_offset+oy);
-                    render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_id, color);
+                    let mut font = font_id.clone();
+                    if is_japanese_kana(ch) { if is_japanese_hiragana(ch) { font.size = font_id.size*0.9; } else { font.size = font_id.size*0.95; } }
+                    render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font, color);
                     x_offset += dx;
                 },
                 (CharOrientation::Horizontal,false) => {
@@ -143,7 +150,9 @@ impl egui::Widget for RenderText {
                 (CharOrientation::Vertical,true) => {
                     let dy = if is_japanese_kana(ch) { size.x*0.85 } else { size.x };
                     let pos = egui::pos2(x_offset, y_offset+dy/2.0);
-                    render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_id, color);
+                    let mut font = font_id.clone();
+                    if is_japanese_kana(ch) { if is_japanese_hiragana(ch) { font.size = font_id.size*0.9; } else { font.size = font_id.size*0.95; } }
+                    render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font, color);
                     y_offset += dy;
                 },
                 (CharOrientation::Vertical,false) => {
