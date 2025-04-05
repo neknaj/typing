@@ -7,7 +7,7 @@ mod parser;
 
 fn main() {
     // Print a greeting message for native execution
-    println!("Hello World in Native");
+    // println!("Hello World in Native");
 
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()

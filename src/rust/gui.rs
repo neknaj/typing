@@ -28,7 +28,6 @@ pub struct MyApp {
     dark_mode: bool,
     fps: u32,
     frame_count: u32,                  // Count of frames within the 1-second interval
-    // last_fps_update: Option<Instant>,  // Timestamp when the frame count was last reset
     last_fps_update: Option<f64>, // Timestamp (in milliseconds) when the frame count was last reset
 }
 
@@ -46,11 +45,28 @@ impl Default for MyApp {
 }
 
 impl eframe::App for MyApp {
+    // Setup function to initialize app settings
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let font = egui::FontId::new(50.0, egui::FontFamily::Proportional);
 
         // Side panel to toggle the theme.
-        egui::SidePanel::left("side_panel").show(ctx, |ui| {
+        egui::SidePanel::left("side_panel")
+        .frame(
+            egui::Frame {
+                fill: if self.dark_mode {
+                    egui::Color32::from_rgb(6,12,22)
+                } else {
+                    egui::Color32::from_rgb(233, 233, 247)
+                },
+                inner_margin: egui::Margin {
+                    left  : 20,
+                    right : 20,
+                    top   : 20,
+                    bottom: 20,
+                },
+                ..Default::default()
+            }
+        ).show(ctx, |ui| {
             if ui.button("Toggle Theme").clicked() {
                 self.dark_mode = !self.dark_mode;
                 let visuals = if self.dark_mode {
@@ -63,8 +79,6 @@ impl eframe::App for MyApp {
         });
 
         // Get current time.
-        // let now = Instant::now();
-        // Get current time in milliseconds using web_sys.
         let now = timestamp();
 
         // Frame count for FPS calculation:
@@ -75,15 +89,6 @@ impl eframe::App for MyApp {
             self.last_fps_update = Some(now);
         }
 
-        // Check if one second has elapsed since the last FPS update.
-        // if let Some(last_update) = self.last_fps_update {
-        //     if now.duration_since(last_update) >= Duration::from_secs(1) {
-        //         // Reset the frame count and update the timestamp.
-        //         self.fps = self.frame_count;
-        //         self.frame_count = 0;
-        //         self.last_fps_update = Some(now);
-        //     }
-        // }
         if let Some(last_update) = self.last_fps_update {
             if now - last_update >= 1000.0 {
                 // Update FPS, reset the frame count, and update the timestamp.
@@ -93,7 +98,23 @@ impl eframe::App for MyApp {
             }
         }
 
-        egui::CentralPanel::default().show(ctx, |ui| {
+        egui::CentralPanel::default()
+        .frame(
+            egui::Frame {
+                fill: if self.dark_mode {
+                    egui::Color32::from_rgb(6,12,22)
+                } else {
+                    egui::Color32::from_rgb(233, 233, 247)
+                },
+                inner_margin: egui::Margin {
+                    left  : 20,
+                    right : 20,
+                    top   : 20,
+                    bottom: 20,
+                },
+                ..Default::default()
+            }
+        ).show(ctx, |ui| {
             ui.heading("My egui Application");
             // Display the calculated FPS.
             ui.label(format!("FPS: {:.1}", self.fps));
@@ -154,6 +175,7 @@ impl eframe::App for MyApp {
                 ui.end_row(); // Ends the current row in the grid.
                 // Additional rows/cells can be added similarly.
             });
+            ctx.set_pixels_per_point(1.5);
         });
         // Request a repaint to continuously update the FPS.
         ctx.request_repaint();
