@@ -261,7 +261,7 @@ impl egui::Widget for RenderText {
 
 
 
-use egui::{self, Response, Ui, Vec2, Pos2};
+use egui::{self, accesskit::Orientation, Pos2, Response, Ui, Vec2};
 
 /// Widget to render a Line with ruby (furigana) annotations.
 pub struct RenderLineWithRuby {
@@ -295,10 +295,14 @@ impl egui::Widget for RenderLineWithRuby {
             .font_id.clone()
             .unwrap_or_else(|| egui::FontSelection::Default.resolve(ui.style()));
         let mut font_kana = self
+            .font_id.clone()
+            .unwrap_or_else(|| egui::FontSelection::Default.resolve(ui.style()));
+        let mut font_ruby = self
             .font_id
             .unwrap_or_else(|| egui::FontSelection::Default.resolve(ui.style()));
         font_main.family = egui::FontFamily::Name("main".into());
         font_kana.family = egui::FontFamily::Name("kana".into());
+        font_ruby.size = font_main.size*0.3;
         // Calculate the total width and maximum height for the entire text.
         // Allocate the required space.
         let mut rectinfo = Vec::new();
@@ -381,23 +385,27 @@ impl egui::Widget for RenderLineWithRuby {
                     },
                 };
             }
-            rectinfo.push((total_size, max_size, char_sizes));
+            rectinfo.push((total_size, max_size, char_sizes,segment));
         }
         // rectinfoの中身を総和
-        let total_size = rectinfo.iter().map(|(total_size, _, _)| *total_size).sum::<f32>();
-        let max_size = rectinfo.iter().map(|(_, max_size, _)| *max_size).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(0.0);
+        let total_size = rectinfo.iter().map(|(total_size, _, _,_)| *total_size).sum::<f32>();
+        let max_size = rectinfo.iter().map(|(_, max_size, _,_)| *max_size).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(0.0);
         let (rect, response) = ui.allocate_exact_size(if self.orientation==CharOrientation::Horizontal { egui::vec2(total_size, max_size) } else { egui::vec2(max_size, total_size ) }, egui::Sense::hover());
         // Render each character in sequence.
         let (mut x_offset,mut y_offset) = match self.orientation {
             CharOrientation::Horizontal => (rect.left(), rect.top()+font_main.size / 2.0),
             CharOrientation::Vertical => (rect.left()+font_main.size / 2.0, rect.top()),
         };
-        for (total_size, max_size, char_sizes) in rectinfo {
+        for (total_size, max_size, char_sizes,segment) in rectinfo {
+            let mut x_offset_ruby = x_offset;
+            let mut y_offset_ruby = y_offset;
+            // baseの描画
             for (ch, size) in char_sizes {
                 match (&self.orientation,is_japanese(ch)) {
                     (CharOrientation::Horizontal,true) => {
                         let dx = if is_japanese_kana(ch) { size.x*0.8 } else { size.x };
                         let oy = if is_japanese_kana(ch) { if is_japanese_hiragana(ch) { size.y*0.03 } else { size.y*0.01 } } else { 0.0 };
+                        
                         if is_japanese_kana(ch) && ch != '\u{30fc}' {
                             let mut pos = egui::pos2(x_offset+dx/2.0, y_offset+oy);
                             if is_japanese_hiragana(ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
@@ -466,6 +474,46 @@ impl egui::Widget for RenderLineWithRuby {
                     },
                 };
             }
+            match segment {
+                Segment::Annotated { base, reading } => {
+                    // rubyの描画
+                    let ruby: Vec<char> = reading.chars().collect();
+                    let w = total_size/(ruby.len()+1) as f32;
+                    x_offset_ruby += w;
+                    match self.orientation {
+                        CharOrientation::Horizontal => {
+                            for ch in ruby {
+                                let s = ch.to_string();
+                                let galley = ui.painter().layout_no_wrap(s, font_ruby.clone(), color);
+                                let size = galley.size();
+                                let dx = galley.rect.width()*0.0;
+                                if is_japanese_kana(ch) && ch != '\u{30fc}' {
+                                    let mut pos = egui::pos2(x_offset_ruby-dx, rect.top());
+                                    // if [
+                                    //     '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
+                                    //     '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
+                                    //     ].contains(&ch) {
+                                    //     pos = egui::pos2(x_offset_ruby-dx-size.x/100.0, rect.top()+size.y/80.0);
+                                    // }
+                                    render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_ruby, color);
+                                }
+                                // else if ch == '\u{30fc}'
+                                // {
+                                //     let pos = egui::pos2(x_offset_ruby-dx, rect.top());
+                                //     let mut font = font_main.clone();
+                                //     font.size = font_main.size*0.8;
+                                //     render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font, color);
+                                // }
+                                x_offset_ruby += w;
+                            }
+                        },
+                        CharOrientation::Vertical => {
+                            
+                        }
+                    }
+                },
+                _ => {}
+            };
         }
 
         response
