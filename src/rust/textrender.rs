@@ -478,8 +478,8 @@ impl egui::Widget for RenderLineWithRuby {
                 Segment::Annotated { base, reading } => {
                     // rubyの描画
                     let ruby: Vec<char> = reading.chars().collect();
-                    let w = total_size/(ruby.len()+1) as f32;
-                    x_offset_ruby += w;
+                    let w = total_size/(ruby.len()) as f32;
+                    x_offset_ruby += w*0.5;
                     match self.orientation {
                         CharOrientation::Horizontal => {
                             for ch in ruby {
@@ -489,21 +489,25 @@ impl egui::Widget for RenderLineWithRuby {
                                 let dx = galley.rect.width()*0.0;
                                 if is_japanese_kana(ch) && ch != '\u{30fc}' {
                                     let mut pos = egui::pos2(x_offset_ruby-dx, rect.top());
-                                    // if [
-                                    //     '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
-                                    //     '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
-                                    //     ].contains(&ch) {
-                                    //     pos = egui::pos2(x_offset_ruby-dx-size.x/100.0, rect.top()+size.y/80.0);
-                                    // }
+                                    if [
+                                        '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
+                                        '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
+                                        ].contains(&ch) {
+                                        pos = egui::pos2(x_offset_ruby-dx-size.x/100.0, rect.top()+size.y/80.0);
+                                    }
                                     render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_ruby, color);
                                 }
-                                // else if ch == '\u{30fc}'
-                                // {
-                                //     let pos = egui::pos2(x_offset_ruby-dx, rect.top());
-                                //     let mut font = font_main.clone();
-                                //     font.size = font_main.size*0.8;
-                                //     render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font, color);
-                                // }
+                                else if ch == '\u{30fc}'
+                                {
+                                    let pos = egui::pos2(x_offset_ruby-dx, rect.top());
+                                    let mut font = font_main.clone();
+                                    font.size = font_main.size*0.8;
+                                    render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_ruby, color);
+                                }
+                                else {
+                                    let mut pos = egui::pos2(x_offset_ruby-dx, rect.top());
+                                    render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_ruby, color);
+                                }
                                 x_offset_ruby += w;
                             }
                         },

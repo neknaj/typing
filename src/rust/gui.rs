@@ -143,6 +143,16 @@ impl eframe::App for MyApp {
             ui.add(RenderLineWithRuby::new(sample_content.lines[1].clone(),CharOrientation::Horizontal).with_font(font.clone()));
             ui.add(RenderLineWithRuby::new(sample_content.lines[2].clone(),CharOrientation::Horizontal).with_font(font.clone()));
             ui.add(RenderLineWithRuby::new(sample_content.lines[3].clone(),CharOrientation::Horizontal).with_font(font.clone()));
+            let sample_text = "#title いろは歌
+(色/iro)は(匂/niho)へ/ど(散/ti)り/ぬる/を
+(我/wa)が(世/yo)(誰/tare)ぞ(常/tune)なら/む
+(有為/uwyi)の(奥山/okuyama)(今日/きょう)(越/ko)え/て
+(浅/asa)き(夢/yume)(見/mi)じ(酔/wye)ひ/も/せ/ず";
+            let sample_content: Content = parse_problem(sample_text);
+            ui.add(RenderLineWithRuby::new(sample_content.lines[0].clone(),CharOrientation::Horizontal).with_font(font.clone()));
+            ui.add(RenderLineWithRuby::new(sample_content.lines[1].clone(),CharOrientation::Horizontal).with_font(font.clone()));
+            ui.add(RenderLineWithRuby::new(sample_content.lines[2].clone(),CharOrientation::Horizontal).with_font(font.clone()));
+            ui.add(RenderLineWithRuby::new(sample_content.lines[3].clone(),CharOrientation::Horizontal).with_font(font.clone()));
 
             ui.separator();
             egui::Grid::new("layout_grid")
