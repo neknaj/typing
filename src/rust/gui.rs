@@ -41,6 +41,14 @@ fn render_char_at(
     galley.size()
 }
 
+fn is_japanese(c: char) -> bool {
+    let code = c as u32;
+    // ひらがな、カタカナ、漢字の範囲をチェック
+    (code >= 0x3040 && code <= 0x309F) || // ひらがな
+    (code >= 0x30A0 && code <= 0x30FF) || // カタカナ
+    (code >= 0x4E00 && code <= 0x9FFF)    // 漢字（CJK統合漢字）
+}
+
 /// RenderText widget: renders a string by calling RenderChar for each character.
 pub struct RenderText {
     text: String,
@@ -68,7 +76,7 @@ impl RenderText {
 impl egui::Widget for RenderText {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
         // Retrieve text color from UI style.
-        let color = ui.style().visuals.text_color();
+        let color = ui.style().visuals.strong_text_color();
         let font_id = self
             .font_id
             .unwrap_or_else(|| egui::FontSelection::Default.resolve(ui.style()));
@@ -106,6 +114,7 @@ impl egui::Widget for RenderText {
 pub struct MyApp {
     name: String,
     age: u32,
+    dark_mode: bool,
 }
 
 impl Default for MyApp {
@@ -113,6 +122,7 @@ impl Default for MyApp {
         Self {
             name: "World".to_string(),
             age: 42,
+            dark_mode: true,
         }
     }
 }
@@ -120,6 +130,20 @@ impl Default for MyApp {
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let font = egui::FontId::new(50.0, egui::FontFamily::Proportional);
+        egui::SidePanel::left("side_panel").show(ctx, |ui| {
+            if ui.button("Toggle Theme").clicked() {
+                // Toggle the theme state.
+                self.dark_mode = !self.dark_mode;
+                // Set the theme based on the updated state.
+                let mut visuals = if self.dark_mode {
+                    egui::Visuals::dark()
+                } else {
+                    egui::Visuals::light()
+                };
+                // Apply the customized visuals.
+                ctx.set_visuals(visuals);
+            }
+        });
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("My egui Application");
             ui.horizontal(|ui| {

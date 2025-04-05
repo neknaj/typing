@@ -392,7 +392,14 @@ pub fn start_gui() -> Result<(), JsValue> {
 
                     // Apply the customized fonts to the egui context
                     cc.egui_ctx.set_fonts(fonts);
-                    
+
+                    // Set the default theme to dark mode
+                    let style = egui::Style {
+                        visuals: egui::Visuals::dark(),
+                        ..egui::Style::default()
+                    };
+                    cc.egui_ctx.set_style(style);
+
                     Ok(Box::new(gui::MyApp::default()))
                 }),
             )

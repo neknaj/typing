@@ -10,7 +10,7 @@ fn main() {
 
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([800.0, 1300.0]),
+            .with_inner_size([1400.0, 1300.0]),
         ..Default::default()
     };
 
@@ -49,6 +49,13 @@ fn main() {
 
             // Apply the customized fonts to the egui context
             cc.egui_ctx.set_fonts(fonts);
+
+            // Set the default theme to dark mode
+            let style = egui::Style {
+                visuals: egui::Visuals::dark(),
+                ..egui::Style::default()
+            };
+            cc.egui_ctx.set_style(style);
 
             Ok(Box::new(gui::MyApp::default()))
         }),
