@@ -1,3 +1,5 @@
+use crate::parser::{Content, Line, Segment};
+
 /// Enum to specify character orientation.
 #[derive(Clone,PartialEq)]
 pub enum CharOrientation {
@@ -16,9 +18,8 @@ fn render_char_at(
     color: egui::Color32,
 ) -> egui::Vec2 {
     // Convert the character to a string for layout.
-    let s = ch.to_string();
     // Clone the font_id to pass ownership.
-    let galley = ui.painter().layout_no_wrap(s, font_id.clone(), color);
+    let galley = ui.painter().layout_no_wrap(ch.to_string(), font_id.clone(), color);
     // Determine rotation angle in radians.
     let angle_rad = match orientation {
         CharOrientation::Horizontal => 0.0,
@@ -41,6 +42,11 @@ fn render_char_at(
 
 fn is_japanese(c: char) -> bool {
     let code = c as u32;
+    (code == 0x30fc) || // 記号
+    (code == 0x4e28) || // 記号
+    (code >= 0x3000 && code <= 0x3040) || // 記号
+    (code >= 0xFE30 && code <= 0xFE4F) || // 記号
+    (code >= 0xFE10 && code <= 0xFE19) || // 記号
     (code >= 0x3040 && code <= 0x309F) || // ひらがな
     (code >= 0x30A0 && code <= 0x30FF) || // カタカナ
     (code >= 0x4E00 && code <= 0x9FFF)    // 漢字（CJK統合漢字）
@@ -97,14 +103,54 @@ impl egui::Widget for RenderText {
         let mut total_size = 0.0;
         let mut max_size: f32 = 0.0;
         let mut char_sizes = Vec::new();
-        for ch in self.text.chars() {
+        let mut s = self.text;
+        if self.orientation == CharOrientation::Vertical {
+            s = s
+                // https://ja.wikipedia.org/wiki/CJK%E4%BA%92%E6%8F%9B%E5%BD%A2
+                .replace('\u{2025}', "\u{fe30}")
+                .replace('\u{2014}', "\u{fe31}")
+                .replace('\u{2013}', "\u{fe32}")
+                .replace('\u{205f}', "\u{fe33}")
+                .replace('\u{2028}', "\u{fe35}")
+                .replace('\u{2079}', "\u{fe36}")
+                .replace('\u{207b}', "\u{fe37}")
+                .replace('\u{307d}', "\u{fe38}")
+                .replace('\u{30114}', "\u{fe39}")
+                .replace('\u{3015}', "\u{fe3a}")
+                .replace('\u{3010}', "\u{fe3b}")
+                .replace('\u{3011}', "\u{fe3c}")
+                .replace('\u{300a}', "\u{fe3d}")
+                .replace('\u{300b}', "\u{fe3e}")
+                .replace('\u{3008}', "\u{fe3f}")
+                .replace('\u{3009}', "\u{fe40}")
+                .replace('\u{300c}', "\u{fe41}")
+                .replace('\u{300d}', "\u{fe42}")
+                .replace('\u{300e}', "\u{fe43}")
+                .replace('\u{202f}', "\u{fe44}")
+                .replace('\u{005B}', "\u{fe47}")
+                .replace('\u{005D}', "\u{fe48}")
+                // https://ja.wikipedia.org/wiki/%E7%B8%A6%E6%9B%B8%E3%81%8D%E5%BD%A2
+                .replace('\u{ff0c}', "\u{fe10}")
+                .replace('\u{3001}', "\u{fe11}")
+                .replace('\u{3002}', "\u{fe12}")
+                .replace('\u{ff1a}', "\u{fe13}")
+                .replace('\u{003b}', "\u{fe14}")
+                .replace('\u{ff1b}', "\u{fe14}")
+                .replace('\u{ff01}', "\u{fe15}")
+                .replace('\u{ff1f}', "\u{fe16}")
+                .replace('\u{3016}', "\u{fe17}")
+                .replace('\u{3017}', "\u{fe18}")
+                .replace('\u{2026}', "\u{fe19}")
+                //
+                .replace('\u{30fc}', "\u{4e28}");
+        }
+        for ch in s.chars() {
             let s = ch.to_string();
             let galley = ui.painter().layout_no_wrap(s, font_main.clone(), color);
             let size = galley.size();
             match (&self.orientation,is_japanese(ch)) {
                 (CharOrientation::Horizontal,true) => {
                     char_sizes.push((ch, size));
-                    // let dx = if is_japanese_kana(ch) { size.x*0.8 } else { size.x };
                     let dx = if is_japanese_kana(ch) { size.x*0.8 } else { size.x };
                     total_size += dx;
                     max_size = max_size.max(size.y);
@@ -123,7 +169,7 @@ impl egui::Widget for RenderText {
                 },
                 (CharOrientation::Vertical,false) => {
                     char_sizes.push((ch, size));
-                    let dy = size.x*0.8;
+                    let dy = size.x*0.75;
                     total_size += dy;
                     max_size = max_size.max(size.y);
                 },
@@ -141,10 +187,24 @@ impl egui::Widget for RenderText {
                 (CharOrientation::Horizontal,true) => {
                     let dx = if is_japanese_kana(ch) { size.x*0.8 } else { size.x };
                     let oy = if is_japanese_kana(ch) { if is_japanese_hiragana(ch) { size.y*0.03 } else { size.y*0.01 } } else { 0.0 };
-                    if is_japanese_kana(ch) {
-                        let pos = egui::pos2(x_offset+dx/2.0, y_offset+oy);
+                    if is_japanese_kana(ch) && ch != '\u{30fc}' {
+                        let mut pos = egui::pos2(x_offset+dx/2.0, y_offset+oy);
                         if is_japanese_hiragana(ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
+                        if [
+                            '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
+                            '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
+                            ].contains(&ch) {
+                            if is_japanese_hiragana(ch) { font_kana.size = font_main.size*0.8; } else { font_kana.size = font_main.size*0.9; }
+                            pos = egui::pos2(x_offset+dx/2.0-size.x/100.0, y_offset+oy+size.y/80.0);
+                        }
                         render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_kana, color);
+                    }
+                    else if ch == '\u{30fc}'
+                    {
+                        let pos = egui::pos2(x_offset+dx/2.0, y_offset+oy);
+                        let mut font = font_main.clone();
+                        font.size = font_main.size*0.8;
+                        render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font, color);
                     }
                     else {
                         let pos = egui::pos2(x_offset+dx/2.0, y_offset+oy);
@@ -162,10 +222,23 @@ impl egui::Widget for RenderText {
                 },
                 (CharOrientation::Vertical,true) => {
                     let dy = if is_japanese_kana(ch) { size.x*0.85 } else { size.x };
-                    let pos = egui::pos2(x_offset, y_offset+dy/2.0);
+                    let mut pos = egui::pos2(x_offset, y_offset+dy/2.0);
                     if is_japanese_kana(ch) {
                         if is_japanese_hiragana(ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
+                        if [
+                            '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
+                            '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
+                            ].contains(&ch) {
+                            if is_japanese_hiragana(ch) { font_kana.size = font_main.size*0.8; } else { font_kana.size = font_main.size*0.9; }
+                            pos = egui::pos2(x_offset+size.x/10.0, y_offset+dy/2.0-size.y/10.0);
+                        }
                         render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_kana, color);
+                    }
+                    else if ch == '\u{4e28}'
+                    {
+                        let mut font = font_main.clone();
+                        font.size = font_main.size*0.93;
+                        render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font, color);
                     }
                     else {
                         render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_main, color);
@@ -173,7 +246,7 @@ impl egui::Widget for RenderText {
                     y_offset += dy;
                 },
                 (CharOrientation::Vertical,false) => {
-                    let dy = size.x*0.8;
+                    let dy = size.x*0.75;
                     let pos = egui::pos2(x_offset+font_main.size/100.0, y_offset+dy/2.0);
                     let mut font = font_main.clone();
                     font.size = font_main.size*0.9;
@@ -185,3 +258,132 @@ impl egui::Widget for RenderText {
         response
     }
 }
+
+
+// pub struct RenderTextRuby {
+//     text: Line,
+//     orientation: CharOrientation,
+//     font_id: Option<egui::FontId>,
+// }
+
+// impl RenderText {
+//     /// Create a new RenderText widget.
+//     pub fn new(text: impl ToString, orientation: CharOrientation) -> Self {
+//         Self {
+//             text: text.to_string(),
+//             orientation,
+//             font_id: None,
+//         }
+//     }
+
+//     /// Set a custom font for the text.
+//     pub fn with_font(mut self, font_id: egui::FontId) -> Self {
+//         self.font_id = Some(font_id);
+//         self
+//     }
+// }
+
+// impl egui::Widget for RenderTextRuby {
+//     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
+//         // Retrieve text color from UI style.
+//         let color = ui.style().visuals.strong_text_color();
+//         let mut font_main = self
+//             .font_id.clone()
+//             .unwrap_or_else(|| egui::FontSelection::Default.resolve(ui.style()));
+//         let mut font_kana = self
+//             .font_id
+//             .unwrap_or_else(|| egui::FontSelection::Default.resolve(ui.style()));
+//         font_main.family = egui::FontFamily::Name("main".into());
+//         font_kana.family = egui::FontFamily::Name("kana".into());
+//         // Calculate the total width and maximum height for the entire text.
+//         let mut total_size = 0.0;
+//         let mut max_size: f32 = 0.0;
+//         let mut char_sizes = Vec::new();
+//         for ch in self.text.chars() {
+//             let s = ch.to_string();
+//             let galley = ui.painter().layout_no_wrap(s, font_main.clone(), color);
+//             let size = galley.size();
+//             match (&self.orientation,is_japanese(ch)) {
+//                 (CharOrientation::Horizontal,true) => {
+//                     char_sizes.push((ch, size));
+//                     // let dx = if is_japanese_kana(ch) { size.x*0.8 } else { size.x };
+//                     let dx = if is_japanese_kana(ch) { size.x*0.8 } else { size.x };
+//                     total_size += dx;
+//                     max_size = max_size.max(size.y);
+//                 },
+//                 (CharOrientation::Horizontal,false) => {
+//                     char_sizes.push((ch, size));
+//                     let dx = size.x*0.8;
+//                     total_size += dx;
+//                     max_size = max_size.max(size.y);
+//                 },
+//                 (CharOrientation::Vertical,true) => {
+//                     char_sizes.push((ch, size));
+//                     let dy = if is_japanese_kana(ch) { size.x*0.85 } else { size.x };
+//                     total_size += dy;
+//                     max_size = max_size.max(size.x);
+//                 },
+//                 (CharOrientation::Vertical,false) => {
+//                     char_sizes.push((ch, size));
+//                     let dy = size.x*0.8;
+//                     total_size += dy;
+//                     max_size = max_size.max(size.y);
+//                 },
+//             };
+//         }
+//         // Allocate the required space.
+//         let (rect, response) = ui.allocate_exact_size(if self.orientation==CharOrientation::Horizontal { egui::vec2(total_size, max_size) } else { egui::vec2(max_size, total_size ) }, egui::Sense::hover());
+//         // Render each character in sequence.
+//         let (mut x_offset,mut y_offset) = match self.orientation {
+//             CharOrientation::Horizontal => (rect.left(), rect.top()+font_main.size / 2.0),
+//             CharOrientation::Vertical => (rect.left()+font_main.size / 2.0, rect.top()),
+//         };
+//         for (ch, size) in char_sizes {
+//             match (&self.orientation,is_japanese(ch)) {
+//                 (CharOrientation::Horizontal,true) => {
+//                     let dx = if is_japanese_kana(ch) { size.x*0.8 } else { size.x };
+//                     let oy = if is_japanese_kana(ch) { if is_japanese_hiragana(ch) { size.y*0.03 } else { size.y*0.01 } } else { 0.0 };
+//                     if is_japanese_kana(ch) {
+//                         let pos = egui::pos2(x_offset+dx/2.0, y_offset+oy);
+//                         if is_japanese_hiragana(ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
+//                         render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_kana, color);
+//                     }
+//                     else {
+//                         let pos = egui::pos2(x_offset+dx/2.0, y_offset+oy);
+//                         render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_main, color);
+//                     }
+//                     x_offset += dx;
+//                 },
+//                 (CharOrientation::Horizontal,false) => {
+//                     let dx = size.x*0.8;
+//                     let pos = egui::pos2(x_offset+dx/2.0, y_offset+size.y/20.0);
+//                     let mut font = font_main.clone();
+//                     font.size = font_main.size*0.85;
+//                     render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font, color);
+//                     x_offset += dx;
+//                 },
+//                 (CharOrientation::Vertical,true) => {
+//                     let dy = if is_japanese_kana(ch) { size.x*0.85 } else { size.x };
+//                     let pos = egui::pos2(x_offset, y_offset+dy/2.0);
+//                     if is_japanese_kana(ch) {
+//                         if is_japanese_hiragana(ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
+//                         render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_kana, color);
+//                     }
+//                     else {
+//                         render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_main, color);
+//                     }
+//                     y_offset += dy;
+//                 },
+//                 (CharOrientation::Vertical,false) => {
+//                     let dy = size.x*0.8;
+//                     let pos = egui::pos2(x_offset+font_main.size/100.0, y_offset+dy/2.0);
+//                     let mut font = font_main.clone();
+//                     font.size = font_main.size*0.9;
+//                     render_char_at(ui, ch, pos, CharOrientation::Vertical, &font, color);
+//                     y_offset += dy;
+//                 },
+//             };
+//         }
+//         response
+//     }
+// }
