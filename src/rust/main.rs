@@ -28,6 +28,11 @@ fn main() {
             );
 
             fonts.font_data.insert(
+                "Merienda".to_owned(),
+                egui::FontData::from_static(include_bytes!("../fonts/Merienda-Regular.ttf")).into(),
+            );
+
+            fonts.font_data.insert(
                 "YujiSyuku".to_owned(),
                 egui::FontData::from_static(include_bytes!("../fonts/YujiSyuku-Regular.ttf")).into(),
             );
@@ -45,7 +50,7 @@ fn main() {
 
             fonts.families.insert(
                 egui::FontFamily::Name("main".into()),
-                vec!["YujiSyuku".to_owned(), "NotoSerifJP".to_owned()],
+                vec!["Merienda".to_owned(), "YujiSyuku".to_owned(), "NotoSerifJP".to_owned()],
             );
 
             fonts.families.insert(

@@ -104,6 +104,7 @@ impl egui::Widget for RenderText {
             match (&self.orientation,is_japanese(ch)) {
                 (CharOrientation::Horizontal,true) => {
                     char_sizes.push((ch, size));
+                    // let dx = if is_japanese_kana(ch) { size.x*0.8 } else { size.x };
                     let dx = if is_japanese_kana(ch) { size.x*0.8 } else { size.x };
                     total_size += dx;
                     max_size = max_size.max(size.y);
@@ -153,8 +154,10 @@ impl egui::Widget for RenderText {
                 },
                 (CharOrientation::Horizontal,false) => {
                     let dx = size.x*0.8;
-                    let pos = egui::pos2(x_offset+dx/2.0, y_offset);
-                    render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_main, color);
+                    let pos = egui::pos2(x_offset+dx/2.0, y_offset+size.y/20.0);
+                    let mut font = font_main.clone();
+                    font.size = font_main.size*0.85;
+                    render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font, color);
                     x_offset += dx;
                 },
                 (CharOrientation::Vertical,true) => {
@@ -171,8 +174,10 @@ impl egui::Widget for RenderText {
                 },
                 (CharOrientation::Vertical,false) => {
                     let dy = size.x*0.8;
-                    let pos = egui::pos2(x_offset+font_main.size/6.0, y_offset+dy/2.0);
-                    render_char_at(ui, ch, pos, CharOrientation::Vertical, &font_main, color);
+                    let pos = egui::pos2(x_offset+font_main.size/100.0, y_offset+dy/2.0);
+                    let mut font = font_main.clone();
+                    font.size = font_main.size*0.9;
+                    render_char_at(ui, ch, pos, CharOrientation::Vertical, &font, color);
                     y_offset += dy;
                 },
             };

@@ -61,8 +61,19 @@ impl eframe::App for MyApp {
 
             // RenderText example using horizontal orientation.
             ui.label("RenderText (Horizontal):");
+
+            
+            ui.add(RenderText::new("最近、OpenAI、Microsoft、そして SoftBank といった大手テック企業が、", CharOrientation::Horizontal).with_font(font.clone()));
+            ui.add(RenderText::new("革新的なAIおよびGPU技術を活用した新製品・サービスで大きく注目されています。", CharOrientation::Horizontal).with_font(font.clone()));
+            ui.add(RenderText::new("OpenAIは次世代モデル「GPT-4.5」の開発と大規模な資金調達を発表し、", CharOrientation::Horizontal).with_font(font.clone()));
+            ui.add(RenderText::new("MicrosoftはNVIDIAのH200 GPUを組み込んだCloud基盤の拡張を進め、", CharOrientation::Horizontal).with_font(font.clone()));
+            ui.add(RenderText::new("先進的なAI処理を加速させています。また、SoftBankは大阪の旧Sharp LCD工場を", CharOrientation::Horizontal).with_font(font.clone()));
+            ui.add(RenderText::new("最新鋭のAI Data Centerへと転換し、革新的なAI Agentモデルの商用展開を目指しています。", CharOrientation::Horizontal).with_font(font.clone()));
+            
+            
             ui.add(RenderText::new("ルビ付きの美しい横書き日本語を描画したい", CharOrientation::Horizontal).with_font(font.clone()));
             ui.add(RenderText::new("横書きテキスト Horizontal Text", CharOrientation::Horizontal).with_font(font.clone()));
+            ui.add(RenderText::new("I want to write text that combines Japanese and English!", CharOrientation::Horizontal).with_font(font.clone()));
             ui.add(RenderText::new("色は匂へど　散りぬるを", CharOrientation::Horizontal).with_font(font.clone()));
             ui.add(RenderText::new("我が世誰ぞ　常ならむ", CharOrientation::Horizontal).with_font(font.clone()));
             ui.add(RenderText::new("有為の奥山　今日越えて", CharOrientation::Horizontal).with_font(font.clone()));
