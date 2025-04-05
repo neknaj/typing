@@ -131,7 +131,8 @@ impl egui::Widget for RenderText {
             match (&self.orientation,is_japanese(ch)) {
                 (CharOrientation::Horizontal,true) => {
                     let dx = if is_japanese_kana(ch) { size.x*0.8 } else { size.x };
-                    let pos = egui::pos2(x_offset+dx/2.0, y_offset);
+                    let oy = if is_japanese_kana(ch) { size.y*0.01 } else { 0.0 };
+                    let pos = egui::pos2(x_offset+dx/2.0, y_offset+oy);
                     render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_id, color);
                     x_offset += dx;
                 },
@@ -219,6 +220,10 @@ impl eframe::App for MyApp {
             // RenderText example using horizontal orientation.
             ui.label("RenderText (Horizontal):");
             ui.add(RenderText::new("横書きテキスト Horizontal Text", CharOrientation::Horizontal).with_font(font.clone()));
+            ui.add(RenderText::new("色は匂へど　散りぬるを", CharOrientation::Horizontal).with_font(font.clone()));
+            ui.add(RenderText::new("我が世誰ぞ　常ならむ", CharOrientation::Horizontal).with_font(font.clone()));
+            ui.add(RenderText::new("有為の奥山　今日越えて", CharOrientation::Horizontal).with_font(font.clone()));
+            ui.add(RenderText::new("浅き夢見し　酔ひもせず", CharOrientation::Horizontal).with_font(font.clone()));
 
             ui.separator();
         });
