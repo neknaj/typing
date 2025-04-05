@@ -1,5 +1,6 @@
 use eframe::egui;
-use crate::textrender::{RenderText, CharOrientation};
+use crate::textrender::{RenderText, RenderLineWithRuby, CharOrientation};
+use crate::parser::{parse_problem,Content,Line};
 
 
 #[cfg(feature = "web")]
@@ -132,7 +133,18 @@ impl eframe::App for MyApp {
             }
             ui.separator();
             ui.heading("RenderText and RenderChar Samples");
+            let sample_text = "#title いろは歌
+(色/いろ)は(匂/にほ)へ/ど(散/ち)り/ぬる/を
+(我/わ)が(世/よ)(誰/たれ)ぞ(常/つね)なら/む
+(有為/うゐ)の(奥山/おくやま)(今日/けふ)(越/こ)え/て
+(浅/あさ)き(夢/ゆめ)(見/み)じ(酔/ゑ)ひ/も/せ/ず";
+            let sample_content: Content = parse_problem(sample_text);
+            ui.add(RenderLineWithRuby::new(sample_content.lines[0].clone(),CharOrientation::Horizontal).with_font(font.clone()));
+            ui.add(RenderLineWithRuby::new(sample_content.lines[1].clone(),CharOrientation::Horizontal).with_font(font.clone()));
+            ui.add(RenderLineWithRuby::new(sample_content.lines[2].clone(),CharOrientation::Horizontal).with_font(font.clone()));
+            ui.add(RenderLineWithRuby::new(sample_content.lines[3].clone(),CharOrientation::Horizontal).with_font(font.clone()));
 
+            ui.separator();
             egui::Grid::new("layout_grid")
             .spacing([30.0, 30.0]) // Set spacing between grid cells.
             .show(ui, |ui| {
