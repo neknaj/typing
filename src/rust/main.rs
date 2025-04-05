@@ -2,6 +2,7 @@
 #![cfg(not(feature = "web"))]
 
 mod gui;
+mod textrender;
 mod parser;
 
 fn main() {

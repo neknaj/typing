@@ -9,6 +9,7 @@ mod jsapi;
 mod parser;
 mod typing;
 mod gui;
+mod textrender;
 
 pub use update::init_model;
 pub use update::event_receive_keyboard;
