@@ -1,6 +1,25 @@
 use eframe::egui;
-use std::time::{Duration, Instant};
 use crate::textrender::{RenderText, CharOrientation};
+
+
+#[cfg(feature = "web")]
+fn timestamp() -> f64 {
+    web_sys::window()
+    .expect("should have a window")
+    .performance()
+    .expect("performance should be available")
+    .now()
+}
+
+#[cfg(not(feature = "web"))]
+fn timestamp() -> f64 {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let now = SystemTime::now();
+    // Calculate the duration since UNIX_EPOCH.
+    let duration = now.duration_since(UNIX_EPOCH)
+        .expect("Time went backwards");
+    duration.as_millis() as f64
+}
 
 /// Sample application to demonstrate the usage of RenderChar, RenderText, and FPS calculation.
 pub struct MyApp {
@@ -9,7 +28,8 @@ pub struct MyApp {
     dark_mode: bool,
     fps: u32,
     frame_count: u32,                  // Count of frames within the 1-second interval
-    last_fps_update: Option<Instant>,  // Timestamp when the frame count was last reset
+    // last_fps_update: Option<Instant>,  // Timestamp when the frame count was last reset
+    last_fps_update: Option<f64>, // Timestamp (in milliseconds) when the frame count was last reset
 }
 
 impl Default for MyApp {
@@ -43,7 +63,9 @@ impl eframe::App for MyApp {
         });
 
         // Get current time.
-        let now = Instant::now();
+        // let now = Instant::now();
+        // Get current time in milliseconds using web_sys.
+        let now = timestamp();
 
         // Frame count for FPS calculation:
         self.frame_count += 1;
@@ -54,9 +76,17 @@ impl eframe::App for MyApp {
         }
 
         // Check if one second has elapsed since the last FPS update.
+        // if let Some(last_update) = self.last_fps_update {
+        //     if now.duration_since(last_update) >= Duration::from_secs(1) {
+        //         // Reset the frame count and update the timestamp.
+        //         self.fps = self.frame_count;
+        //         self.frame_count = 0;
+        //         self.last_fps_update = Some(now);
+        //     }
+        // }
         if let Some(last_update) = self.last_fps_update {
-            if now.duration_since(last_update) >= Duration::from_secs(1) {
-                // Reset the frame count and update the timestamp.
+            if now - last_update >= 1000.0 {
+                // Update FPS, reset the frame count, and update the timestamp.
                 self.fps = self.frame_count;
                 self.frame_count = 0;
                 self.last_fps_update = Some(now);
