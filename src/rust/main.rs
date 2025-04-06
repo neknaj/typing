@@ -38,6 +38,11 @@ fn main() {
             );
 
             fonts.font_data.insert(
+                "ShipporiAntique".to_owned(),
+                egui::FontData::from_static(include_bytes!("../fonts/ShipporiAntique-Regular.ttf")).into(),
+            );
+
+            fonts.font_data.insert(
                 "NotoSerifJP".to_owned(),
                 egui::FontData::from_static(include_bytes!("../fonts/NotoSerifJP-VariableFont_wght.ttf")).into(),
             );
@@ -50,17 +55,17 @@ fn main() {
 
             fonts.families.insert(
                 egui::FontFamily::Name("main".into()),
-                vec!["Merienda".to_owned(), "YujiSyuku".to_owned(), "NotoSerifJP".to_owned()],
+                vec!["Merienda".to_owned(), "YujiSyuku".to_owned(), "ShipporiAntique".to_owned(), "NotoSerifJP".to_owned()],
             );
 
             fonts.families.insert(
                 egui::FontFamily::Name("kana".into()),
-                vec!["KaiseiHarunoUmi".to_owned(), "YujiSyuku".to_owned()],
+                vec!["KaiseiHarunoUmi".to_owned(), "ShipporiAntique".to_owned(), "YujiSyuku".to_owned()],
             );
 
             fonts.families.insert(
                 egui::FontFamily::Name("ruby".into()),
-                vec!["YujiSyuku".to_owned(), "KaiseiHarunoUmi".to_owned(), "NotoSerifJP".to_owned()],
+                vec!["Merienda".to_owned(), "ShipporiAntique".to_owned(), "YujiSyuku".to_owned(), "KaiseiHarunoUmi".to_owned(), "NotoSerifJP".to_owned()],
             );
 
             // Apply the customized fonts to the egui context

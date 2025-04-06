@@ -134,7 +134,7 @@ impl eframe::App for MyApp {
             ui.separator();
             ui.heading("RenderText and RenderChar Samples");
             let sample_text = "#title いろは歌
-(色/いろい)は(匂/にほ)へ/ど(散/ち)り/ぬる/を
+(色/いろ)は(匂/にほ)へ/ど(散/ち)り/ぬる/を
 (我/わ)が(世/よ)(誰/たれ)ぞ(常/つね)なら/む
 (有為/うゐ)の(奥山/おくやま)(今日/けふ)(越/こ)え/て
 (浅/あさ)き(夢/ゆめ)(見/み)じ(酔/ゑ)ひ/も/せ/ず";

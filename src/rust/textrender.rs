@@ -49,7 +49,11 @@ fn is_japanese(c: char) -> bool {
     (code >= 0xFE10 && code <= 0xFE19) || // 記号
     (code >= 0x3040 && code <= 0x309F) || // ひらがな
     (code >= 0x30A0 && code <= 0x30FF) || // カタカナ
-    (code >= 0x4E00 && code <= 0x9FFF)    // 漢字（CJK統合漢字）
+    (code >= 0x3400 && code <= 0x4DBF) || // 漢字（CJK統合漢字拡張A）
+    (code >= 0x4E00 && code <= 0x9FFF) || // 漢字（CJK統合漢字）
+    (code >= 0xF900 && code <= 0xFAFF) || // 漢字（CJK互換漢字）
+    (code >= 0x20000 && code <= 0x3FFFF) || // 漢字（その他）
+    false
 }
 
 fn is_japanese_kana(c: char) -> bool {
