@@ -7,7 +7,6 @@ use crate::msg::{Msg, MenuMsg, TypingStartMsg, TypingMsg, PauseMsg, ResultMsg};
 use crate::parser::{parse_problem, Content};
 use crate::typing;
 use crate::typing::key_input;
-use crate::timestamp::now;
 
 #[macro_export]
 macro_rules! jsvalue {
@@ -67,7 +66,6 @@ pub fn update(model: Model, msg: Msg) -> Model {
                             mapping: HashMap::new(),
                         },
                         scroll: TypingScroll {
-                            last_update: now(),
                             scroll: _typing_start_model.scroll_max,
                             max: _typing_start_model.scroll_max,
                         },
@@ -102,7 +100,6 @@ pub fn update(model: Model, msg: Msg) -> Model {
                 TypingMsg::ScrollTo(input,max) => {
                     Model::Typing(TypingModel {
                         scroll: TypingScroll {
-                            last_update: now(),
                             scroll: input,
                             max,
                         },

@@ -127,7 +127,6 @@ pub enum TypingCorrectnessChar {
 
 #[derive(Debug, Clone)]
 pub struct TypingScroll {
-    pub last_update: f64,
     pub scroll: f64,
     pub max: f64,
 }
