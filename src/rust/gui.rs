@@ -70,6 +70,8 @@ impl eframe::App for TypingApp {
         let window_height = ctx.input(|input| input.screen_rect().height());
         let window_width = ctx.input(|input| input.screen_rect().width());
 
+        let cursor_target: f32 = 0.3;
+
         let typing_font_size = 150.0;
 
         match self.typing.clone() {
@@ -296,13 +298,13 @@ impl eframe::App for TypingApp {
                     egui::Area::new("centered_text2".into())
                         .fixed_pos(egui::Pos2::new(window_width/2.0+typing_font_size, 0.0))
                         .show(ctx, |ui| {
-                            ui.add(RenderLineWithRuby::new(content.lines[0].clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(-window_height*0.5));
+                            ui.add(RenderLineWithRuby::new(content.lines[0].clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(-window_height*cursor_target));
                         });
                 } else {
                     egui::Area::new("centered_text2".into())
                         .fixed_pos(egui::Pos2::new(0.0, window_height/2.0-typing_font_size*2.5))
                         .show(ctx, |ui| {
-                            ui.add(RenderLineWithRuby::new(content.lines[0].clone(), CharOrientation::Horizontal).with_font(font.clone()).with_offset(-window_width*0.5));
+                            ui.add(RenderLineWithRuby::new(content.lines[0].clone(), CharOrientation::Horizontal).with_font(font.clone()).with_offset(-window_width*cursor_target));
                         });
                 }
                 egui::Area::new("full_screen_overlay".into()) // オーバーレイ
@@ -341,7 +343,7 @@ impl eframe::App for TypingApp {
                                                 TextOrientation::Vertical => window_height,
                                             };
                                             self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::StartTyping));
-                                            self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::ScrollTo((-scrollmax*0.5) as f64, -scrollmax as f64)));
+                                            self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::ScrollTo((-scrollmax*cursor_target) as f64, -scrollmax as f64)));
                                         }
                                         egui::Key::Escape => {
                                             self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::Cancel));
@@ -387,7 +389,7 @@ impl eframe::App for TypingApp {
                         .fixed_pos(egui::Pos2::new(window_width/2.0-typing_font_size, 0.0))
                         .show(ctx, |ui| {
                             let line = RenderTypingLine::new(content.lines[scene.status.line as usize].clone(), scene.typing_correctness.lines[scene.status.line as usize].clone(), scene.status.clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(scene.scroll.scroll as f32);
-                            let scrollto = line.calc_size(ui).0+window_height*0.5;
+                            let scrollto = line.calc_size(ui).0+window_height*cursor_target;
                             self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::ScrollTo(scrollto as f64, -scrollmax as f64)));
                             ui.add(line);
                         });
@@ -401,10 +403,10 @@ impl eframe::App for TypingApp {
                     .fixed_pos(egui::Pos2::new(0.0, window_height/2.-typing_font_size*0.5))
                         .show(ctx, |ui| {
                             let line = RenderTypingLine::new(content.lines[scene.status.line as usize].clone(), scene.typing_correctness.lines[scene.status.line as usize].clone(), scene.status.clone(), CharOrientation::Horizontal).with_font(font.clone()).with_offset(scene.scroll.scroll as f32);
-                            let scrollto = line.calc_size(ui).0-window_width*0.5;
+                            let scrollto = line.calc_size(ui).0-window_width*cursor_target;
                             let now = scene.scroll.scroll as f32;
                             let d = scrollto-now;
-                            let new = now+d* (d*d/(10000000.0+d*d));
+                            let new = now+d* (d*d/(5000000.0+d*d));
                             self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::ScrollTo(new as f64, -scrollmax as f64)));
                             ui.add(line);
                         });
@@ -476,7 +478,7 @@ impl eframe::App for TypingApp {
                         .fixed_pos(egui::Pos2::new(window_width/2.0-typing_font_size, 0.0))
                         .show(ctx, |ui| {
                             let line = RenderTypingLine::new(content.lines[scene.typing_model.status.line as usize].clone(), scene.typing_model.typing_correctness.lines[scene.typing_model.status.line as usize].clone(), scene.typing_model.status.clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(scene.typing_model.scroll.scroll as f32);
-                            let scrollto = line.calc_size(ui).0+window_height*0.5;
+                            let scrollto = line.calc_size(ui).0+window_height*cursor_target;
                             self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::ScrollTo(scrollto as f64, -scrollmax as f64)));
                             ui.add(line);
                         });
@@ -490,7 +492,7 @@ impl eframe::App for TypingApp {
                     .fixed_pos(egui::Pos2::new(0.0, window_height/2.-typing_font_size*0.5))
                         .show(ctx, |ui| {
                             let line = RenderTypingLine::new(content.lines[scene.typing_model.status.line as usize].clone(), scene.typing_model.typing_correctness.lines[scene.typing_model.status.line as usize].clone(), scene.typing_model.status.clone(), CharOrientation::Horizontal).with_font(font.clone()).with_offset(scene.typing_model.scroll.scroll as f32);
-                            let scrollto = line.calc_size(ui).0-window_width*0.5;
+                            let scrollto = line.calc_size(ui).0-window_width*cursor_target;
                             self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::ScrollTo(scrollto as f64, -scrollmax as f64)));
                             ui.add(line);
                         });
