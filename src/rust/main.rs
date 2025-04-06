@@ -9,6 +9,7 @@ mod parser;
 mod typing;
 mod gui;
 mod textrender;
+mod timestamp;
 
 fn main() {
     // Print a greeting message for native execution

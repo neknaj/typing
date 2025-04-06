@@ -1,50 +1,42 @@
 // msg.rs
 
 use serde::{Serialize, Deserialize};
-use ts_rs::TS;
 use crate::parser::Content;
 
-#[derive(Serialize, Deserialize, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub enum MenuMsg {
     MoveCursor(usize),
     AddContent(String),
-    Start,
+    Start
 }
 
-#[derive(Serialize, Deserialize, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub enum TypingStartMsg {
     StartTyping,
     Cancel,
     ScrollMax(f64),
 }
 
-#[derive(Serialize, Deserialize, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub enum TypingMsg {
     KeyInput(char),
     Pause,
     ScrollTo(f64,f64),
 }
 
-#[derive(Serialize, Deserialize, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub enum PauseMsg {
     Resume,
     Cancel,
 }
 
-#[derive(Serialize, Deserialize, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub enum ResultMsg {
     BackToMenu,
     Retry,
 }
 
-// Top-level Msg enum aggregates all screen-specific messages.
-#[derive(Serialize, Deserialize, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub enum Msg {
     Menu(MenuMsg),
     Typing(TypingMsg),

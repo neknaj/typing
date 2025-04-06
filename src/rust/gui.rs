@@ -17,6 +17,7 @@ use std::collections::HashMap;
 use crate::textrender::{RenderText, RenderLineWithRuby, CharOrientation};
 
 
+#[derive(Clone,PartialEq)]
 pub enum TextOrientation {
     Vertical,
     Horizontal,
@@ -63,6 +64,7 @@ impl eframe::App for TypingApp {
         }
         let window_height = ctx.input(|input| input.screen_rect().height());
         let window_width = ctx.input(|input| input.screen_rect().width());
+
 
         match self.typing.clone() {
             Model::Menu(scene) => {
@@ -148,6 +150,7 @@ impl eframe::App for TypingApp {
                                     });
                                 });
                                 if ui.add_sized(Vec2::new(button_width, button_height), egui::Button::new("Start")).clicked() {
+                                    self.typing = update(self.typing.clone(),Msg::Menu(MenuMsg::MoveCursor(idx)));
                                     self.typing = update(self.typing.clone(),Msg::Menu(MenuMsg::Start));
                                 }
                             }
@@ -261,6 +264,95 @@ impl eframe::App for TypingApp {
                         });
                     });
             },
+            Model::TypingStart(scene) => {
+                let content: Content = scene.content;
+                egui::CentralPanel::default() // タイピング画面
+                    .frame(
+                        egui::Frame {
+                            fill: if self.dark_mode {
+                                egui::Color32::from_rgb(6, 5, 10)
+                            } else {
+                                egui::Color32::from_rgb(243, 243, 253)
+                            },
+                            inner_margin: egui::Margin {
+                                left: 20,
+                                right: 20,
+                                top: 20,
+                                bottom: 20,
+                            },
+                            ..Default::default()
+                        }
+                    )
+                    .show(ctx, |ui| {
+                        // Create a nested UI that uses the full available size.
+                        ui.allocate_ui(ui.available_size(), |ui| {
+                            let mut font = egui::FontSelection::Default.resolve(ui.style());
+                            font.size *= 5.0;
+                            if self.text_orientation==TextOrientation::Vertical {
+                                ui.vertical_centered(|ui| {
+                                    ui.add(RenderLineWithRuby::new(content.lines[0].clone(), CharOrientation::Vertical).with_font(font.clone()));
+                                });
+                            }
+                            else {
+                                ui.horizontal_centered(|ui| {
+                                    ui.add(RenderLineWithRuby::new(content.lines[0].clone(), CharOrientation::Horizontal).with_font(font.clone()));
+                                });
+                            }
+                        });
+                    });
+                egui::Area::new("full_screen_overlay".into()) // オーバーレイ
+                    .fixed_pos(egui::Pos2::new(0.0, 0.0))
+                    .interactable(true)
+                    .order(egui::Order::Foreground)
+                    .show(ctx, |ui| {
+                        // Get the full screen rectangle.
+                        let screen_rect = ctx.input(|i| i.screen_rect());
+                        // Allocate the full screen size.
+                        let (rect, _) = ui.allocate_exact_size(screen_rect.size(), egui::Sense::hover());
+                        // Draw a semi-transparent background with slight rounding.
+                        ui.painter().rect_filled(
+                            rect,
+                            egui::Rounding::same(0),
+                            egui::Color32::from_rgba_premultiplied(0, 0, 0, 230),
+                        );
+                        // Display overlay text in the center.
+                        ui.painter().text(
+                            rect.center(),
+                            egui::Align2::CENTER_CENTER,
+                            "Press [Space] to Start",
+                            egui::FontId::proportional(80.0),
+                            egui::Color32::WHITE,
+                        );
+                    });
+                    ctx.input(|i| {
+                        for event in &i.events {
+                            if let egui::Event::Key { key, pressed, .. } = event {
+                                if *pressed {
+                                    // キーが押されたときの処理
+                                    match key {
+                                        egui::Key::Space => {
+                                            let scrollmax = match self.text_orientation {
+                                                TextOrientation::Horizontal => window_width,
+                                                TextOrientation::Vertical => window_height,
+                                            };
+                                            println!("a");
+                                            self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::StartTyping));
+                                            println!("b");
+                                            self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::ScrollMax(scrollmax as f64)));
+                                            println!("c");
+                                        }
+                                        egui::Key::Escape => {
+                                            self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::Cancel));
+                                        }
+                                        _ => {}
+                                    }
+                                } else {
+                                    // キーが離されたときの処理
+                                }
+                            }
+                        }
+                    });
+            }
             _ => {}
         }
         ctx.request_repaint();

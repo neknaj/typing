@@ -1,12 +1,10 @@
 // model.rs
 
 use serde::{Serialize, Deserialize};
-use ts_rs::TS;
 use crate::{parser::Content, typing};
 use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct MenuModel {
     pub available_contents: Vec<Content>,
     pub selecting: usize,
@@ -14,8 +12,7 @@ pub struct MenuModel {
     pub error_messages: Vec<ErrorMsg>,
 }
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct TypingStartModel {
     pub content: Content,
     pub available_contents: Vec<Content>,
@@ -23,8 +20,7 @@ pub struct TypingStartModel {
     pub scroll_max: f64,
 }
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct TypingModel {
     pub content: Content,
     pub typing_correctness: TypingCorrectnessContent,
@@ -36,14 +32,12 @@ pub struct TypingModel {
     pub scroll: TypingScroll,
 }
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct PauseModel {
     pub typing_model: TypingModel,
 }
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct ResultModel {
     pub typing_model: TypingModel,
     // pub start_time: Option<f64>,
@@ -55,9 +49,7 @@ pub struct ResultModel {
 // Top-level Model enum
 // ------------------------------------
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
-#[serde(tag = "type")]
+#[derive(Debug, Clone)]
 pub enum Model {
     Empty,
     Menu(MenuModel),
@@ -72,8 +64,7 @@ pub enum Model {
 // Typing
 // ------------------------------------
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct TypingStatus {
     pub line: i32,
     pub segment: i32,
@@ -82,77 +73,67 @@ pub struct TypingStatus {
     pub last_wrong_keydown: Option<char>,
 }
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct TypingSession {
     pub line: i32,
     pub inputs: Vec<TypingInput>,
 }
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+
+#[derive(Debug, Clone)]
 pub struct TypingInput {
     pub key: char,
     pub timestamp: f64,
     pub is_correct: bool,
 }
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct ErrorMsg {
     pub message: String,
     pub timestamp: f64,
 }
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct TextConvert {
     pub mapping: Vec<(String, Vec<String>)>,
 }
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct KeyboardRemapping {
     pub mapping: HashMap<char, char>,
 }
 
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct TypingCorrectnessContent {
     pub lines: Vec<TypingCorrectnessLine>,
 }
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct TypingCorrectnessLine {
     pub segments: Vec<TypingCorrectnessSegment>,
 }
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct TypingCorrectnessSegment {
     pub chars: Vec<TypingCorrectnessChar>,
 }
 
 
-#[derive(Serialize, Deserialize, Clone, TS, PartialEq)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone,PartialEq)]
 pub enum TypingCorrectnessChar {
     Pending,
     Correct,
     Incorrect,
 }
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct TypingScroll {
     pub last_update: f64,
     pub scroll: f64,
     pub max: f64,
 }
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct TypingMetrics {
     pub miss_count: i32,      // タイプミス数
     pub type_count: i32,      // タイプ数（正解のみ）

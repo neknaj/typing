@@ -10,6 +10,7 @@ mod parser;
 mod typing;
 mod gui;
 mod textrender;
+mod timestamp;
 
 
 #[wasm_bindgen]

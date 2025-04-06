@@ -1,24 +1,19 @@
 // parser.rs
 
 use serde::{Serialize, Deserialize};
-use ts_rs::TS;
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct Content {
     pub title: String,
     pub lines: Vec<Line>,
 }
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
+#[derive(Debug, Clone)]
 pub struct Line {
     pub segments: Vec<Segment>,
 }
 
-#[derive(Serialize, Deserialize, Clone, TS)]
-#[ts(export, export_to = "../src/web/model.ts")]
-#[serde(tag = "type")]
+#[derive(Debug, Clone)]
 pub enum Segment {
     Plain { text: String },
     Annotated { base: String, reading: String },
