@@ -66,7 +66,7 @@ fn main() {
 
             fonts.families.insert(
                 egui::FontFamily::Name("kana".into()),
-                vec!["KaiseiHarunoUmi".to_owned(), "ShipporiAntique".to_owned(), "YujiSyuku".to_owned()],
+                vec!["YujiSyuku".to_owned()],
             );
 
             fonts.families.insert(
