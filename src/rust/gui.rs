@@ -2,6 +2,7 @@
 use eframe::egui;
 use egui::debug_text::print;
 use egui::{style, vec2, ScrollArea, Vec2};
+use egui_extras::{Column, TableBuilder, Size, StripBuilder};
 #[cfg(not(target_arch = "wasm32"))]
 use rfd::FileDialog;
 #[cfg(not(target_arch = "wasm32"))]
@@ -59,7 +60,7 @@ impl Default for TypingApp {
 impl eframe::App for TypingApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Apply font scaling once
-        if !self.init {
+        if (!self.init) {
             let mut style = (*ctx.style()).clone();
             for (_key, font_id) in style.text_styles.iter_mut() {
                 font_id.size *= 2.0;
@@ -359,7 +360,7 @@ impl eframe::App for TypingApp {
                     });
             },
             Model::Typing(scene) => {
-                let content: Content = scene.content;
+                let content: Content = scene.content.clone();
                 egui::CentralPanel::default()
                     .frame(
                         egui::Frame {
@@ -384,6 +385,48 @@ impl eframe::App for TypingApp {
                     TextOrientation::Horizontal => window_width,
                     TextOrientation::Vertical => window_height,
                 };
+
+                // リアルタイムステータス表示を右下に配置
+                let stat = calculate_total_metrics(&scene);
+                egui::Area::new("status_table".into())
+                    .anchor(egui::Align2::RIGHT_BOTTOM, egui::vec2(-30.0, -30.0))
+                    .show(ctx, |ui| {
+                        let table_width = 300.0;
+                        TableBuilder::new(ui)
+                            .striped(true)
+                            .resizable(false)
+                            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
+                            .column(Column::auto().at_least(100.0))
+                            .column(Column::remainder().at_least(100.0))
+                            .min_scrolled_height(0.0)
+                            // .background_color(egui::Color32::from_rgba_premultiplied(0, 0, 0, 180))
+                            .body(|mut body| {
+                                body.row(30.0, |mut row| {
+                                    row.col(|ui| { ui.label("Speed"); });
+                                    row.col(|ui| { ui.label(format!("{:.2} KPS", stat.speed)); });
+                                });
+                                body.row(30.0, |mut row| {
+                                    row.col(|ui| { ui.label("Accuracy"); });
+                                    row.col(|ui| { ui.label(format!("{:.1}%", stat.accuracy * 100.0)); });
+                                });
+                                body.row(30.0, |mut row| {
+                                    row.col(|ui| { ui.label("Keystrokes"); });
+                                    row.col(|ui| { ui.label(format!("{}", stat.type_count + stat.miss_count)); });
+                                });
+                                body.row(30.0, |mut row| {
+                                    row.col(|ui| { ui.label("Mistyped"); });
+                                    row.col(|ui| { ui.label(format!("{} ({:.1}%)", stat.miss_count, (stat.miss_count as f64 / (stat.type_count + stat.miss_count) as f64) * 100.0)); });
+                                });
+                                let total_seconds = stat.total_time / 1000.0;
+                                let minutes = (total_seconds / 60.0).floor();
+                                let seconds = total_seconds % 60.0;
+                                body.row(30.0, |mut row| {
+                                    row.col(|ui| { ui.label("Time"); });
+                                    row.col(|ui| { ui.label(format!("{:02}:{:02.0}", minutes, seconds)); });
+                                });
+                            });
+                    });
+
                 if self.text_orientation == TextOrientation::Vertical {
                     egui::Area::new("centered_text1".into())
                         .fixed_pos(egui::Pos2::new(window_width/2.0-typing_font_size, 0.0))
@@ -448,7 +491,7 @@ impl eframe::App for TypingApp {
                 });
             },
             Model::Pause(scene) => {
-                let content: Content = scene.typing_model.content;
+                let content: Content = scene.typing_model.content.clone();
                 egui::CentralPanel::default()
                     .frame(
                         egui::Frame {
@@ -473,6 +516,48 @@ impl eframe::App for TypingApp {
                     TextOrientation::Horizontal => window_width,
                     TextOrientation::Vertical => window_height,
                 };
+
+                // リアルタイムステータス表示を右下に配置
+                let stat = calculate_total_metrics(&scene.typing_model);
+                egui::Area::new("status_table".into())
+                    .anchor(egui::Align2::RIGHT_BOTTOM, egui::vec2(-30.0, -30.0))
+                    .show(ctx, |ui| {
+                        let table_width = 300.0;
+                        TableBuilder::new(ui)
+                            .striped(true)
+                            .resizable(false)
+                            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
+                            .column(Column::auto().at_least(100.0))
+                            .column(Column::remainder().at_least(100.0))
+                            .min_scrolled_height(0.0)
+                            // .background_color(egui::Color32::from_rgba_premultiplied(0, 0, 0, 180))
+                            .body(|mut body| {
+                                body.row(30.0, |mut row| {
+                                    row.col(|ui| { ui.label("Speed"); });
+                                    row.col(|ui| { ui.label(format!("{:.2} KPS", stat.speed)); });
+                                });
+                                body.row(30.0, |mut row| {
+                                    row.col(|ui| { ui.label("Accuracy"); });
+                                    row.col(|ui| { ui.label(format!("{:.1}%", stat.accuracy * 100.0)); });
+                                });
+                                body.row(30.0, |mut row| {
+                                    row.col(|ui| { ui.label("Keystrokes"); });
+                                    row.col(|ui| { ui.label(format!("{}", stat.type_count + stat.miss_count)); });
+                                });
+                                body.row(30.0, |mut row| {
+                                    row.col(|ui| { ui.label("Mistyped"); });
+                                    row.col(|ui| { ui.label(format!("{} ({:.1}%)", stat.miss_count, (stat.miss_count as f64 / (stat.type_count + stat.miss_count) as f64) * 100.0)); });
+                                });
+                                let total_seconds = stat.total_time / 1000.0;
+                                let minutes = (total_seconds / 60.0).floor();
+                                let seconds = total_seconds % 60.0;
+                                body.row(30.0, |mut row| {
+                                    row.col(|ui| { ui.label("Time"); });
+                                    row.col(|ui| { ui.label(format!("{:02}:{:02.0}", minutes, seconds)); });
+                                });
+                            });
+                    });
+
                 if self.text_orientation == TextOrientation::Vertical {
                     egui::Area::new("centered_text1".into())
                         .fixed_pos(egui::Pos2::new(window_width/2.0-typing_font_size, 0.0))
@@ -581,7 +666,6 @@ impl eframe::App for TypingApp {
                         }
                     )
                     .show(ctx, |ui| {
-                        ui.heading("Result");
                         // タイトル
                         ui.add_space(50.0);
                         ui.vertical_centered(|ui| {
@@ -591,33 +675,46 @@ impl eframe::App for TypingApp {
                         });
                         ui.add_space(100.0);
 
-                        // 結果表示
-                        ui.vertical_centered(|ui| {
-                            let mut font = egui::FontSelection::Default.resolve(ui.style());
-                            font.size *= 1.5;
-
-                            // 速度（WPM/KPM）
-                            let kps = stat.speed;
-                            ui.label(egui::RichText::new(format!("Speed: {:.2} KPS", kps)).font(font.clone()));
-                            ui.add_space(20.0);
-
-                            // 正確性
-                            ui.label(egui::RichText::new(format!("Accuracy: {:.1}%", stat.accuracy * 100.0)).font(font.clone()));
-                            ui.add_space(20.0);
-
-                            // タイプ数とミス数
-                            ui.label(egui::RichText::new(format!("Total Keystrokes: {}", stat.type_count + stat.miss_count)).font(font.clone()));
-                            ui.label(egui::RichText::new(format!("Mistyped: {} ({:.1}%)", 
-                                stat.miss_count, 
-                                (stat.miss_count as f64 / (stat.type_count + stat.miss_count) as f64) * 100.0
-                            )).font(font.clone()));
-                            ui.add_space(20.0);
-
-                            // 時間
-                            let total_seconds = stat.total_time / 1000.0;
-                            let minutes = (total_seconds / 60.0).floor();
-                            let seconds = total_seconds % 60.0;
-                            ui.label(egui::RichText::new(format!("Time: {:02}:{:02.0}", minutes, seconds)).font(font.clone()));
+                        // テーブルサイズの制御と中央寄せ
+                        let table_width = ui.available_width().min(600.0);
+                        let indent = ((ui.available_width() - table_width) / 2.0) as i32;
+                        ui.indent(indent, |ui| {
+                            TableBuilder::new(ui)
+                                .striped(true)
+                                .resizable(false)
+                                .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
+                                .column(Column::auto().at_least(100.0))
+                                .column(Column::remainder().at_least(200.0))
+                                .min_scrolled_height(0.0)
+                                .header(30.0, |mut header| {
+                                    header.col(|ui| { ui.strong("Metric"); });
+                                    header.col(|ui| { ui.strong("Value"); });
+                                })
+                                .body(|mut body| {
+                                    body.row(30.0, |mut row| {
+                                        row.col(|ui| { ui.label("Speed"); });
+                                        row.col(|ui| { ui.label(format!("{:.2} KPS", stat.speed)); });
+                                    });
+                                    body.row(30.0, |mut row| {
+                                        row.col(|ui| { ui.label("Accuracy"); });
+                                        row.col(|ui| { ui.label(format!("{:.1}%", stat.accuracy * 100.0)); });
+                                    });
+                                    body.row(30.0, |mut row| {
+                                        row.col(|ui| { ui.label("Total Keystrokes"); });
+                                        row.col(|ui| { ui.label(format!("{}", stat.type_count + stat.miss_count)); });
+                                    });
+                                    body.row(30.0, |mut row| {
+                                        row.col(|ui| { ui.label("Mistyped"); });
+                                        row.col(|ui| { ui.label(format!("{} ({:.1}%)", stat.miss_count, (stat.miss_count as f64 / (stat.type_count + stat.miss_count) as f64) * 100.0)); });
+                                    });
+                                    let total_seconds = stat.total_time / 1000.0;
+                                    let minutes = (total_seconds / 60.0).floor();
+                                    let seconds = total_seconds % 60.0;
+                                    body.row(30.0, |mut row| {
+                                        row.col(|ui| { ui.label("Time"); });
+                                        row.col(|ui| { ui.label(format!("{:02}:{:02.0}", minutes, seconds)); });
+                                    });
+                                });
                         });
 
                         ui.add_space(100.0);
