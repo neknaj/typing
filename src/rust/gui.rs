@@ -74,6 +74,26 @@ impl eframe::App for MyApp {
                 }
             });
 
+            egui::TopBottomPanel::bottom("bottom_panel")
+                .resizable(false)
+                .min_height(400.0)
+                .max_height(400.0)
+                .frame(
+                    egui::Frame {
+                        fill: egui::Color32::from_rgb(6, 5, 10),
+                        inner_margin: egui::Margin {
+                            left: 50,
+                            right: 50,
+                            top: 50,
+                            bottom: 50,
+                        },
+                        ..Default::default()
+                    }
+                )
+                .show(ctx, |ui| {
+                    ui.heading("Preview");
+                });
+
         // Central Panel for Main Content
         egui::CentralPanel::default()
             .frame(
@@ -143,19 +163,36 @@ impl eframe::App for MyApp {
                 
                 // Calculate common button size
                 let button_height = 40.0;
-                let button_width = ui.available_width();
+                let button_width = ui.available_width() - 100.0; // Adjust width for delete button
                 let button_size = Vec2::new(button_width, button_height);
                 let spacing = ui.spacing().item_spacing.y;
                 
-                // Display menu items in a scrollable area
+                // Display menu items in a scrollable area with delete buttons
                 ui.heading("Menu");
                 ui.add_space(spacing);
                 ScrollArea::vertical().show(ui, |ui| {
+                    // Iterate through items with their index
+                    let mut indices_to_remove = Vec::new();
                     for (index, item) in self.menu_items.iter().enumerate() {
-                        if ui.add_sized(button_size, egui::Button::new(item)).clicked() {
-                            self.selected_index = Some(index);
-                        }
+                        ui.horizontal(|ui| {
+                            // Menu item button
+                            if ui.add_sized(button_size, egui::Button::new(item)).clicked() {
+                                self.selected_index = Some(index);
+                            }
+                            // Delete button with a fixed small width
+                            if ui.button("Delete").clicked() {
+                            }
+                        });
                         ui.add_space(spacing);
+                    }
+                    // Remove items after the loop to avoid borrow issues
+                    // Remove from the end to avoid index shifting
+                    for &index in indices_to_remove.iter().rev() {
+                        self.menu_items.remove(index);
+                        // If the deleted item was selected, clear the selection
+                        if self.selected_index == Some(index) {
+                            self.selected_index = None;
+                        }
                     }
                 });
                 
