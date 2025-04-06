@@ -2,6 +2,8 @@
 name = "typing"
 version = "0.1.0"
 edition = "2021"
+authors = ["Neknaj","Bem130"]
+license = "MIT"
 
 [package.metadata]
 path = "src/rust/main.rs"

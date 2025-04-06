@@ -1,5 +1,6 @@
 // main.rs
 #![cfg(not(feature = "web"))]
+#![windows_subsystem = "windows"]
 
 mod gui;
 mod textrender;
