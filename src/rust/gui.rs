@@ -14,7 +14,7 @@ use crate::msg::{Msg, MenuMsg, TypingStartMsg, TypingMsg, PauseMsg, ResultMsg};
 use crate::parser::{parse_problem, Content};
 use crate::update::update;
 use std::collections::HashMap;
-use crate::textrender::{RenderText, RenderLineWithRuby, CharOrientation};
+use crate::textrender::{RenderText, RenderLineWithRuby, RenderTypingLine, CharOrientation};
 
 
 #[derive(Clone,PartialEq)]
@@ -266,40 +266,19 @@ impl eframe::App for TypingApp {
             },
             Model::TypingStart(scene) => {
                 let content: Content = scene.content;
-                egui::CentralPanel::default() // タイピング画面
-                    .frame(
-                        egui::Frame {
-                            fill: if self.dark_mode {
-                                egui::Color32::from_rgb(6, 5, 10)
-                            } else {
-                                egui::Color32::from_rgb(243, 243, 253)
-                            },
-                            inner_margin: egui::Margin {
-                                left: 20,
-                                right: 20,
-                                top: 20,
-                                bottom: 20,
-                            },
-                            ..Default::default()
-                        }
-                    )
-                    .show(ctx, |ui| {
-                        // Create a nested UI that uses the full available size.
-                        ui.allocate_ui(ui.available_size(), |ui| {
-                            let mut font = egui::FontSelection::Default.resolve(ui.style());
-                            font.size *= 5.0;
-                            if self.text_orientation==TextOrientation::Vertical {
-                                ui.vertical_centered(|ui| {
-                                    ui.add(RenderLineWithRuby::new(content.lines[0].clone(), CharOrientation::Vertical).with_font(font.clone()));
-                                });
-                            }
-                            else {
-                                ui.horizontal_centered(|ui| {
-                                    ui.add(RenderLineWithRuby::new(content.lines[0].clone(), CharOrientation::Horizontal).with_font(font.clone()));
-                                });
-                            }
+                let mut font = egui::FontId::new(50.0, egui::FontFamily::Proportional);
+                if self.text_orientation == TextOrientation::Vertical {
+                    egui::Area::new("centered_text2".into())
+                        .fixed_pos(egui::Pos2::new(window_width/2.0+50.0, 0.0))
+                        .show(ctx, |ui| {
+                            ui.add(RenderLineWithRuby::new(content.lines[0].clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(0.0));
                         });
-                    });
+                } else { // 一旦保留
+                    // ui.vertical(|ui| {
+                    //     ui.add(RenderLineWithRuby::new(content.lines[scene.status.line as usize].clone(), CharOrientation::Horizontal).with_font(font.clone()).with_offset(scene.scroll.scroll as f32));
+                    //     ui.add(RenderTypingLine::new(content.lines[scene.status.line as usize].clone(), scene.typing_correctness.lines[scene.status.line as usize].clone(), scene.status.clone(), CharOrientation::Horizontal).with_font(font.clone()).with_offset(scene.scroll.scroll as f32));
+                    // });
+                }
                 egui::Area::new("full_screen_overlay".into()) // オーバーレイ
                     .fixed_pos(egui::Pos2::new(0.0, 0.0))
                     .interactable(true)
@@ -353,40 +332,24 @@ impl eframe::App for TypingApp {
             },
             Model::Typing(scene) => {
                 let content: Content = scene.content;
-                egui::CentralPanel::default() // タイピング画面
-                    .frame(
-                        egui::Frame {
-                            fill: if self.dark_mode {
-                                egui::Color32::from_rgb(6, 5, 10)
-                            } else {
-                                egui::Color32::from_rgb(243, 243, 253)
-                            },
-                            inner_margin: egui::Margin {
-                                left: 20,
-                                right: 20,
-                                top: 20,
-                                bottom: 20,
-                            },
-                            ..Default::default()
-                        }
-                    )
-                    .show(ctx, |ui| {
-                        // Create a nested UI that uses the full available size.
-                        ui.allocate_ui(ui.available_size(), |ui| {
-                            let mut font = egui::FontSelection::Default.resolve(ui.style());
-                            font.size *= 5.0;
-                            if self.text_orientation==TextOrientation::Vertical {
-                                ui.vertical_centered(|ui| {
-                                    ui.add(RenderLineWithRuby::new(content.lines[scene.status.line as usize].clone(), CharOrientation::Vertical).with_font(font.clone()));
-                                });
-                            }
-                            else {
-                                ui.horizontal_centered(|ui| {
-                                    ui.add(RenderLineWithRuby::new(content.lines[scene.status.line as usize].clone(), CharOrientation::Horizontal).with_font(font.clone()));
-                                });
-                            }
+                let mut font = egui::FontId::new(50.0, egui::FontFamily::Proportional);
+                if self.text_orientation == TextOrientation::Vertical {
+                    egui::Area::new("centered_text1".into())
+                        .fixed_pos(egui::Pos2::new(window_width/2.0-50.0, 0.0))
+                        .show(ctx, |ui| {
+                            ui.add(RenderTypingLine::new(content.lines[scene.status.line as usize].clone(), scene.typing_correctness.lines[scene.status.line as usize].clone(), scene.status.clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(scene.scroll.scroll as f32));
                         });
-                    });
+                    egui::Area::new("centered_text2".into())
+                        .fixed_pos(egui::Pos2::new(window_width/2.0+50.0, 0.0))
+                        .show(ctx, |ui| {
+                            ui.add(RenderLineWithRuby::new(content.lines[scene.status.line as usize].clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(scene.scroll.scroll as f32));
+                        });
+                } else { // 一旦保留
+                    // ui.vertical(|ui| {
+                    //     ui.add(RenderLineWithRuby::new(content.lines[scene.status.line as usize].clone(), CharOrientation::Horizontal).with_font(font.clone()).with_offset(scene.scroll.scroll as f32));
+                    //     ui.add(RenderTypingLine::new(content.lines[scene.status.line as usize].clone(), scene.typing_correctness.lines[scene.status.line as usize].clone(), scene.status.clone(), CharOrientation::Horizontal).with_font(font.clone()).with_offset(scene.scroll.scroll as f32));
+                    // });
+                }
                 ctx.input(|i| {
                     for event in &i.events {
                         if let egui::Event::Key { key, pressed, .. } = event {

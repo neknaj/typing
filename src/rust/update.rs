@@ -58,7 +58,6 @@ pub fn update(model: Model, msg: Msg) -> Model {
         (Model::TypingStart(_typing_start_model), Msg::TypingStart(typing_start_msg)) => {
             match typing_start_msg {
                 TypingStartMsg::StartTyping => {
-                    println!("d");
                     Model::Typing(TypingModel {
                         content: _typing_start_model.clone().content,
                         typing_correctness: typing::create_typing_correctness_model(_typing_start_model.content),
