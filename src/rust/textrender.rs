@@ -494,7 +494,7 @@ impl egui::Widget for RenderLineWithRuby {
                                 let s = ch.to_string();
                                 let galley = ui.painter().layout_no_wrap(s, font_ruby.clone(), color);
                                 let size = galley.size();
-                                let dx = galley.rect.width()*0.25;
+                                let dx = galley.rect.width()*0.0;
                                 if is_japanese_kana(ch) && ch != '\u{30fc}' {
                                     let mut pos = egui::pos2(x_offset_ruby+dx, rect.top()+ruby_space*0.5);
                                     if [

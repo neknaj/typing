@@ -48,7 +48,7 @@ impl Default for MyApp {
 impl eframe::App for MyApp {
     // Setup function to initialize app settings
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let font = egui::FontId::new(30.0, egui::FontFamily::Proportional);
+        let font = egui::FontId::new(150.0, egui::FontFamily::Proportional);
 
         // Side panel to toggle the theme.
         egui::SidePanel::left("side_panel")
@@ -137,19 +137,19 @@ impl eframe::App for MyApp {
             egui::Grid::new("layout_grid")
             .spacing([30.0, 30.0]) // Set spacing between grid cells.
             .show(ui, |ui| {
-                // First grid cell with top_down layout.
+                let sample_text = "#title test
+(色/いろ)は(匂/にほ)へど　(散/ち)りぬるを
+(我/わ)が(世/よ)(誰/たれ)ぞ　(常/つね)ならむ
+(有為/うゐ)の(奥山/おくやま)　(今日/けふ)(越/こ)えて
+(浅/あさ)き(夢/ゆめ)(見/み)し　(酔/ゑ)ひもせず
+";
+    let content: Content = parse_problem(sample_text);
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Min), |ui| {
+                    for line in content.lines {
+                        ui.add(RenderLineWithRuby::new(line, CharOrientation::Vertical).with_font(font.clone()));
+                    }
+                });
             let sample_text = "#title test
-    (最近/さいきん)、OpenAI、Microsoft、そしてSoftBankといった(大手/おおて)テック(企業/きぎょう)が、
-    (革新的/かくしんてき)なAIおよびGPU(技術/ぎじゅつ)を(活用/かつよう)した(新製品/しんせいひん)・サービスで(大/おお)きく(注目/ちゅうもく)されています。
-    OpenAIは(次世代/じせだい)モデル「GPT-4.5」の(開発/かいはつ)と(大規模/だいきぼ)な(資金調達/しきんちょうたつ)を(発表/はっぴょう)し、
-    MicrosoftはNVIDIAのH200 GPUを(組/く)み(込/こ)んだCloud(基盤/きばん)の(拡張/かくちょう)を(進/すす)め、
-    (先進的/せんしんてき)なAI(処理/しょり)を(加速/かそく)させています。また、SoftBankは(大阪/おおさか)の(旧/きゅう)Sharp LCD(工場/こうじょう)を
-    (最新鋭/さいしんえい)のAI Data Centerへと(転換/てんかん)し、(革新的/かくしんてき)なAI Agentモデルの(商用展開/しょうようてんかい)を(目指/めざ)しています。
-    
-    ルビ(付/つ)きの(美/うつく)しい(横書/よこが)き(日本語/にほんご)を(描画/びょうが)したい
-    (横書/よこが)きテキスト Horizontal Text
-    I want to write text that combines Japanese and English!
-    
     (色/いろ)は(匂/にほ)へど　(散/ち)りぬるを
     (我/わ)が(世/よ)(誰/たれ)ぞ　(常/つね)ならむ
     (有為/うゐ)の(奥山/おくやま)　(今日/けふ)(越/こ)えて
@@ -159,30 +159,6 @@ impl eframe::App for MyApp {
                 ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
                     for line in content.lines {
                         ui.add(RenderLineWithRuby::new(line, CharOrientation::Horizontal).with_font(font.clone()));
-                    }
-                });
-                let sample_text = "#title test
-(最近/さいきん)、OpenAI、Microsoft、そしてSoftBankといった(大手/おおて)テック(企業/きぎょう)が、
-(革新的/かくしんてき)なAIおよびGPU(技術/ぎじゅつ)を(活用/かつよう)した(新製品/しんせいひん)・サービスで(大/おお)きく(注目/ちゅうもく)されています。
-OpenAIは(次世代/じせだい)モデル「GPT-4.5」の(開発/かいはつ)と(大規模/だいきぼ)な(資金調達/しきんちょうたつ)を(発表/はっぴょう)し、
-MicrosoftはNVIDIAのH200 GPUを(組/く)み(込/こ)んだCloud(基盤/きばん)の(拡張/かくちょう)を(進/すす)め、
-(先進的/せんしんてき)なAI(処理/しょり)を(加速/かそく)させています。また、SoftBankは(大阪/おおさか)の(旧/きゅう)Sharp LCD(工場/こうじょう)を
-(最新鋭/さいしんえい)のAI Data Centerへと(転換/てんかん)し、(革新的/かくしんてき)なAI Agentモデルの(商用展開/しょうようてんかい)を(目指/めざ)しています。
-
-ルビ(付/つ)きの(美/うつく)しい(縦書/たてが)き(日本語/にほんご)を(描画/びょうが)したい
-(縦書/たてが)きテキスト Vertical Text
-I want to write text that combines Japanese and English!
-
-(色/いろ)は(匂/にほ)へど　(散/ち)りぬるを
-(我/わ)が(世/よ)(誰/たれ)ぞ　(常/つね)ならむ
-(有為/うゐ)の(奥山/おくやま)　(今日/けふ)(越/こ)えて
-(浅/あさ)き(夢/ゆめ)(見/み)し　(酔/ゑ)ひもせず
-";
-    let content: Content = parse_problem(sample_text);
-                // Second grid cell with right_to_left layout.
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Min), |ui| {
-                    for line in content.lines {
-                        ui.add(RenderLineWithRuby::new(line, CharOrientation::Vertical).with_font(font.clone()));
                     }
                 });
                 ui.end_row(); // Ends the current row in the grid.
