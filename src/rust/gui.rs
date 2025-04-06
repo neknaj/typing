@@ -46,7 +46,35 @@ impl eframe::App for MyApp {
             ctx.set_style(style);
             self.font_scaled = true;
         }
-        
+
+        egui::SidePanel::right("settings_panel")
+            .resizable(false)
+            .min_width(400.0)
+            .max_width(400.0)
+            .frame(
+                egui::Frame {
+                    fill: egui::Color32::from_rgb(6, 5, 10),
+                    inner_margin: egui::Margin {
+                        left: 50,
+                        right: 50,
+                        top: 50,
+                        bottom: 50,
+                    },
+                    ..Default::default()
+                }
+            )
+            .show(ctx, |ui| {
+                ui.heading("Settings");
+                // Additional settings controls can be added here.
+                if ui.button("Option 1").clicked() {
+                    // Handle Option 1
+                }
+                if ui.button("Option 2").clicked() {
+                    // Handle Option 2
+                }
+            });
+
+        // Central Panel for Main Content
         egui::CentralPanel::default()
             .frame(
                 egui::Frame {
