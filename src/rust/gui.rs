@@ -326,8 +326,8 @@ impl eframe::App for TypingApp {
                     });
                     ctx.input(|i| {
                         for event in &i.events {
-                            if let egui::Event::Key { key, pressed, .. } = event {
-                                if *pressed {
+                            match event {
+                                egui::Event::Key { key, pressed, .. } => {
                                     // キーが押されたときの処理
                                     match key {
                                         egui::Key::Space => {
@@ -335,24 +335,110 @@ impl eframe::App for TypingApp {
                                                 TextOrientation::Horizontal => window_width,
                                                 TextOrientation::Vertical => window_height,
                                             };
-                                            println!("a");
                                             self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::StartTyping));
-                                            println!("b");
                                             self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::ScrollMax(scrollmax as f64)));
-                                            println!("c");
                                         }
                                         egui::Key::Escape => {
                                             self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::Cancel));
                                         }
                                         _ => {}
                                     }
-                                } else {
-                                    // キーが離されたときの処理
                                 }
+                                egui::Event::Text(text) => {
+                                }
+                                _ => {}
                             }
                         }
                     });
-            }
+            },
+            Model::Typing(scene) => {
+                let content: Content = scene.content;
+                egui::CentralPanel::default() // タイピング画面
+                    .frame(
+                        egui::Frame {
+                            fill: if self.dark_mode {
+                                egui::Color32::from_rgb(6, 5, 10)
+                            } else {
+                                egui::Color32::from_rgb(243, 243, 253)
+                            },
+                            inner_margin: egui::Margin {
+                                left: 20,
+                                right: 20,
+                                top: 20,
+                                bottom: 20,
+                            },
+                            ..Default::default()
+                        }
+                    )
+                    .show(ctx, |ui| {
+                        // Create a nested UI that uses the full available size.
+                        ui.allocate_ui(ui.available_size(), |ui| {
+                            let mut font = egui::FontSelection::Default.resolve(ui.style());
+                            font.size *= 5.0;
+                            if self.text_orientation==TextOrientation::Vertical {
+                                ui.vertical_centered(|ui| {
+                                    ui.add(RenderLineWithRuby::new(content.lines[scene.status.line as usize].clone(), CharOrientation::Vertical).with_font(font.clone()));
+                                });
+                            }
+                            else {
+                                ui.horizontal_centered(|ui| {
+                                    ui.add(RenderLineWithRuby::new(content.lines[scene.status.line as usize].clone(), CharOrientation::Horizontal).with_font(font.clone()));
+                                });
+                            }
+                        });
+                    });
+                ctx.input(|i| {
+                    for event in &i.events {
+                        if let egui::Event::Key { key, pressed, .. } = event {
+                            if *pressed {
+                                // キーが押されたときの処理
+                                match key {
+                                    egui::Key::Space => {
+                                        let scrollmax = match self.text_orientation {
+                                            TextOrientation::Horizontal => window_width,
+                                            TextOrientation::Vertical => window_height,
+                                        };
+                                        self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::StartTyping));
+                                        self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::ScrollMax(scrollmax as f64)));
+                                    }
+                                    egui::Key::Escape => {
+                                        self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::Cancel));
+                                    }
+                                    _ => {}
+                                }
+                            } else {
+                                // キーが離されたときの処理
+                            }
+                        }
+                    }
+                });
+                let scrollmax = match self.text_orientation {
+                    TextOrientation::Horizontal => window_width,
+                    TextOrientation::Vertical => window_height,
+                };
+                self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::ScrollMax(scrollmax as f64)));
+                ctx.input(|i| {
+                    for event in &i.events {
+                        match event {
+                            egui::Event::Key { key, pressed, .. } => {
+                                // キーが押されたときの処理
+                                match key {
+                                    egui::Key::Escape => {
+                                        self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::Pause));
+                                    }
+                                    _ => {}
+                                }
+                            }
+                            egui::Event::Text(text) => {
+                                println!("{}",text);
+                                println!("{:?}",text.chars().collect::<Vec<char>>());
+                                self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::KeyInput(text.chars().collect::<Vec<char>>().get(0).unwrap().clone())));
+                            }
+                            _ => {}
+                        }
+                    }
+                });
+            },
             _ => {}
         }
         ctx.request_repaint();

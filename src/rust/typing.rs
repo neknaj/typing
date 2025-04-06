@@ -2,10 +2,10 @@
 
 use crate::model::{Model, TypingModel, ResultModel, TypingCorrectnessContent, TypingSession, TypingInput, TypingCorrectnessLine, TypingCorrectnessSegment, TypingCorrectnessChar, TypingMetrics};
 use crate::parser::{Content, Line, Segment};
-use js_sys::Date;
+use crate::timestamp::now;
 
 pub fn key_input(mut model_: TypingModel, input: char) -> Model {
-    let current_time = Date::now();
+    let current_time = now();
     let current_line = model_.status.line;
     
     // 新しいセッションを開始するかどうかを判断
