@@ -55,7 +55,12 @@ fn main() {
 
             fonts.families.insert(
                 egui::FontFamily::Name("kana".into()),
-                vec!["KaiseiHarunoUmi".to_owned()],
+                vec!["KaiseiHarunoUmi".to_owned(), "YujiSyuku".to_owned()],
+            );
+
+            fonts.families.insert(
+                egui::FontFamily::Name("ruby".into()),
+                vec!["YujiSyuku".to_owned(), "KaiseiHarunoUmi".to_owned(), "NotoSerifJP".to_owned()],
             );
 
             // Apply the customized fonts to the egui context

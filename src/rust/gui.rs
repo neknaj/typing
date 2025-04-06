@@ -48,7 +48,7 @@ impl Default for MyApp {
 impl eframe::App for MyApp {
     // Setup function to initialize app settings
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let font = egui::FontId::new(50.0, egui::FontFamily::Proportional);
+        let font = egui::FontId::new(150.0, egui::FontFamily::Proportional);
 
         // Side panel to toggle the theme.
         egui::SidePanel::left("side_panel")
@@ -57,7 +57,7 @@ impl eframe::App for MyApp {
                 fill: if self.dark_mode {
                     egui::Color32::from_rgb(6,12,22)
                 } else {
-                    egui::Color32::from_rgb(233, 233, 247)
+                    egui::Color32::from_rgb(237, 238, 222)
                 },
                 inner_margin: egui::Margin {
                     left  : 20,
@@ -103,9 +103,9 @@ impl eframe::App for MyApp {
         .frame(
             egui::Frame {
                 fill: if self.dark_mode {
-                    egui::Color32::from_rgb(6,12,22)
+                    egui::Color32::from_rgb(6,5,10)
                 } else {
-                    egui::Color32::from_rgb(233, 233, 247)
+                    egui::Color32::from_rgb(243, 243, 253)
                 },
                 inner_margin: egui::Margin {
                     left  : 20,
@@ -134,7 +134,7 @@ impl eframe::App for MyApp {
             ui.separator();
             ui.heading("RenderText and RenderChar Samples");
             let sample_text = "#title いろは歌
-(色/いろ)は(匂/にほ)へ/ど(散/ち)り/ぬる/を
+(色/いろい)は(匂/にほ)へ/ど(散/ち)り/ぬる/を
 (我/わ)が(世/よ)(誰/たれ)ぞ(常/つね)なら/む
 (有為/うゐ)の(奥山/おくやま)(今日/けふ)(越/こ)え/て
 (浅/あさ)き(夢/ゆめ)(見/み)じ(酔/ゑ)ひ/も/せ/ず";
