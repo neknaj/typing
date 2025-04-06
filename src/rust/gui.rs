@@ -1,172 +1,153 @@
+// Import necessary crates and modules
 use eframe::egui;
-use crate::textrender::{RenderText, RenderLineWithRuby, CharOrientation};
-use crate::parser::{parse_problem,Content,Line};
+use egui::{ScrollArea, Vec2};
+#[cfg(not(target_arch = "wasm32"))]
+use rfd::FileDialog;
+#[cfg(not(target_arch = "wasm32"))]
+use std::fs;
+#[cfg(target_arch = "wasm32")]
+use rfd::AsyncFileDialog;
 
-
-#[cfg(feature = "web")]
-fn timestamp() -> f64 {
-    web_sys::window()
-    .expect("should have a window")
-    .performance()
-    .expect("performance should be available")
-    .now()
-}
-
-#[cfg(not(feature = "web"))]
-fn timestamp() -> f64 {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    let now = SystemTime::now();
-    // Calculate the duration since UNIX_EPOCH.
-    let duration = now.duration_since(UNIX_EPOCH)
-        .expect("Time went backwards");
-    duration.as_millis() as f64
-}
-
-/// Sample application to demonstrate the usage of RenderChar, RenderText, and FPS calculation.
 pub struct MyApp {
-    name: String,
-    age: u32,
-    dark_mode: bool,
-    fps: u32,
-    frame_count: u32,                  // Count of frames within the 1-second interval
-    last_fps_update: Option<f64>, // Timestamp (in milliseconds) when the frame count was last reset
+    // Vector storing menu item names
+    menu_items: Vec<String>,
+    // Currently selected menu item index
+    selected_index: Option<usize>,
+    // Flag to ensure font scaling is applied only once
+    font_scaled: bool,
+    // Vector to store tuples of (file name, file content)
+    file_contents: Vec<(String, String)>,
 }
 
 impl Default for MyApp {
     fn default() -> Self {
+        // Create several demo menu items
+        let mut items = Vec::new();
+        for i in 0..10 {
+            items.push(format!("Menu Item {}", i));
+        }
         Self {
-            name: "World".to_string(),
-            age: 42,
-            dark_mode: true,
-            fps: 0,
-            frame_count: 0,
-            last_fps_update: None,   // Initialize with None.
+            menu_items: items,
+            selected_index: None,
+            font_scaled: false,
+            file_contents: Vec::new(),
         }
     }
 }
 
 impl eframe::App for MyApp {
-    // Setup function to initialize app settings
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let font = egui::FontId::new(150.0, egui::FontFamily::Proportional);
-
-        // Side panel to toggle the theme.
-        egui::SidePanel::left("side_panel")
-        .frame(
-            egui::Frame {
-                fill: if self.dark_mode {
-                    egui::Color32::from_rgb(6,12,22)
-                } else {
-                    egui::Color32::from_rgb(237, 238, 222)
-                },
-                inner_margin: egui::Margin {
-                    left  : 20,
-                    right : 20,
-                    top   : 20,
-                    bottom: 20,
-                },
-                ..Default::default()
+        // Apply font scaling once
+        if !self.font_scaled {
+            let mut style = (*ctx.style()).clone();
+            for (_key, font_id) in style.text_styles.iter_mut() {
+                font_id.size *= 3.0;
             }
-        ).show(ctx, |ui| {
-            if ui.button("Toggle Theme").clicked() {
-                self.dark_mode = !self.dark_mode;
-                let visuals = if self.dark_mode {
-                    egui::Visuals::dark()
-                } else {
-                    egui::Visuals::light()
-                };
-                ctx.set_visuals(visuals);
-            }
-        });
-
-        // Get current time.
-        let now = timestamp();
-
-        // Frame count for FPS calculation:
-        self.frame_count += 1;
-
-        // Initialize last_fps_update if it's not set.
-        if self.last_fps_update.is_none() {
-            self.last_fps_update = Some(now);
+            ctx.set_style(style);
+            self.font_scaled = true;
         }
-
-        if let Some(last_update) = self.last_fps_update {
-            if now - last_update >= 1000.0 {
-                // Update FPS, reset the frame count, and update the timestamp.
-                self.fps = self.frame_count;
-                self.frame_count = 0;
-                self.last_fps_update = Some(now);
-            }
-        }
-
+        
         egui::CentralPanel::default()
-        .frame(
-            egui::Frame {
-                fill: if self.dark_mode {
-                    egui::Color32::from_rgb(6,5,10)
-                } else {
-                    egui::Color32::from_rgb(243, 243, 253)
-                },
-                inner_margin: egui::Margin {
-                    left  : 20,
-                    right : 20,
-                    top   : 20,
-                    bottom: 20,
-                },
-                ..Default::default()
-            }
-        ).show(ctx, |ui| {
-            ui.heading("My egui Application");
-            // Display the calculated FPS.
-            ui.label(format!("FPS: {:.1}", self.fps));
-            ui.horizontal(|ui| {
-                ui.label("Your name: ");
-                ui.text_edit_singleline(&mut self.name);
-            });
-            ui.horizontal(|ui| {
-                ui.label("Your age: ");
-                ui.add(egui::DragValue::new(&mut self.age).speed(1.0));
-            });
-            ui.label(format!("Hello '{}', you are {} years old!", self.name, self.age));
-            if ui.button("Reset").clicked() {
-                *self = Self::default();
-            }
-            ui.separator();
-            ui.heading("RenderText and RenderChar Samples");
-            ui.separator();
-            egui::Grid::new("layout_grid")
-            .spacing([30.0, 30.0]) // Set spacing between grid cells.
-            .show(ui, |ui| {
-                let sample_text = "#title test
-(色/いろ)は(匂/にほ)へど　(散/ち)りぬるを
-(我/わ)が(世/よ)(誰/たれ)ぞ　(常/つね)ならむ
-(有為/うゐ)の(奥山/おくやま)　(今日/けふ)(越/こ)えて
-(浅/あさ)き(夢/ゆめ)(見/み)し　(酔/ゑ)ひもせず
-";
-    let content: Content = parse_problem(sample_text);
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Min), |ui| {
-                    for line in content.lines {
-                        ui.add(RenderLineWithRuby::new(line, CharOrientation::Vertical).with_font(font.clone()));
+            .frame(
+                egui::Frame {
+                    fill: egui::Color32::from_rgb(6, 5, 10),
+                    inner_margin: egui::Margin {
+                        left: 50,
+                        right: 50,
+                        top: 50,
+                        bottom: 50,
+                    },
+                    ..Default::default()
+                }
+            )
+            .show(ctx, |ui| {
+                // Button to trigger file open dialog
+                if ui.button("Add Contents").clicked() {
+                    // Native environment: use synchronous file dialog for multiple files
+                    #[cfg(not(target_arch = "wasm32"))]
+                    {
+                        if let Some(paths) = FileDialog::new()
+                            .add_filter("Text File", &["txt", "ntq"])
+                            .pick_files()
+                        {
+                            for path in paths {
+                                match fs::read_to_string(&path) {
+                                    Ok(contents) => {
+                                        // Store file name and contents
+                                        if let Some(filename) = path.file_name().and_then(|s| s.to_str()) {
+                                            self.file_contents.push((filename.to_string(), contents));
+                                        }
+                                    }
+                                    Err(e) => {
+                                        eprintln!("File read error: {}", e);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // WASM environment: use asynchronous file dialog for multiple files
+                    #[cfg(target_arch = "wasm32")]
+                    {
+                        let ctx_clone = ctx.clone();
+                        wasm_bindgen_futures::spawn_local(async move {
+                            if let Some(files) = AsyncFileDialog::new()
+                                .add_filter("Text File", &["txt", "ntq"])
+                                .pick_files()
+                                .await
+                            {
+                                // For each selected file, read its content
+                                for file in files {
+                                    let bytes = file.read().await;
+                                    if let Ok(text) = String::from_utf8(bytes) {
+                                        // Log file content and name to the browser console
+                                        web_sys::console::log_1(&format!("File: {} \nContent: {}", file.file_name(), text).into());
+                                        // In a complete implementation, update the UI state accordingly
+                                    } else {
+                                        web_sys::console::log_1(&"Invalid UTF-8 data.".into());
+                                    }
+                                }
+                            } else {
+                                web_sys::console::log_1(&"No files selected.".into());
+                            }
+                        });
+                    }
+                }
+                
+                // Calculate common button size
+                let button_height = 40.0;
+                let button_width = ui.available_width();
+                let button_size = Vec2::new(button_width, button_height);
+                let spacing = ui.spacing().item_spacing.y;
+                
+                // Display menu items in a scrollable area
+                ui.heading("Menu");
+                ui.add_space(spacing);
+                ScrollArea::vertical().show(ui, |ui| {
+                    for (index, item) in self.menu_items.iter().enumerate() {
+                        if ui.add_sized(button_size, egui::Button::new(item)).clicked() {
+                            self.selected_index = Some(index);
+                        }
+                        ui.add_space(spacing);
                     }
                 });
-            let sample_text = "#title test
-    (色/いろ)は(匂/にほ)へど　(散/ち)りぬるを
-    (我/わ)が(世/よ)(誰/たれ)ぞ　(常/つね)ならむ
-    (有為/うゐ)の(奥山/おくやま)　(今日/けふ)(越/こ)えて
-    (浅/あさ)き(夢/ゆめ)(見/み)し　(酔/ゑ)ひもせず
-    ";
-            let content: Content = parse_problem(sample_text);
-                ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
-                    for line in content.lines {
-                        ui.add(RenderLineWithRuby::new(line, CharOrientation::Horizontal).with_font(font.clone()));
+                
+                // Display selected menu item
+                if let Some(idx) = self.selected_index {
+                    ui.label(format!("Selected: {}", self.menu_items[idx]));
+                }
+                
+                // Display file contents if available
+                if !self.file_contents.is_empty() {
+                    ui.separator();
+                    ui.heading("Loaded Files:");
+                    for (filename, contents) in &self.file_contents {
+                        ui.collapsing(format!("File: {}", filename), |ui| {
+                            ui.text_edit_multiline(&mut contents.clone());
+                        });
+                        ui.add_space(spacing);
                     }
-                });
-                ui.end_row(); // Ends the current row in the grid.
-                // Additional rows/cells can be added similarly.
+                }
             });
-            ctx.set_pixels_per_point(1.5);
-        });
-        // Request a repaint to continuously update the FPS.
         ctx.request_repaint();
     }
 }
