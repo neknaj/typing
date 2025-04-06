@@ -1,5 +1,6 @@
 // Import necessary crates and modules
 use eframe::egui;
+use egui::debug_text::print;
 use egui::{ScrollArea, Vec2};
 #[cfg(not(target_arch = "wasm32"))]
 use rfd::FileDialog;
@@ -13,6 +14,7 @@ use crate::msg::{Msg, MenuMsg, TypingStartMsg, TypingMsg, PauseMsg, ResultMsg};
 use crate::parser::{parse_problem, Content};
 use crate::update::update;
 use std::collections::HashMap;
+use crate::textrender::{RenderText, RenderLineWithRuby, CharOrientation};
 
 
 pub enum TextOrientation {
@@ -59,6 +61,8 @@ impl eframe::App for TypingApp {
             ctx.set_style(style);
             self.init = true;
         }
+        let window_height = ctx.input(|input| input.screen_rect().height());
+        let window_width = ctx.input(|input| input.screen_rect().width());
 
         match self.typing.clone() {
             Model::Menu(scene) => {
@@ -75,10 +79,10 @@ impl eframe::App for TypingApp {
                                 egui::Color32::from_rgb(237, 238, 222)
                             },
                             inner_margin: egui::Margin {
-                                left: 50,
-                                right: 50,
-                                top: 50,
-                                bottom: 50,
+                                left: 30,
+                                right: 30,
+                                top: 30,
+                                bottom: 30,
                             },
                             ..Default::default()
                         }
@@ -101,30 +105,50 @@ impl eframe::App for TypingApp {
                     });
 
                     egui::TopBottomPanel::bottom("bottom_panel")
-                        .min_height(400.0)
-                        .max_height(400.0)
-                        .frame(
-                            egui::Frame {
-                                fill: if self.dark_mode {
-                                    egui::Color32::from_rgb(6,9,15)
-                                } else {
-                                    egui::Color32::from_rgb(237, 238, 222)
-                                },
-                                inner_margin: egui::Margin {
-                                    left: 50,
-                                    right: 50,
-                                    top: 50,
-                                    bottom: 50,
-                                },
-                                ..Default::default()
+                    .min_height(window_height*0.3)
+                    .max_height(window_height*0.3)
+                    .frame(
+                        egui::Frame {
+                            fill: if self.dark_mode {
+                                egui::Color32::from_rgb(6, 9, 15)
+                            } else {
+                                egui::Color32::from_rgb(237, 238, 222)
+                            },
+                            inner_margin: egui::Margin {
+                                left: 30,
+                                right: 30,
+                                top: 30,
+                                bottom: 30,
+                            },
+                            ..Default::default()
+                        }
+                    )
+                    .show(ctx, |ui| {
+                        ui.heading("Preview");
+                        if let Some(idx) = self.selected_index {
+                            if let Some(content) = scene.available_contents.get(idx) {
+                                let mut font_preview = egui::FontId::new(150.0, egui::FontFamily::Proportional);
+                                font_preview.size = 50.0;
+                                ui.add(RenderText::new(content.title.clone(), CharOrientation::Horizontal).with_font(font_preview.clone()));
+                                // Allocate full available space
+                                ui.allocate_ui(ui.available_size(), |ui| {
+                                    // Ensure the inner content uses the full width
+                                    ui.set_min_width(ui.available_size().x);
+                                    ScrollArea::both().show(ui, |ui| {
+                                        ui.vertical(|ui| {
+                                            // Set the width for each section to full width
+                                            ui.set_width(ui.available_size().x);
+                                            ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+                                                for line in content.lines.iter() {
+                                                    ui.add(RenderLineWithRuby::new(line.clone(), CharOrientation::Horizontal).with_font(font_preview.clone()));
+                                                }
+                                            });
+                                        });
+                                    });
+                                });
                             }
-                        )
-                        .show(ctx, |ui| {
-                            ui.heading("Preview");
-                            if let Some(idx) = self.selected_index {
-                                ui.label(format!("Selected: {}", scene.available_contents[idx].title));
-                            }
-                        });
+                        }
+                    });
 
                 // Central Panel for Main Content
                 egui::CentralPanel::default()
@@ -136,10 +160,10 @@ impl eframe::App for TypingApp {
                                 egui::Color32::from_rgb(243, 243, 253)
                             },
                             inner_margin: egui::Margin {
-                                left: 50,
-                                right: 50,
-                                top: 50,
-                                bottom: 50,
+                                left: 30,
+                                right: 30,
+                                top: 30,
+                                bottom: 30,
                             },
                             ..Default::default()
                         }
@@ -199,7 +223,7 @@ impl eframe::App for TypingApp {
 
                         // Calculate common button size
                         let button_height = 40.0;
-                        let button_width = ui.available_width() - 100.0; // Adjust width for delete button
+                        let button_width = ui.available_width() - 130.0; // Adjust width for delete button
                         let button_size = Vec2::new(button_width, button_height);
                         let spacing = ui.spacing().item_spacing.y;
 
@@ -209,12 +233,19 @@ impl eframe::App for TypingApp {
                         ScrollArea::vertical().show(ui, |ui| {
                             for (index, item) in scene.available_contents.iter().enumerate() {
                                 ui.horizontal(|ui| {
-                                    // Menu item button
+                                    // Menu item button: selecting an item sets selected_index
                                     if ui.add_sized(button_size, egui::Button::new(item.title.clone())).clicked() {
                                         self.selected_index = Some(index);
                                     }
                                     // Delete button with a fixed small width
                                     if ui.button("Delete").clicked() {
+                                        // If the deleted item is the selected one, clear selected_index
+                                        if self.selected_index == Some(index) {
+                                            self.selected_index = None;
+                                        }
+                                        // Remove the item from the list
+                                        // Note: scene.available_contents must be mutable for this to work
+                                        // Example: scene.available_contents.remove(index);
                                     }
                                 });
                                 ui.add_space(spacing);
