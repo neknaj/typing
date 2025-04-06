@@ -1,7 +1,7 @@
 // Import necessary crates and modules
 use eframe::egui;
 use egui::debug_text::print;
-use egui::{style, ScrollArea, Vec2};
+use egui::{style, vec2, ScrollArea, Vec2};
 #[cfg(not(target_arch = "wasm32"))]
 use rfd::FileDialog;
 #[cfg(not(target_arch = "wasm32"))]
@@ -124,12 +124,15 @@ impl eframe::App for TypingApp {
                         }
                     )
                     .show(ctx, |ui| {
-                        ui.heading("Preview");
                         if let Some(idx) = self.selected_index {
                             if let Some(content) = scene.available_contents.get(idx) {
-                                ui.add(RenderText::new(content.title.clone(), CharOrientation::Horizontal));
+                                let mut font = egui::FontSelection::Default.resolve(ui.style());
+                                font.size *= 1.5;
+                                ui.add(RenderText::new(content.title.clone(), CharOrientation::Horizontal).with_font(font));
+                                let button_height = 40.0;
+                                let button_width = ui.available_width();
                                 // Allocate full available space
-                                ui.allocate_ui(ui.available_size(), |ui| {
+                                ui.allocate_ui(ui.available_size()-vec2(0.0, button_height), |ui| {
                                     // Ensure the inner content uses the full width
                                     ui.set_min_width(ui.available_size().x);
                                     ScrollArea::both().show(ui, |ui| {
@@ -144,6 +147,12 @@ impl eframe::App for TypingApp {
                                         });
                                     });
                                 });
+                                if ui.add_sized(Vec2::new(button_width, button_height), egui::Button::new("Start")).clicked() {
+                                    self.typing = update(self.typing.clone(),Msg::Menu(MenuMsg::Start));
+                                }
+                            }
+                            else {
+                                self.selected_index = None;
                             }
                         }
                     });
@@ -167,6 +176,7 @@ impl eframe::App for TypingApp {
                         }
                     )
                     .show(ctx, |ui| {
+                        ui.heading("Menu");
                         // Button to trigger file open dialog
                         if ui.button("Add Contents").clicked() {
                             // Native environment: use synchronous file dialog for multiple files
@@ -223,11 +233,10 @@ impl eframe::App for TypingApp {
                         let button_height = 40.0;
                         let button2_width = 130.0;
                         let button1_width = ui.available_width() - button2_width;
-                        
+
                         let spacing = ui.spacing().item_spacing.y;
 
                         // Display menu items in a scrollable area with delete buttons
-                        ui.heading("Menu");
                         ui.add_space(spacing);
                         ScrollArea::vertical().show(ui, |ui| {
                             for (index, item) in scene.available_contents.iter().enumerate() {
