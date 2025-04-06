@@ -2,9 +2,13 @@
 #![cfg(not(feature = "web"))]
 // #![windows_subsystem = "windows"]
 
+mod model;
+mod msg;
+mod update;
+mod parser;
+mod typing;
 mod gui;
 mod textrender;
-mod parser;
 
 fn main() {
     // Print a greeting message for native execution
@@ -79,7 +83,7 @@ fn main() {
             };
             cc.egui_ctx.set_style(style);
 
-            Ok(Box::new(gui::MyApp::default()))
+            Ok(Box::new(gui::TypingApp::default()))
         }),
     ).ok();
 }
