@@ -272,13 +272,13 @@ impl eframe::App for TypingApp {
                     egui::Area::new("centered_text2".into())
                         .fixed_pos(egui::Pos2::new(window_width/2.0+50.0, 0.0))
                         .show(ctx, |ui| {
-                            ui.add(RenderLineWithRuby::new(content.lines[0].clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(0.0));
+                            ui.add(RenderLineWithRuby::new(content.lines[0].clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(-window_height*0.5));
                         });
                 } else {
                     egui::Area::new("centered_text2".into())
-                        .fixed_pos(egui::Pos2::new(0.0, window_height/2.0+50.0))
+                        .fixed_pos(egui::Pos2::new(0.0, window_height/2.0-50.0))
                         .show(ctx, |ui| {
-                            ui.add(RenderLineWithRuby::new(content.lines[0].clone(), CharOrientation::Horizontal).with_font(font.clone()).with_offset(0.0));
+                            ui.add(RenderLineWithRuby::new(content.lines[0].clone(), CharOrientation::Horizontal).with_font(font.clone()).with_offset(-window_width*0.5));
                         });
                 }
                 egui::Area::new("full_screen_overlay".into()) // オーバーレイ
@@ -317,7 +317,7 @@ impl eframe::App for TypingApp {
                                                 TextOrientation::Vertical => window_height,
                                             };
                                             self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::StartTyping));
-                                            self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::ScrollMax(scrollmax as f64)));
+                                            self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::ScrollTo((-scrollmax*0.5) as f64, scrollmax as f64)));
                                         }
                                         egui::Key::Escape => {
                                             self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::Cancel));
@@ -335,11 +335,18 @@ impl eframe::App for TypingApp {
             Model::Typing(scene) => {
                 let content: Content = scene.content;
                 let mut font = egui::FontId::new(50.0, egui::FontFamily::Proportional);
+                let scrollmax = match self.text_orientation {
+                    TextOrientation::Horizontal => window_width,
+                    TextOrientation::Vertical => window_height,
+                };
                 if self.text_orientation == TextOrientation::Vertical {
                     egui::Area::new("centered_text1".into())
                         .fixed_pos(egui::Pos2::new(window_width/2.0-50.0, 0.0))
                         .show(ctx, |ui| {
-                            ui.add(RenderTypingLine::new(content.lines[scene.status.line as usize].clone(), scene.typing_correctness.lines[scene.status.line as usize].clone(), scene.status.clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(scene.scroll.scroll as f32));
+                            let line = RenderTypingLine::new(content.lines[scene.status.line as usize].clone(), scene.typing_correctness.lines[scene.status.line as usize].clone(), scene.status.clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(scene.scroll.scroll as f32);
+                            let scrollto = line.calc_size(ui).0+window_height*0.5;
+                            self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::ScrollTo(scrollto as f64, scrollmax as f64)));
+                            ui.add(line);
                         });
                     egui::Area::new("centered_text2".into())
                         .fixed_pos(egui::Pos2::new(window_width/2.0+50.0, 0.0))
@@ -350,7 +357,10 @@ impl eframe::App for TypingApp {
                     egui::Area::new("centered_text1".into())
                     .fixed_pos(egui::Pos2::new(0.0, window_height/2.+50.0))
                         .show(ctx, |ui| {
-                            ui.add(RenderTypingLine::new(content.lines[scene.status.line as usize].clone(), scene.typing_correctness.lines[scene.status.line as usize].clone(), scene.status.clone(), CharOrientation::Horizontal).with_font(font.clone()).with_offset(scene.scroll.scroll as f32));
+                            let line = RenderTypingLine::new(content.lines[scene.status.line as usize].clone(), scene.typing_correctness.lines[scene.status.line as usize].clone(), scene.status.clone(), CharOrientation::Horizontal).with_font(font.clone()).with_offset(scene.scroll.scroll as f32);
+                            let scrollto = line.calc_size(ui).0-window_width*0.5;
+                            self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::ScrollTo(scrollto as f64, scrollmax as f64)));
+                            ui.add(line);
                         });
                     egui::Area::new("centered_text2".into())
                     .fixed_pos(egui::Pos2::new(0.0, window_height/2.0-50.0))
@@ -364,16 +374,8 @@ impl eframe::App for TypingApp {
                             if *pressed {
                                 // キーが押されたときの処理
                                 match key {
-                                    egui::Key::Space => {
-                                        let scrollmax = match self.text_orientation {
-                                            TextOrientation::Horizontal => window_width,
-                                            TextOrientation::Vertical => window_height,
-                                        };
-                                        self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::StartTyping));
-                                        self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::ScrollMax(scrollmax as f64)));
-                                    }
                                     egui::Key::Escape => {
-                                        self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::Cancel));
+                                        self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::Pause));
                                     }
                                     _ => {}
                                 }
@@ -383,11 +385,6 @@ impl eframe::App for TypingApp {
                         }
                     }
                 });
-                let scrollmax = match self.text_orientation {
-                    TextOrientation::Horizontal => window_width,
-                    TextOrientation::Vertical => window_height,
-                };
-                self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::ScrollMax(scrollmax as f64)));
                 ctx.input(|i| {
                     for event in &i.events {
                         match event {
