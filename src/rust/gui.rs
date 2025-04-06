@@ -1,7 +1,7 @@
 // Import necessary crates and modules
 use eframe::egui;
 use egui::debug_text::print;
-use egui::{ScrollArea, Vec2};
+use egui::{style, ScrollArea, Vec2};
 #[cfg(not(target_arch = "wasm32"))]
 use rfd::FileDialog;
 #[cfg(not(target_arch = "wasm32"))]
@@ -56,7 +56,7 @@ impl eframe::App for TypingApp {
         if !self.init {
             let mut style = (*ctx.style()).clone();
             for (_key, font_id) in style.text_styles.iter_mut() {
-                font_id.size *= 3.0;
+                font_id.size *= 2.0;
             }
             ctx.set_style(style);
             self.init = true;
@@ -127,9 +127,7 @@ impl eframe::App for TypingApp {
                         ui.heading("Preview");
                         if let Some(idx) = self.selected_index {
                             if let Some(content) = scene.available_contents.get(idx) {
-                                let mut font_preview = egui::FontId::new(150.0, egui::FontFamily::Proportional);
-                                font_preview.size = 50.0;
-                                ui.add(RenderText::new(content.title.clone(), CharOrientation::Horizontal).with_font(font_preview.clone()));
+                                ui.add(RenderText::new(content.title.clone(), CharOrientation::Horizontal));
                                 // Allocate full available space
                                 ui.allocate_ui(ui.available_size(), |ui| {
                                     // Ensure the inner content uses the full width
@@ -140,7 +138,7 @@ impl eframe::App for TypingApp {
                                             ui.set_width(ui.available_size().x);
                                             ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
                                                 for line in content.lines.iter() {
-                                                    ui.add(RenderLineWithRuby::new(line.clone(), CharOrientation::Horizontal).with_font(font_preview.clone()));
+                                                    ui.add(RenderLineWithRuby::new(line.clone(), CharOrientation::Horizontal));
                                                 }
                                             });
                                         });
@@ -223,8 +221,9 @@ impl eframe::App for TypingApp {
 
                         // Calculate common button size
                         let button_height = 40.0;
-                        let button_width = ui.available_width() - 130.0; // Adjust width for delete button
-                        let button_size = Vec2::new(button_width, button_height);
+                        let button2_width = 130.0;
+                        let button1_width = ui.available_width() - button2_width;
+                        
                         let spacing = ui.spacing().item_spacing.y;
 
                         // Display menu items in a scrollable area with delete buttons
@@ -234,11 +233,11 @@ impl eframe::App for TypingApp {
                             for (index, item) in scene.available_contents.iter().enumerate() {
                                 ui.horizontal(|ui| {
                                     // Menu item button: selecting an item sets selected_index
-                                    if ui.add_sized(button_size, egui::Button::new(item.title.clone())).clicked() {
+                                    if ui.add_sized(Vec2::new(button1_width, button_height), egui::Button::new(item.title.clone())).clicked() {
                                         self.selected_index = Some(index);
                                     }
                                     // Delete button with a fixed small width
-                                    if ui.button("Delete").clicked() {
+                                    if ui.add_sized(Vec2::new(button2_width, button_height), egui::Button::new("Delete")).clicked() {
                                         // If the deleted item is the selected one, clear selected_index
                                         if self.selected_index == Some(index) {
                                             self.selected_index = None;
