@@ -48,7 +48,7 @@ impl Default for MyApp {
 impl eframe::App for MyApp {
     // Setup function to initialize app settings
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let font = egui::FontId::new(150.0, egui::FontFamily::Proportional);
+        let font = egui::FontId::new(30.0, egui::FontFamily::Proportional);
 
         // Side panel to toggle the theme.
         egui::SidePanel::left("side_panel")
@@ -133,66 +133,57 @@ impl eframe::App for MyApp {
             }
             ui.separator();
             ui.heading("RenderText and RenderChar Samples");
-            let sample_text = "#title いろは歌
-(色/いろ)は(匂/にほ)へ/ど(散/ち)り/ぬる/を
-(我/わ)が(世/よ)(誰/たれ)ぞ(常/つね)なら/む
-(有為/うゐ)の(奥山/おくやま)(今日/けふ)(越/こ)え/て
-(浅/あさ)き(夢/ゆめ)(見/み)じ(酔/ゑ)ひ/も/せ/ず";
-            let sample_content: Content = parse_problem(sample_text);
-            ui.add(RenderLineWithRuby::new(sample_content.lines[0].clone(),CharOrientation::Horizontal).with_font(font.clone()));
-            ui.add(RenderLineWithRuby::new(sample_content.lines[1].clone(),CharOrientation::Horizontal).with_font(font.clone()));
-            ui.add(RenderLineWithRuby::new(sample_content.lines[2].clone(),CharOrientation::Horizontal).with_font(font.clone()));
-            ui.add(RenderLineWithRuby::new(sample_content.lines[3].clone(),CharOrientation::Horizontal).with_font(font.clone()));
-            let sample_text = "#title いろは歌
-(色/iro)は(匂/niho)へ/ど(散/ti)り/ぬる/を
-(我/wa)が(世/yo)(誰/tare)ぞ(常/tune)なら/む
-(有為/uwyi)の(奥山/okuyama)(今日/きょう)(越/ko)え/て
-(浅/asa)き(夢/yume)(見/mi)じ(酔/wye)ひ/も/せ/ず";
-            let sample_content: Content = parse_problem(sample_text);
-            ui.add(RenderLineWithRuby::new(sample_content.lines[0].clone(),CharOrientation::Horizontal).with_font(font.clone()));
-            ui.add(RenderLineWithRuby::new(sample_content.lines[1].clone(),CharOrientation::Horizontal).with_font(font.clone()));
-            ui.add(RenderLineWithRuby::new(sample_content.lines[2].clone(),CharOrientation::Horizontal).with_font(font.clone()));
-            ui.add(RenderLineWithRuby::new(sample_content.lines[3].clone(),CharOrientation::Horizontal).with_font(font.clone()));
-
             ui.separator();
             egui::Grid::new("layout_grid")
             .spacing([30.0, 30.0]) // Set spacing between grid cells.
             .show(ui, |ui| {
                 // First grid cell with top_down layout.
+            let sample_text = "#title test
+    (最近/さいきん)、OpenAI、Microsoft、そしてSoftBankといった(大手/おおて)テック(企業/きぎょう)が、
+    (革新的/かくしんてき)なAIおよびGPU(技術/ぎじゅつ)を(活用/かつよう)した(新製品/しんせいひん)・サービスで(大/おお)きく(注目/ちゅうもく)されています。
+    OpenAIは(次世代/じせだい)モデル「GPT-4.5」の(開発/かいはつ)と(大規模/だいきぼ)な(資金調達/しきんちょうたつ)を(発表/はっぴょう)し、
+    MicrosoftはNVIDIAのH200 GPUを(組/く)み(込/こ)んだCloud(基盤/きばん)の(拡張/かくちょう)を(進/すす)め、
+    (先進的/せんしんてき)なAI(処理/しょり)を(加速/かそく)させています。また、SoftBankは(大阪/おおさか)の(旧/きゅう)Sharp LCD(工場/こうじょう)を
+    (最新鋭/さいしんえい)のAI Data Centerへと(転換/てんかん)し、(革新的/かくしんてき)なAI Agentモデルの(商用展開/しょうようてんかい)を(目指/めざ)しています。
+    
+    ルビ(付/つ)きの(美/うつく)しい(横書/よこが)き(日本語/にほんご)を(描画/びょうが)したい
+    (横書/よこが)きテキスト Horizontal Text
+    I want to write text that combines Japanese and English!
+    
+    (色/いろ)は(匂/にほ)へど　(散/ち)りぬるを
+    (我/わ)が(世/よ)(誰/たれ)ぞ　(常/つね)ならむ
+    (有為/うゐ)の(奥山/おくやま)　(今日/けふ)(越/こ)えて
+    (浅/あさ)き(夢/ゆめ)(見/み)し　(酔/ゑ)ひもせず
+    ";
+            let content: Content = parse_problem(sample_text);
                 ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
-                    ui.add(RenderText::new("最近、OpenAI、Microsoft、そして SoftBank といった大手テック企業が、", CharOrientation::Horizontal).with_font(font.clone()));
-                    ui.add(RenderText::new("革新的なAIおよびGPU技術を活用した新製品・サービスで大きく注目されています。", CharOrientation::Horizontal).with_font(font.clone()));
-                    ui.add(RenderText::new("OpenAIは次世代モデル「GPT-4.5」の開発と大規模な資金調達を発表し、", CharOrientation::Horizontal).with_font(font.clone()));
-                    ui.add(RenderText::new("MicrosoftはNVIDIAのH200 GPUを組み込んだCloud基盤の拡張を進め、", CharOrientation::Horizontal).with_font(font.clone()));
-                    ui.add(RenderText::new("先進的なAI処理を加速させています。また、SoftBankは大阪の旧Sharp LCD工場を", CharOrientation::Horizontal).with_font(font.clone()));
-                    ui.add(RenderText::new("最新鋭のAI Data Centerへと転換し、革新的なAI Agentモデルの商用展開を目指しています。", CharOrientation::Horizontal).with_font(font.clone()));
-                    ui.separator();
-                    ui.add(RenderText::new("ルビ付きの美しい横書き日本語を描画したい", CharOrientation::Horizontal).with_font(font.clone()));
-                    ui.add(RenderText::new("横書きテキスト Horizontal Text", CharOrientation::Horizontal).with_font(font.clone()));
-                    ui.add(RenderText::new("I want to write text that combines Japanese and English!", CharOrientation::Horizontal).with_font(font.clone()));
-                    ui.separator();
-                    ui.add(RenderText::new("色は匂へど　散りぬるを", CharOrientation::Horizontal).with_font(font.clone()));
-                    ui.add(RenderText::new("我が世誰ぞ　常ならむ", CharOrientation::Horizontal).with_font(font.clone()));
-                    ui.add(RenderText::new("有為の奥山　今日越えて", CharOrientation::Horizontal).with_font(font.clone()));
-                    ui.add(RenderText::new("浅き夢見し　酔ひもせず", CharOrientation::Horizontal).with_font(font.clone()));
+                    for line in content.lines {
+                        ui.add(RenderLineWithRuby::new(line, CharOrientation::Horizontal).with_font(font.clone()));
+                    }
                 });
+                let sample_text = "#title test
+(最近/さいきん)、OpenAI、Microsoft、そしてSoftBankといった(大手/おおて)テック(企業/きぎょう)が、
+(革新的/かくしんてき)なAIおよびGPU(技術/ぎじゅつ)を(活用/かつよう)した(新製品/しんせいひん)・サービスで(大/おお)きく(注目/ちゅうもく)されています。
+OpenAIは(次世代/じせだい)モデル「GPT-4.5」の(開発/かいはつ)と(大規模/だいきぼ)な(資金調達/しきんちょうたつ)を(発表/はっぴょう)し、
+MicrosoftはNVIDIAのH200 GPUを(組/く)み(込/こ)んだCloud(基盤/きばん)の(拡張/かくちょう)を(進/すす)め、
+(先進的/せんしんてき)なAI(処理/しょり)を(加速/かそく)させています。また、SoftBankは(大阪/おおさか)の(旧/きゅう)Sharp LCD(工場/こうじょう)を
+(最新鋭/さいしんえい)のAI Data Centerへと(転換/てんかん)し、(革新的/かくしんてき)なAI Agentモデルの(商用展開/しょうようてんかい)を(目指/めざ)しています。
+
+ルビ(付/つ)きの(美/うつく)しい(縦書/たてが)き(日本語/にほんご)を(描画/びょうが)したい
+(縦書/たてが)きテキスト Vertical Text
+I want to write text that combines Japanese and English!
+
+(色/いろ)は(匂/にほ)へど　(散/ち)りぬるを
+(我/わ)が(世/よ)(誰/たれ)ぞ　(常/つね)ならむ
+(有為/うゐ)の(奥山/おくやま)　(今日/けふ)(越/こ)えて
+(浅/あさ)き(夢/ゆめ)(見/み)し　(酔/ゑ)ひもせず
+";
+    let content: Content = parse_problem(sample_text);
                 // Second grid cell with right_to_left layout.
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Min), |ui| {
-                    ui.add(RenderText::new("最近、OpenAI、Microsoft、そして SoftBank といった大手テック企業が、", CharOrientation::Vertical).with_font(font.clone()));
-                    ui.add(RenderText::new("革新的なAIおよびGPU技術を活用した新製品・サービスで大きく注目されています。", CharOrientation::Vertical).with_font(font.clone()));
-                    ui.add(RenderText::new("OpenAIは次世代モデル「GPT-4.5」の開発と大規模な資金調達を発表し、", CharOrientation::Vertical).with_font(font.clone()));
-                    ui.add(RenderText::new("MicrosoftはNVIDIAのH200 GPUを組み込んだCloud基盤の拡張を進め、", CharOrientation::Vertical).with_font(font.clone()));
-                    ui.add(RenderText::new("先進的なAI処理を加速させています。また、SoftBankは大阪の旧Sharp LCD工場を", CharOrientation::Vertical).with_font(font.clone()));
-                    ui.add(RenderText::new("最新鋭のAI Data Centerへと転換し、革新的なAI Agentモデルの商用展開を目指しています。", CharOrientation::Vertical).with_font(font.clone()));
-                    ui.separator();
-                    ui.add(RenderText::new("ルビ付きの美しい縦書き日本語を描画したい", CharOrientation::Vertical).with_font(font.clone()));
-                    ui.add(RenderText::new("縦書きテキスト Vertical Text", CharOrientation::Vertical).with_font(font.clone()));
-                    ui.add(RenderText::new("I want to write text that combines Japanese and English!", CharOrientation::Vertical).with_font(font.clone()));
-                    ui.separator();
-                    ui.add(RenderText::new("色は匂へど　散りぬるを", CharOrientation::Vertical).with_font(font.clone()));
-                    ui.add(RenderText::new("我が世誰ぞ　常ならむ", CharOrientation::Vertical).with_font(font.clone()));
-                    ui.add(RenderText::new("有為の奥山　今日越えて", CharOrientation::Vertical).with_font(font.clone()));
-                    ui.add(RenderText::new("浅き夢見し　酔ひもせず", CharOrientation::Vertical).with_font(font.clone()));
+                    for line in content.lines {
+                        ui.add(RenderLineWithRuby::new(line, CharOrientation::Vertical).with_font(font.clone()));
+                    }
                 });
                 ui.end_row(); // Ends the current row in the grid.
                 // Additional rows/cells can be added similarly.
