@@ -1,7 +1,6 @@
 // update.rs
 
 // resource manager
-use std::sync::Mutex;
 use std::collections::HashMap;
 use crate::model::{Model, MenuModel, TypingStartModel, TypingModel, PauseModel, ResultModel, TypingStatus, TextConvert, ErrorMsg, KeyboardRemapping, TypingScroll,TypingSession};
 use crate::msg::{Msg, MenuMsg, TypingStartMsg, TypingMsg, PauseMsg, ResultMsg};
@@ -9,10 +8,6 @@ use crate::parser::{parse_problem, Content};
 use crate::typing;
 use crate::typing::key_input;
 use crate::timestamp::now;
-
-lazy_static::lazy_static! {
-    static ref Module_resource: Mutex<Model> = Mutex::new( Model::Empty );
-}
 
 #[macro_export]
 macro_rules! jsvalue {

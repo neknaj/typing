@@ -51,7 +51,6 @@ pub struct ResultModel {
 
 #[derive(Debug, Clone)]
 pub enum Model {
-    Empty,
     Menu(MenuModel),
     TypingStart(TypingStartModel),
     Typing(TypingModel),

@@ -12,6 +12,8 @@ use rfd::AsyncFileDialog;
 use crate::model::{Model, MenuModel, TypingStartModel, TypingModel, PauseModel, ResultModel, TypingStatus, TextConvert, ErrorMsg, KeyboardRemapping, TypingScroll,TypingSession};
 use crate::msg::{Msg, MenuMsg, TypingStartMsg, TypingMsg, PauseMsg, ResultMsg};
 use crate::parser::{parse_problem, Content};
+use crate::typing::calculate_line_metrics;
+use crate::typing::calculate_total_metrics;
 use crate::update::update;
 use std::collections::HashMap;
 use crate::textrender::{RenderText, RenderLineWithRuby, RenderTypingLine, CharOrientation};
@@ -567,7 +569,82 @@ impl eframe::App for TypingApp {
                         }
                     });
             },
-            _ => {}
+            Model::Result(scene) => {
+                let content: Content = scene.typing_model.content.clone();
+                let stat = calculate_total_metrics(&scene.typing_model);
+                egui::CentralPanel::default()
+                    .frame(
+                        egui::Frame {
+                            fill: if self.dark_mode {
+                                egui::Color32::from_rgb(6,5,10)
+                            } else {
+                                egui::Color32::from_rgb(243, 243, 253)
+                            },
+                            inner_margin: egui::Margin {
+                                left: 30,
+                                right: 30,
+                                top: 30,
+                                bottom: 30,
+                            },
+                            ..Default::default()
+                        }
+                    )
+                    .show(ctx, |ui| {
+                        ui.heading("Result");
+                        // タイトル
+                        ui.add_space(50.0);
+                        ui.vertical_centered(|ui| {
+                            let mut font = egui::FontSelection::Default.resolve(ui.style());
+                            font.size *= 3.0;
+                            ui.add(RenderText::new(content.title.clone(), CharOrientation::Horizontal).with_font(font));
+                        });
+                        ui.add_space(100.0);
+
+                        // 結果表示
+                        ui.vertical_centered(|ui| {
+                            let mut font = egui::FontSelection::Default.resolve(ui.style());
+                            font.size *= 1.5;
+
+                            // 速度（WPM/KPM）
+                            let kps = stat.speed;
+                            ui.label(egui::RichText::new(format!("Speed: {:.2} KPS", kps)).font(font.clone()));
+                            ui.add_space(20.0);
+
+                            // 正確性
+                            ui.label(egui::RichText::new(format!("Accuracy: {:.1}%", stat.accuracy * 100.0)).font(font.clone()));
+                            ui.add_space(20.0);
+
+                            // タイプ数とミス数
+                            ui.label(egui::RichText::new(format!("Total Keystrokes: {}", stat.type_count + stat.miss_count)).font(font.clone()));
+                            ui.label(egui::RichText::new(format!("Mistyped: {} ({:.1}%)", 
+                                stat.miss_count, 
+                                (stat.miss_count as f64 / (stat.type_count + stat.miss_count) as f64) * 100.0
+                            )).font(font.clone()));
+                            ui.add_space(20.0);
+
+                            // 時間
+                            let total_seconds = stat.total_time / 1000.0;
+                            let minutes = (total_seconds / 60.0).floor();
+                            let seconds = total_seconds % 60.0;
+                            ui.label(egui::RichText::new(format!("Time: {:02}:{:02.0}", minutes, seconds)).font(font.clone()));
+                        });
+
+                        ui.add_space(100.0);
+
+                        // ボタン
+                        ui.vertical_centered(|ui| {
+                            let button_width = 300.0;
+                            let button_height = 50.0;
+                            if ui.add_sized([button_width, button_height], egui::Button::new("Return to Menu")).clicked() {
+                                self.typing = update(self.typing.clone(), Msg::Result(ResultMsg::BackToMenu));
+                            }
+                            ui.add_space(20.0);
+                            if ui.add_sized([button_width, button_height], egui::Button::new("Retry")).clicked() {
+                                self.typing = update(self.typing.clone(), Msg::Result(ResultMsg::Retry));
+                            }
+                        });
+                    });
+            }
         }
         ctx.request_repaint();
     }
