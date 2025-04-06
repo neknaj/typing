@@ -267,6 +267,25 @@ impl eframe::App for TypingApp {
             },
             Model::TypingStart(scene) => {
                 let content: Content = scene.content;
+                egui::CentralPanel::default()
+                    .frame(
+                        egui::Frame {
+                            fill: if self.dark_mode {
+                                egui::Color32::from_rgb(6,5,10)
+                            } else {
+                                egui::Color32::from_rgb(243, 243, 253)
+                            },
+                            inner_margin: egui::Margin {
+                                left: 30,
+                                right: 30,
+                                top: 30,
+                                bottom: 30,
+                            },
+                            ..Default::default()
+                        }
+                    )
+                    .show(ctx, |ui| {
+                    });
                 let mut font = egui::FontId::new(50.0, egui::FontFamily::Proportional);
                 if self.text_orientation == TextOrientation::Vertical {
                     egui::Area::new("centered_text2".into())
@@ -334,6 +353,25 @@ impl eframe::App for TypingApp {
             },
             Model::Typing(scene) => {
                 let content: Content = scene.content;
+                egui::CentralPanel::default()
+                    .frame(
+                        egui::Frame {
+                            fill: if self.dark_mode {
+                                egui::Color32::from_rgb(6,5,10)
+                            } else {
+                                egui::Color32::from_rgb(243, 243, 253)
+                            },
+                            inner_margin: egui::Margin {
+                                left: 30,
+                                right: 30,
+                                top: 30,
+                                bottom: 30,
+                            },
+                            ..Default::default()
+                        }
+                    )
+                    .show(ctx, |ui| {
+                    });
                 let mut font = egui::FontId::new(50.0, egui::FontFamily::Proportional);
                 let scrollmax = match self.text_orientation {
                     TextOrientation::Horizontal => window_width,
