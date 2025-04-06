@@ -1,5 +1,3 @@
-use std::os::windows::io::BorrowedHandle;
-
 use crate::parser::{Content, Line, Segment};
 
 /// Enum to specify character orientation.

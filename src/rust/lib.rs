@@ -2,6 +2,8 @@
 #![cfg(feature = "web")]
 #![cfg(target_arch = "wasm32")]
 
+use eframe::wasm_bindgen::{self, prelude::*};
+
 mod model;
 mod msg;
 mod update;
@@ -99,7 +101,7 @@ pub fn start_gui() -> Result<(), JsValue> {
                     };
                     cc.egui_ctx.set_style(style);
 
-                    Ok(Box::new(gui::MyApp::default()))
+                    Ok(Box::new(gui::TypingApp::default()))
                 }),
             )
             .await

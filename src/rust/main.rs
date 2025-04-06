@@ -22,7 +22,7 @@ fn main() {
     };
 
     eframe::run_native(
-        "My egui App",
+        "Neknaj Typing Game",
         native_options,
         Box::new(|cc| {
             // Configure font definitions
