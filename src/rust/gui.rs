@@ -398,8 +398,6 @@ impl eframe::App for TypingApp {
                                 }
                             }
                             egui::Event::Text(text) => {
-                                println!("{}",text);
-                                println!("{:?}",text.chars().collect::<Vec<char>>());
                                 self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::KeyInput(text.chars().collect::<Vec<char>>().get(0).unwrap().clone())));
                             }
                             _ => {}

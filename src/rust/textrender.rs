@@ -678,9 +678,10 @@ impl egui::Widget for RenderTypingLine {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
         // Retrieve text color from UI style.
         let color = ui.style().visuals.strong_text_color();
-        let wrong_color = egui::Color32::from_rgb(220, 50, 50);
-        let correct_color = egui::Color32::from_rgb(50, 50, 220);
-        let pending_color = egui::Color32::from_rgb(128, 128, 128);
+        let wrong_color = egui::Color32::from_hex("#f55252").unwrap();
+        let incorrect_color = egui::Color32::from_hex("#ff9898").unwrap();
+        let correct_color = egui::Color32::from_hex("#9097ff").unwrap();
+        let pending_color = egui::Color32::from_hex("#999999").unwrap();
         let cursor_color = ui.style().visuals.selection.bg_fill;
         let mut font_main = self
             .font_id.clone()
@@ -806,7 +807,7 @@ impl egui::Widget for RenderTypingLine {
                 TypingCorrectnessSegment { chars } => {
                     chars.iter().map(|c| match c {
                         TypingCorrectnessChar::Correct => correct_color,
-                        TypingCorrectnessChar::Incorrect => wrong_color,
+                        TypingCorrectnessChar::Incorrect => incorrect_color,
                         TypingCorrectnessChar::Pending => color,
                     }).collect::<Vec<_>>()
                 }
@@ -973,7 +974,7 @@ impl egui::Widget for RenderTypingLine {
             for (i, ch) in s.chars().enumerate() {
                 let color = match &self.correctness.segments[self.status.segment as usize].chars[i] {
                     TypingCorrectnessChar::Correct => correct_color,
-                    TypingCorrectnessChar::Incorrect => wrong_color,
+                    TypingCorrectnessChar::Incorrect => incorrect_color,
                     TypingCorrectnessChar::Pending => pending_color,
                 };
 
