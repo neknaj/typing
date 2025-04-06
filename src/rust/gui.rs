@@ -21,6 +21,7 @@ pub enum TextOrientation {
 }
 
 pub struct TypingApp {
+    dark_mode: bool,
     init: bool,
     typing: Model,
     text_orientation: TextOrientation,
@@ -34,6 +35,7 @@ impl Default for TypingApp {
             init: false,
             text_orientation: TextOrientation::Vertical,
             selected_index: None,
+            dark_mode: true,
             typing: Model::Menu(
                 MenuModel {
                     available_contents: vec![],
@@ -67,7 +69,11 @@ impl eframe::App for TypingApp {
                     .max_width(400.0)
                     .frame(
                         egui::Frame {
-                            fill: egui::Color32::from_rgb(6, 5, 10),
+                            fill: if self.dark_mode {
+                                egui::Color32::from_rgb(6,12,22)
+                            } else {
+                                egui::Color32::from_rgb(237, 238, 222)
+                            },
                             inner_margin: egui::Margin {
                                 left: 50,
                                 right: 50,
@@ -80,8 +86,14 @@ impl eframe::App for TypingApp {
                     .show(ctx, |ui| {
                         ui.heading("Settings");
                         // Additional settings controls can be added here.
-                        if ui.button("Option 1").clicked() {
-                            // Handle Option 1
+                        if ui.button("Toggle Theme").clicked() {
+                            self.dark_mode = !self.dark_mode;
+                            let visuals = if self.dark_mode {
+                                egui::Visuals::dark()
+                            } else {
+                                egui::Visuals::light()
+                            };
+                            ctx.set_visuals(visuals);
                         }
                         if ui.button("Option 2").clicked() {
                             // Handle Option 2
@@ -89,12 +101,15 @@ impl eframe::App for TypingApp {
                     });
 
                     egui::TopBottomPanel::bottom("bottom_panel")
-                        .resizable(false)
                         .min_height(400.0)
                         .max_height(400.0)
                         .frame(
                             egui::Frame {
-                                fill: egui::Color32::from_rgb(6, 5, 10),
+                                fill: if self.dark_mode {
+                                    egui::Color32::from_rgb(6,9,15)
+                                } else {
+                                    egui::Color32::from_rgb(237, 238, 222)
+                                },
                                 inner_margin: egui::Margin {
                                     left: 50,
                                     right: 50,
@@ -115,7 +130,11 @@ impl eframe::App for TypingApp {
                 egui::CentralPanel::default()
                     .frame(
                         egui::Frame {
-                            fill: egui::Color32::from_rgb(6, 5, 10),
+                            fill: if self.dark_mode {
+                                egui::Color32::from_rgb(6,5,10)
+                            } else {
+                                egui::Color32::from_rgb(243, 243, 253)
+                            },
                             inner_margin: egui::Margin {
                                 left: 50,
                                 right: 50,
