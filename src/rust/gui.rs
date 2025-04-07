@@ -248,8 +248,26 @@ impl eframe::App for TypingApp {
                         }
                     )
                     .show(ctx, |ui| {
-                        let mut font_title = egui::FontId::new(120.0, egui::FontFamily::Name("app_title".into()));
-                        ui.label(egui::RichText::new("Neknaj Typing Game").font(font_title).color(ui.style().visuals.strong_text_color()));
+                        ui.with_layout(egui::Layout::left_to_right(egui::Align::Min), |ui| {
+                            let font_title_main = egui::FontId::new(90.0, egui::FontFamily::Name("app_title".into()));
+                            ui.label(
+                                egui::RichText::new("Neknaj Typing Game")
+                                    .font(font_title_main)
+                                    .color(ui.style().visuals.strong_text_color()),
+                            );
+                            let font_title_version = egui::FontId::new(40.0, egui::FontFamily::Name("app_title".into()));
+                            let version_text = format!("ver. {}", env!("CARGO_PKG_VERSION"));
+                            // 画面の右下にバージョン情報を表示
+                            egui::Area::new("version_area".into())
+                                .anchor(egui::Align2::LEFT_TOP, egui::Vec2::new(600.0, 50.0)) // 右下から少し上に移動
+                                .show(ui.ctx(), |ui| {
+                                    ui.label(
+                                        egui::RichText::new(version_text)
+                                            .font(font_title_version)
+                                            .color(ui.style().visuals.text_color()),
+                                    );
+                                });
+                        });
 
                         ui.heading("Menu");
                         // コンテンツ読み込み遅延処理
@@ -838,7 +856,7 @@ impl eframe::App for TypingApp {
                             egui::Event::Key { key, pressed, .. } => {
                                 // キーが押されたときの処理
                                 if *pressed {
-                                    println!("{:?}",key);
+                                    // println!("{:?}",key);
                                     match key {
                                         egui::Key::F11 => {
                                             #[cfg(target_arch = "wasm32")]

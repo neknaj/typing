@@ -22,7 +22,7 @@ fn main() {
     };
 
     eframe::run_native(
-        "Neknaj Typing Game",
+        &format!("Neknaj Typing Game - ver.{}",env!("CARGO_PKG_VERSION")),
         native_options,
         Box::new(|cc| {
             // Configure font definitions
