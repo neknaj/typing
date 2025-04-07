@@ -172,8 +172,8 @@ impl eframe::App for TypingApp {
 
                 egui::SidePanel::right("settings_panel")
                     .resizable(false)
-                    .min_width(400.0)
-                    .max_width(400.0)
+                    .min_width(270.0)
+                    .max_width(270.0)
                     .frame(
                         egui::Frame {
                             fill: if self.dark_mode {
@@ -182,10 +182,10 @@ impl eframe::App for TypingApp {
                                 egui::Color32::from_rgb(237, 238, 222)
                             },
                             inner_margin: egui::Margin {
-                                left: 30,
-                                right: 30,
-                                top: 30,
-                                bottom: 30,
+                                left: 20,
+                                right: 20,
+                                top: 20,
+                                bottom: 20,
                             },
                             ..Default::default()
                         }
@@ -218,10 +218,10 @@ impl eframe::App for TypingApp {
                                 egui::Color32::from_rgb(237, 238, 222)
                             },
                             inner_margin: egui::Margin {
-                                left: 30,
-                                right: 30,
-                                top: 30,
-                                bottom: 30,
+                                left: 20,
+                                right: 20,
+                                top: 20,
+                                bottom: 20,
                             },
                             ..Default::default()
                         }
@@ -271,10 +271,10 @@ impl eframe::App for TypingApp {
                                 egui::Color32::from_rgb(243, 243, 253)
                             },
                             inner_margin: egui::Margin {
-                                left: 30,
-                                right: 30,
-                                top: 10,
-                                bottom: 30,
+                                left: 20,
+                                right: 20,
+                                top: 20,
+                                bottom: 20,
                             },
                             ..Default::default()
                         }
@@ -425,10 +425,10 @@ impl eframe::App for TypingApp {
                                 egui::Color32::from_rgb(243, 243, 253)
                             },
                             inner_margin: egui::Margin {
-                                left: 30,
-                                right: 30,
-                                top: 30,
-                                bottom: 30,
+                                left: 20,
+                                right: 20,
+                                top: 20,
+                                bottom: 20,
                             },
                             ..Default::default()
                         }
@@ -511,10 +511,10 @@ impl eframe::App for TypingApp {
                                 egui::Color32::from_rgb(243, 243, 253)
                             },
                             inner_margin: egui::Margin {
-                                left: 30,
-                                right: 30,
-                                top: 30,
-                                bottom: 30,
+                                left: 20,
+                                right: 20,
+                                top: 20,
+                                bottom: 20,
                             },
                             ..Default::default()
                         }
@@ -642,10 +642,10 @@ impl eframe::App for TypingApp {
                                 egui::Color32::from_rgb(243, 243, 253)
                             },
                             inner_margin: egui::Margin {
-                                left: 30,
-                                right: 30,
-                                top: 30,
-                                bottom: 30,
+                                left: 20,
+                                right: 20,
+                                top: 20,
+                                bottom: 20,
                             },
                             ..Default::default()
                         }
@@ -798,10 +798,10 @@ impl eframe::App for TypingApp {
                                 egui::Color32::from_rgb(243, 243, 253)
                             },
                             inner_margin: egui::Margin {
-                                left: 30,
-                                right: 30,
-                                top: 30,
-                                bottom: 30,
+                                left: 20,
+                                right: 20,
+                                top: 20,
+                                bottom: 20,
                             },
                             ..Default::default()
                         }
