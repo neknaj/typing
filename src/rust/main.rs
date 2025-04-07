@@ -39,6 +39,11 @@ fn main() {
             );
 
             fonts.font_data.insert(
+                "Hurricane".to_owned(),
+                egui::FontData::from_static(include_bytes!("../fonts/Hurricane-Regular.ttf")).into(),
+            );
+
+            fonts.font_data.insert(
                 "YujiSyuku".to_owned(),
                 egui::FontData::from_static(include_bytes!("../fonts/YujiSyuku-Regular.ttf")).into(),
             );
@@ -72,6 +77,11 @@ fn main() {
             fonts.families.insert(
                 egui::FontFamily::Name("ruby".into()),
                 vec!["Merienda".to_owned(), "ShipporiAntique".to_owned(), "YujiSyuku".to_owned(), "KaiseiHarunoUmi".to_owned(), "NotoSerifJP".to_owned()],
+            );
+
+            fonts.families.insert(
+                egui::FontFamily::Name("app_title".into()),
+                vec!["Hurricane".to_owned()],
             );
 
             // Apply the customized fonts to the egui context

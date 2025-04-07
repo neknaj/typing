@@ -203,13 +203,16 @@ impl eframe::App for TypingApp {
                             inner_margin: egui::Margin {
                                 left: 30,
                                 right: 30,
-                                top: 30,
+                                top: 10,
                                 bottom: 30,
                             },
                             ..Default::default()
                         }
                     )
                     .show(ctx, |ui| {
+                        let mut font_title = egui::FontId::new(120.0, egui::FontFamily::Name("app_title".into()));
+                        ui.label(egui::RichText::new("Neknaj Typing Game").font(font_title).color(ui.style().visuals.strong_text_color()));
+
                         ui.heading("Menu");
                         // Button to trigger file open dialog
                         if ui.button("Add Contents").clicked() {

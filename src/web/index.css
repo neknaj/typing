@@ -4,7 +4,7 @@
 :root {
     color-scheme: dark;
     font-family: cursive, serif;
-    font-weight: 400;
+    font-weight: lighter;
     font-style: normal;
     --background-color: #090c16;
     --text-color: #ffffff;
@@ -36,11 +36,11 @@ body, html {
     transform: translate(-50%, -50%);
     z-index: 1;
 }
-.splash h1 {
+.splash .title {
     font-size: 10em;
     font-family: "Hurricane", cursive, serif;
 }
-.splash p {
+.splash .loading {
     font-size: 4em;
     font-family: "Birthstone Bounce", cursive;
 }
