@@ -88,12 +88,13 @@ impl TypingApp {
 
 impl TypingApp {
     #[cfg(not(target_arch = "wasm32"))]
-    fn toggle_fullscreen(&mut self, frame: &mut eframe::Frame) {
-        // todo
+    fn toggle_fullscreen(&mut self, ui: &mut egui::Ui) {
+        self.fullscreen = !self.fullscreen;
+        ui.ctx().send_viewport_cmd(egui::ViewportCommand::Fullscreen(self.fullscreen));
     }
 
     #[cfg(target_arch = "wasm32")]
-    fn toggle_fullscreen_wasm(&mut self) {
+    fn toggle_fullscreen(&mut self, ui: &mut egui::Ui) {
         let window = web_sys::window().expect("no global `window` exists");
         let document = window.document().expect("should have a document on window");
         if self.fullscreen {
@@ -167,10 +168,10 @@ impl eframe::App for TypingApp {
                         }
                         if ui.button("Toggle Fullscreen").clicked() {
                             #[cfg(not(target_arch = "wasm32"))]
-                            self.toggle_fullscreen(frame);
+                            self.toggle_fullscreen(ui);
 
                             #[cfg(target_arch = "wasm32")]
-                            self.toggle_fullscreen_wasm();
+                            self.toggle_fullscreen_wasm(ui);
                         }
                     });
 
