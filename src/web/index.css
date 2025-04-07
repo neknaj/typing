@@ -1,169 +1,59 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Hurricane&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Birthstone+Bounce:wght@400;500&display=swap');
 
 :root {
     color-scheme: dark;
-    user-select: none;
-    font-family: "Yuji Syuku", "Noto Serif JP", serif;
-    font-optical-sizing: auto;
-    font-weight: 300;
+    font-family: cursive, serif;
+    font-weight: lighter;
     font-style: normal;
     --background-color: #090c16;
     --text-color: #ffffff;
-    --text-typing-pending: #6c757d;
-    --text-typing-correct: #9097ff;
-    --text-typing-incorrect: #ff9898;
-    --text-typing-wrong: #f55252;
 }
-
+canvas {
+    height: 100vh;
+    width: 100%;
+    position: absolute;
+    z-index: 2;
+}
 body {
     margin: 0;
-    padding: 0;
-    height: 100dvh;
-    width: 100dvw;
     overflow: hidden;
+}
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
     background-color: var(--background-color);
     color: var(--text-color);
-    font-size: 150%;
 }
 
-h1,h2,h3,h4,h5,h6 {
-    margin: 0.2em;
-}
-
-p {
-    margin: 0.2em;
-}
-
-.layoutcontent {
-    padding: 20px;
-    height: calc(100% - 40px - 2px) !important;
-    width: calc(100% - 40px - 2px) !important;
-}
-
-#main {
-    text-align: left;
-    cursor: pointer;
-}
-#layoutroot {
-    outline: none;
-    border: 1px solid #ff00003f;
-    height: calc(100dvh - 2px) !important;
-    width: calc(100dvw - 2px) !important;
-}
-#layoutroot:focus {
-    outline: none;
-    border-color: #00ff004b;
-}
-
-#overlay {
+.splash {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    width: fit-content;
-    height: fit-content;
-    background-color: rgba(0, 0, 0, 0.301);
-    border: 1px solid rgba(128, 128, 128, 0.192);
-    z-index: 1000;
-}
-
-.typing {
-    font-size: 60px;
-    line-height: 110px;
-}
-.Pending {
-    color: var(--text-typing-pending);
-}
-.Correct {
-    color: var(--text-typing-correct);
-}
-.Incorrect {
-    color: var(--text-typing-incorrect);
-}
-.wrong {
-    color: var(--text-typing-wrong);
-}
-
-
-.selecting {
-    border: 1px solid wheat;
-}
-
-.metrics {
-    padding: 1em;
-}
-
-.metrics table {
-    border-collapse: collapse;
-}
-
-.metrics td {
-    padding: 0.1em 0.5em;
-}
-
-.metric-label {
+    width: 100%;
     text-align: center;
-    white-space: nowrap;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
 }
-
-[data-layout="Vertical"] {
-    & .cursor {
-        display: inline-block;
-        margin-top: -2px;
-        height: 2px;
-        width: 60px;
-        background-color: #fff9;
-    }
-    & #main {
-        writing-mode: vertical-rl;
-        /* text-orientation: upright; */
-    }
-    & #sub1 {
-        writing-mode: vertical-rl;
-        /* text-orientation: upright; */
-    }
-    & .activeline {
-        & .triangle {
-            color: gray;
-            display: inline-block;
-            height: 1.1em;
-        }
-        margin-top: -1.1em;
-    }
-    & .unconfirmed, & .wrong {
-        font-size: 80%;
-    }
-    .typing_scroll {
-        width: max-content;
-        height: max-content;
-        display: block;
-        margin-top: var(--scroll);
-    }
+.splash .title {
+    font-size: 10em;
+    font-family: "Hurricane", cursive, serif;
 }
-
-[data-layout="Horizontal"] {
-    & .cursor {
-        display: inline-block;
-        margin-right: -2px;
-        height: 60px;
-        width: 2px;
-        background-color: #fff9;
-    }
-    & .activeline {
-        & .triangle {
-            color: gray;
-            display: inline-block;
-            width: 1.1em;
-        }
-        margin-left: -1.1em;
-    }
-    & .unconfirmed, & .wrong {
-        font-size: 80%;
-    }
-    .typing_scroll {
-        width: max-content;
-        height: max-content;
-        display: block;
-        margin-left: var(--scroll);
-    }
+.splash .loading {
+    font-size: 4em;
+    font-family: "Birthstone Bounce", cursive;
+}
+.spinner {
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top: 3px solid var(--text-color);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    margin: 0 auto;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

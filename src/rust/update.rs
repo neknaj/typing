@@ -1,29 +1,12 @@
 // update.rs
 
-use std::fmt::format;
 // resource manager
-use std::sync::Mutex;
-use wasm_bindgen::prelude::*;
-use js_sys::Date;
-use serde::Serialize;
-use serde::Deserialize;
 use std::collections::HashMap;
-use crate::console_log;
-use crate::jsapi;
-use crate::model::{Model, MenuModel, TypingStartModel, TypingModel, PauseModel, ResultModel, TypingStatus, TextConvert, ErrorMsg, KeyboardRemapping, TextOrientation, TypingScroll,TypingSession};
+use crate::model::{Model, MenuModel, TypingStartModel, TypingModel, PauseModel, ResultModel, TypingStatus, TextConvert, ErrorMsg, KeyboardRemapping, TypingScroll,TypingSession};
 use crate::msg::{Msg, MenuMsg, TypingStartMsg, TypingMsg, PauseMsg, ResultMsg};
-use crate::jsapi::{*};
 use crate::parser::{parse_problem, Content};
 use crate::typing;
-use crate::typing::calculate_total_metrics;
 use crate::typing::key_input;
-use wasm_bindgen_futures::JsFuture;
-use js_sys::Promise;
-use ts_rs::TS;
-
-lazy_static::lazy_static! {
-    static ref Module_resource: Mutex<Model> = Mutex::new( Model::Empty );
-}
 
 #[macro_export]
 macro_rules! jsvalue {
@@ -46,12 +29,11 @@ pub fn update(model: Model, msg: Msg) -> Model {
                         selecting: index,
                         .._menu_model
                     }})
-                }
+                },
                 MenuMsg::Start => {
                     Model::TypingStart(TypingStartModel {
                         content: _menu_model.available_contents[_menu_model.selecting].clone(),
                         layout: _menu_model.layout,
-                        text_orientation: _menu_model.text_orientation,
                         available_contents: _menu_model.available_contents,
                         scroll_max: 0.0,
                     })
@@ -80,12 +62,10 @@ pub fn update(model: Model, msg: Msg) -> Model {
                         status: TypingStatus { line: 0, segment: 0, char_: 0, unconfirmed: Vec::new(), last_wrong_keydown: None },
                         available_contents: _typing_start_model.available_contents,
                         layout: _typing_start_model.layout,
-                        text_orientation: _typing_start_model.text_orientation,
                         keyboard_remapping: KeyboardRemapping {
                             mapping: HashMap::new(),
                         },
                         scroll: TypingScroll {
-                            last_update: Date::now(),
                             scroll: _typing_start_model.scroll_max,
                             max: _typing_start_model.scroll_max,
                         },
@@ -96,7 +76,6 @@ pub fn update(model: Model, msg: Msg) -> Model {
                         available_contents: _typing_start_model.available_contents,
                         selecting: 0,
                         layout: _typing_start_model.layout,
-                        text_orientation: _typing_start_model.text_orientation,
                         error_messages: vec![],
                     })
                 },
@@ -121,7 +100,6 @@ pub fn update(model: Model, msg: Msg) -> Model {
                 TypingMsg::ScrollTo(input,max) => {
                     Model::Typing(TypingModel {
                         scroll: TypingScroll {
-                            last_update: Date::now(),
                             scroll: input,
                             max,
                         },
@@ -150,7 +128,6 @@ pub fn update(model: Model, msg: Msg) -> Model {
                         available_contents: _result_model.typing_model.available_contents,
                         selecting: 0,
                         layout: _result_model.typing_model.layout,
-                        text_orientation: _result_model.typing_model.text_orientation,
                         error_messages: vec![],
                     })
                 },
@@ -158,7 +135,6 @@ pub fn update(model: Model, msg: Msg) -> Model {
                     Model::TypingStart(TypingStartModel {
                         content: _result_model.typing_model.content,
                         layout: _result_model.typing_model.layout,
-                        text_orientation: _result_model.typing_model.text_orientation,
                         available_contents: _result_model.typing_model.available_contents,
                         scroll_max: 0.0,
                     })
@@ -169,167 +145,4 @@ pub fn update(model: Model, msg: Msg) -> Model {
     };
 
     updated_model
-}
-
-#[wasm_bindgen]
-pub async fn init_model(to: JsValue) {
-    let text_orientation: TextOrientation = to.into_serde().unwrap();
-    let json_str = file_get("./layouts/japanese.json").await.unwrap();
-    // JSONをHashMapとして一旦パース
-    let map: HashMap<String, Vec<String>> = serde_json::from_str(&json_str).unwrap();
-
-    // HashMapをVec<(String, String)>に変換
-    let layout: Vec<(String, Vec<String>)> = map.into_iter().collect();
-
-    let mut menu_model = MenuModel {
-        available_contents: vec![],
-        text_orientation,
-        selecting: 0,
-        error_messages: vec![],
-        layout: TextConvert { mapping: layout },
-    };
-
-    // サンプルファイルを追加
-    menu_model.available_contents.push(parse_problem(&file_get("./examples/iroha.ntq").await.unwrap()));
-    menu_model.available_contents.push(parse_problem(&file_get("./examples/五十音.ntq").await.unwrap()));
-
-    let model = Model::Menu(menu_model.clone());
-    *Module_resource.lock().unwrap() = model;
-}
-
-#[wasm_bindgen]
-pub async fn add_contents(data: JsValue) {
-    let content: String = data.into_serde().unwrap();
-    let mut model = Module_resource.lock().unwrap();
-    match *model {
-        Model::Menu(ref menu_model) => {
-            *model = update(model.clone(), Msg::Menu(MenuMsg::AddContent(content)));
-        },
-        _ => {}
-    }
-}
-
-#[wasm_bindgen]
-pub fn typing_scroll(data1: JsValue,data2: JsValue) {
-    let anchor: f64 = data1.into_serde().unwrap();
-    let max: f64 = data2.into_serde().unwrap();
-    console_log!(anchor);
-    let mut model = Module_resource.lock().unwrap();
-    match *model {
-        Model::Typing(ref typing_model) => {
-            let now = typing_model.scroll.scroll;
-            let d = anchor-now;
-            let new = now+d* (d*d/(1000000.0+d*d));
-            *model = update(model.clone(), Msg::Typing(TypingMsg::ScrollTo(new,max)));
-        },
-        Model::TypingStart(ref typing_start_model) => {
-            *model = update(model.clone(), Msg::TypingStart(TypingStartMsg::ScrollMax(max)));
-        },
-        _ => {}
-    }
-}
-
-#[wasm_bindgen]
-pub fn event_receive_keyboard(event: JsValue) {
-    let key: String = event.into_serde().unwrap();
-    console_log!(format!("key event {:?}",key));
-    let mut model = Module_resource.lock().unwrap();
-    match *model {
-        Model::Menu(ref menu_model) => {
-            match (key.as_str(),menu_model.text_orientation.clone()) {
-                ("ArrowLeft",TextOrientation::Vertical) | ("ArrowDown",TextOrientation::Horizontal) => {
-                    if menu_model.selecting<menu_model.available_contents.len()-1 {
-                        *model = update(model.clone(), Msg::Menu(MenuMsg::MoveCursor(menu_model.selecting+1)));
-                    }
-                },
-                ("ArrowRight",TextOrientation::Vertical) | ("ArrowUp",TextOrientation::Horizontal) => {
-                    if menu_model.selecting>0 {
-                        *model = update(model.clone(), Msg::Menu(MenuMsg::MoveCursor(menu_model.selecting-1)));
-                    }
-                },
-                (" ",_) | ("Enter",_) => {
-                    *model = update(model.clone(), Msg::Menu(MenuMsg::Start));
-                }
-                _ => {
-                }
-            }
-        },
-        Model::TypingStart(ref typing_start_model) => {
-            match key.as_str() {
-                " " => {
-                    *model = update(model.clone(), Msg::TypingStart(TypingStartMsg::StartTyping));
-                },
-                "Escape" => {
-                    *model = update(model.clone(), Msg::TypingStart(TypingStartMsg::Cancel));
-                },
-                _ => {
-                }
-            }
-        },
-        Model::Typing(ref typing_model) => {
-            match key.as_str() {
-                "Escape" => {
-                    *model = update(model.clone(), Msg::Typing(TypingMsg::Pause));
-                },
-                key if key.chars().collect::<Vec<char>>().len()==1 => {
-                    *model = update(model.clone(), Msg::Typing(TypingMsg::KeyInput(key.chars().nth(0).unwrap())));
-                }
-                _ => {
-                }
-            }
-        },
-        Model::Pause(ref pause_model) => {
-            match key.as_str() {
-                " " => {
-                    *model = update(model.clone(), Msg::Pause(PauseMsg::Resume));
-                },
-                "Escape" => {
-                    *model = update(model.clone(), Msg::Pause(PauseMsg::Cancel));
-                },
-                _ => {
-                }
-            }
-        },
-        Model::Result(ref result_model) => {
-            match key.as_str() {
-                " " => {
-                    *model = update(model.clone(), Msg::Result(ResultMsg::Retry));
-                },
-                "Escape" => {
-                    *model = update(model.clone(), Msg::Result(ResultMsg::BackToMenu));
-                },
-                _ => {
-                }
-            }
-        },
-        Model::Empty => {
-        }
-    }
-}
-
-#[wasm_bindgen]
-pub fn fetch_render_data() -> String {
-    let mut model = Module_resource.lock().unwrap();
-    match *model {
-        Model::Menu(ref scene_model) => {
-            let menu: Vec<String> = scene_model.available_contents
-                .iter()
-                .map(|content| content.title.clone())
-                .collect();
-            jsvalue!("Menu",scene_model.selecting,menu,&scene_model.text_orientation)
-        },
-        Model::TypingStart(ref scene_model) => {
-            jsvalue!("TypingStart",&scene_model.content.title,&scene_model.text_orientation)
-        },
-        Model::Typing(ref scene_model) => {
-            jsvalue!("Typing",&scene_model.content.title,&scene_model.content.lines[scene_model.status.line as usize].segments,&scene_model.typing_correctness.lines[scene_model.status.line as usize].segments,&scene_model.status,&scene_model.text_orientation,&scene_model.scroll.scroll,calculate_total_metrics(scene_model),&scene_model.text_orientation)
-        },
-        Model::Result(ref scene_model) => {
-            jsvalue!("Result",&scene_model.typing_model.content.title,calculate_total_metrics(&scene_model.typing_model),&scene_model.typing_model.text_orientation)
-        },
-        Model::Pause(ref scene_model) => {
-            jsvalue!("Pause",&scene_model.typing_model.content.title,calculate_total_metrics(&scene_model.typing_model),&scene_model.typing_model.text_orientation)
-        },
-        _ => jsvalue!("Other")
-    }
 }

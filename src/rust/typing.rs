@@ -1,12 +1,11 @@
 // typing.rs
 
-use crate::{console_log, debug};
 use crate::model::{Model, TypingModel, ResultModel, TypingCorrectnessContent, TypingSession, TypingInput, TypingCorrectnessLine, TypingCorrectnessSegment, TypingCorrectnessChar, TypingMetrics};
 use crate::parser::{Content, Line, Segment};
-use js_sys::Date;
+use crate::timestamp::now;
 
 pub fn key_input(mut model_: TypingModel, input: char) -> Model {
-    let current_time = Date::now();
+    let current_time = now();
     let current_line = model_.status.line;
     
     // 新しいセッションを開始するかどうかを判断
@@ -32,19 +31,11 @@ pub fn key_input(mut model_: TypingModel, input: char) -> Model {
     let current_session = model_.user_input.last_mut().unwrap();
     let current_line = model_.status.line;
 
-    debug! {
-        console_log!("key_input", input);
-    }
-
     let remaining_s = match &model_.content.lines[model_.status.line as usize].segments[model_.status.segment as usize] {
         Segment::Plain { text } => text,
         Segment::Annotated { base, reading } => reading,
     };
     let remaining = remaining_s.chars().collect::<Vec<char>>();
-    debug! {
-        console_log!("remaining", &remaining);
-        console_log!("unconfirmed", &model_.status.unconfirmed);
-    }
 
     let mut expect = Vec::new();
     for (key, values) in model_.layout.mapping.iter() {
@@ -75,9 +66,6 @@ pub fn key_input(mut model_: TypingModel, input: char) -> Model {
                 expect.push((key,v.chars().collect::<Vec<char>>()));
             }
         }
-    }
-    debug! {
-        console_log!(format!("expect {:?}", &expect));
     }
     let mut is_correct = false;
     let mut is_finished = false;
@@ -163,12 +151,6 @@ pub fn key_input(mut model_: TypingModel, input: char) -> Model {
         let char_pos = model_.status.char_ as usize;
         let segment = &mut model_.typing_correctness.lines[model_.status.line as usize].segments[model_.status.segment as usize];
         segment.chars[char_pos] = TypingCorrectnessChar::Incorrect;
-    }
-    debug! {
-        console_log!("remaining", remaining);
-        console_log!("unconfirmed", &model_.status.unconfirmed);
-        console_log!(&model_.status.segment);
-        console_log!(&model_.status.char_);
     }
 
     if is_finished {
