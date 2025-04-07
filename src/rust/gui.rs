@@ -22,13 +22,13 @@ use crate::textrender::{RenderText, RenderLineWithRuby, RenderTypingLine, CharOr
 use winit::window::{Fullscreen};
 use winit::event_loop::EventLoop;
 
-#[cfg(target_arch = "wasm32")]
 use std::{sync::Mutex, sync::Once};
 // ファイル内容を一時的に保持するためのstatic変数
 #[cfg(target_arch = "wasm32")]
 static PENDING_CONTENTS: Mutex<Vec<String>> = Mutex::new(Vec::new());
 #[cfg(target_arch = "wasm32")]
 static INIT: Once = Once::new();
+static FILEDIALOG: Mutex<bool> = Mutex::new(false); // フルスクリーンの時にフルスクリーン解除してからファイルダイアログを開く
 
 use eframe::Frame;
 #[cfg(target_arch = "wasm32")]
@@ -50,6 +50,7 @@ pub struct TypingApp {
     selected_index: Option<usize>,
     escape_released: bool, // typing -> pause -> result の escapeコンボを阻止するやつ 2回escapeを押さないとfinishしない
     fullscreen: bool,
+    fullscreen_flag4filedialog: bool,
 }
 
 impl Default for TypingApp {
@@ -63,6 +64,7 @@ impl Default for TypingApp {
             dark_mode: true,
             escape_released: true,
             fullscreen: false,
+            fullscreen_flag4filedialog: false,
             typing: Model::Menu(
                 MenuModel {
                     available_contents: vec![],
@@ -127,10 +129,6 @@ impl eframe::App for TypingApp {
 
         let typing_font_size = 150.0;
 
-        #[cfg(target_arch = "wasm32")]
-        // 保留中のコンテンツを処理
-        self.handle_pending_contents();
-
         match self.typing.clone() {
             Model::Menu(scene) => {
 
@@ -171,7 +169,7 @@ impl eframe::App for TypingApp {
                             self.toggle_fullscreen(ui);
 
                             #[cfg(target_arch = "wasm32")]
-                            self.toggle_fullscreen_wasm(ui);
+                            self.toggle_fullscreen(ui);
                         }
                     });
 
@@ -252,34 +250,66 @@ impl eframe::App for TypingApp {
                         ui.label(egui::RichText::new("Neknaj Typing Game").font(font_title).color(ui.style().visuals.strong_text_color()));
 
                         ui.heading("Menu");
+                        // コンテンツ読み込み遅延処理
+                        {
+                            if let Ok(mut flag) = FILEDIALOG.try_lock() {
+                                if *flag {
+                                    #[cfg(not(target_arch = "wasm32"))]
+                                    {
+                                        if let Some(paths) = FileDialog::new().add_filter("Text File", &["txt", "ntq"]).pick_files() {
+                                            for path in paths {
+                                                match fs::read_to_string(&path) {
+                                                    Ok(contents) => {
+                                                        // Store file name and contents
+                                                        if let Some(filename) = path.file_name().and_then(|s| s.to_str()) {
+                                                            self.typing = update(self.typing.clone(),Msg::Menu(MenuMsg::AddContent(contents)));
+                                                        }
+                                                    }
+                                                    Err(e) => {
+                                                        eprintln!("File read error: {}", e);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if self.fullscreen_flag4filedialog {
+                                            self.toggle_fullscreen(ui);
+                                            self.fullscreen_flag4filedialog = false;
+                                        }
+                                    }
+                                    #[cfg(target_arch = "wasm32")]
+                                    {
+                                        // 保留中のコンテンツを処理
+                                        self.handle_pending_contents();
+                                        if self.fullscreen_flag4filedialog {
+                                            self.toggle_fullscreen(ui);
+                                            self.fullscreen_flag4filedialog = false;
+                                        }
+                                        *flag = false;
+                                    }
+                                }
+                                *flag = false;
+                            }
+                        }
                         // Button to trigger file open dialog
                         if ui.button("Add Contents").clicked() {
                             // Native environment: use synchronous file dialog for multiple files
                             #[cfg(not(target_arch = "wasm32"))]
                             {
-                                if let Some(paths) = FileDialog::new()
-                                    .add_filter("Text File", &["txt", "ntq"])
-                                    .pick_files()
-                                {
-                                    for path in paths {
-                                        match fs::read_to_string(&path) {
-                                            Ok(contents) => {
-                                                // Store file name and contents
-                                                if let Some(filename) = path.file_name().and_then(|s| s.to_str()) {
-                                                    self.typing = update(self.typing.clone(),Msg::Menu(MenuMsg::AddContent(contents)));
-                                                }
-                                            }
-                                            Err(e) => {
-                                                eprintln!("File read error: {}", e);
-                                            }
-                                        }
-                                    }
+                                self.fullscreen_flag4filedialog = self.fullscreen;
+                                if self.fullscreen {
+                                    self.toggle_fullscreen(ui);
+                                }
+                                if let Ok(mut flag) = FILEDIALOG.try_lock() {
+                                    *flag = true;
                                 }
                             }
                             // WASM environment: use asynchronous file dialog for multiple files
                             #[cfg(target_arch = "wasm32")]
                             {
-                                let ctx_clone = ctx.clone();
+                                self.fullscreen_flag4filedialog = self.fullscreen;
+                                if self.fullscreen {
+                                    self.toggle_fullscreen(ui);
+                                }
                                 wasm_bindgen_futures::spawn_local(async move {
                                     if let Some(files) = AsyncFileDialog::new()
                                         .add_filter("Text File", &["txt", "ntq"])
@@ -291,7 +321,9 @@ impl eframe::App for TypingApp {
                                             if let Ok(text) = String::from_utf8(bytes) {
                                                 if let Ok(mut contents) = PENDING_CONTENTS.try_lock() {
                                                     contents.push(text);
-                                                    ctx_clone.request_repaint();
+                                                    if let Ok(mut flag) = FILEDIALOG.try_lock() {
+                                                        *flag = true;
+                                                    }
                                                 }
                                             } else {
                                                 web_sys::console::log_1(&"Invalid UTF-8 data.".into());
