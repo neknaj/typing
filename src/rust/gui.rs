@@ -18,6 +18,8 @@ use crate::typing::calculate_total_metrics;
 use crate::update::update;
 use std::collections::HashMap;
 use crate::textrender::{RenderText, RenderLineWithRuby, RenderTypingLine, CharOrientation};
+#[cfg(target_arch = "wasm32")]
+use crate::jsapi;
 
 use winit::window::{Fullscreen};
 use winit::event_loop::EventLoop;
@@ -121,6 +123,10 @@ impl eframe::App for TypingApp {
             ctx.set_style(style);
             self.init = true;
             ctx.set_visuals(egui::Visuals::dark());
+            #[cfg(target_arch = "wasm32")]
+            {
+                crate::jsapi::notify_start();
+            }
         }
         let window_height = ctx.input(|input| input.screen_rect().height());
         let window_width = ctx.input(|input| input.screen_rect().width());

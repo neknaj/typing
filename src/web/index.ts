@@ -7,7 +7,7 @@ import initWasm, { start_gui } from './typing_lib.js';
 
 async function run() {
     await initWasm();
-    start_gui();
+    await start_gui();
 }
 
 window.addEventListener("load",()=>{

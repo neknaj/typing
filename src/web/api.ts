@@ -13,3 +13,8 @@ export function console_log(json) {
     console.log(...JSON.parse(json));
     return true;
 }
+
+export function notify_start() {
+    console.log("start")
+    return true;
+}

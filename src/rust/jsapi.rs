@@ -16,6 +16,8 @@ extern "C" {
     async fn file_get_js(file_path: &str) -> JsValue;
     #[wasm_bindgen(js_name = console_log)]
     pub fn console_log_js(JSON: &str) -> JsValue;
+    #[wasm_bindgen(js_name = notify_start)]
+    pub fn notify_start() -> JsValue;
 }
 
 /**

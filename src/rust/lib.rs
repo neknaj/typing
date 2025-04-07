@@ -12,6 +12,7 @@ mod typing;
 mod gui;
 mod textrender;
 mod timestamp;
+mod jsapi;
 
 
 #[wasm_bindgen]
