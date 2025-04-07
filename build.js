@@ -133,6 +133,17 @@ async function getFile(savePath,url) {
 }
 
 async function main() {
+    { // Cargo.tomlのバージョンを自動で今日の日付にする
+        const today = new Date();
+        const year = today.getFullYear() % 100;
+        const month = today.getMonth() + 1;
+        const day = today.getDate();
+        const version = `${year}.${month}.${day}`;
+        const cargoPath = path.join(__dirname, 'Cargo.toml');
+        let content = fs.readFileSync(cargoPath, { encoding: 'utf-8' });
+        const newContent = content.replace(/version\s*=\s*".*?"/, `version = "${version}"`);
+        fs.writeFileSync(cargoPath, newContent, { encoding: 'utf-8' });
+    }
     const args = process.argv.slice(2);
     makedir();
     await buildTSapi();
