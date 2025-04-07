@@ -137,7 +137,7 @@ impl eframe::App for TypingApp {
         }
         let window_height = ctx.input(|input| input.screen_rect().height());
         let window_width = ctx.input(|input| input.screen_rect().width());
-        ctx.set_debug_on_hover(true);
+        // ctx.set_debug_on_hover(true);
         // Get current time.
         let now = crate::timestamp::now();
         // Frame count for FPS calculation:
@@ -280,7 +280,7 @@ impl eframe::App for TypingApp {
                         }
                     )
                     .show(ctx, |ui| {
-                        ui.with_layout(egui::Layout::left_to_right(egui::Align::Min), |ui| {
+                        ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
                             let font_title_main = egui::FontId::new(90.0, egui::FontFamily::Name("app_title".into()));
                             ui.label(
                                 egui::RichText::new("Neknaj Typing Game")
@@ -289,15 +289,12 @@ impl eframe::App for TypingApp {
                             );
                             let font_title_version = egui::FontId::new(40.0, egui::FontFamily::Name("app_title".into()));
                             let version_text = format!("ver. {}", env!("CARGO_PKG_VERSION"));
-                            ui.add_space(30.0);
-                            ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
-                                ui.add_space(50.0);
-                                ui.label(
-                                egui::RichText::new(version_text)
-                                        .font(font_title_version)
-                                        .color(ui.style().visuals.text_color()),
-                                );
-                            });
+                            ui.add_space(-10.0);
+                            ui.label(
+                            egui::RichText::new(version_text)
+                                    .font(font_title_version)
+                                    .color(ui.style().visuals.text_color()),
+                            );
                         });
 
                         ui.heading("Menu");

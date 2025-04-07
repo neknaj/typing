@@ -16,8 +16,8 @@ fn main() {
     // println!("Hello World in Native");
 
     let native_options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default()
-            .with_inner_size([1400.0, 1300.0]),
+        viewport: egui::ViewportBuilder::default(),
+            // .with_inner_size([1400.0, 1300.0]),
         ..Default::default()
     };
 
