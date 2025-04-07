@@ -30,7 +30,7 @@ web-sys = { version = "0.3", features = [
 console_error_panic_hook = { version = "0.1.7", optional = true }
 rfd = "0.15.3"
 lazy_static = "1.4"
-winit = "0.30"
+winit = "0.29"
 
 [[bin]]
 name = "typing_gui"

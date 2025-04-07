@@ -1,8 +1,9 @@
 // Import necessary crates and modules
-use eframe::egui;
+use eframe::{egui, NativeOptions};
 use egui::debug_text::print;
 use egui::{style, vec2, ScrollArea, Vec2};
 use egui_extras::{Column, TableBuilder, Size, StripBuilder};
+use js_sys::wasm_bindgen::UnwrapThrowExt;
 #[cfg(not(target_arch = "wasm32"))]
 use rfd::FileDialog;
 #[cfg(not(target_arch = "wasm32"))]
@@ -21,8 +22,12 @@ use crate::textrender::{RenderText, RenderLineWithRuby, RenderTypingLine, CharOr
 #[cfg(target_arch = "wasm32")]
 use crate::jsapi;
 
-use winit::window::{Fullscreen};
-use winit::event_loop::EventLoop;
+use winit::{
+    event::{Event, WindowEvent},
+    event_loop::{ControlFlow, EventLoop},
+    window::WindowBuilder,
+};
+
 
 use std::{sync::Mutex, sync::Once};
 // ファイル内容を一時的に保持するためのstatic変数
@@ -53,6 +58,10 @@ pub struct TypingApp {
     escape_released: bool, // typing -> pause -> result の escapeコンボを阻止するやつ 2回escapeを押さないとfinishしない
     fullscreen: bool,
     fullscreen_flag4filedialog: bool,
+    scale: f32,
+    fps: f32,
+    frame_count: u32,                  // Count of frames within the 1-second interval
+    last_fps_update: Option<f64>, // Timestamp (in milliseconds) when the frame count was last reset
 }
 
 impl Default for TypingApp {
@@ -67,6 +76,10 @@ impl Default for TypingApp {
             escape_released: true,
             fullscreen: false,
             fullscreen_flag4filedialog: false,
+            scale: 1.0,
+            fps: 0.0,
+            frame_count: 0,
+            last_fps_update: None,   // Initialize with None.
             typing: Model::Menu(
                 MenuModel {
                     available_contents: vec![],
@@ -130,6 +143,31 @@ impl eframe::App for TypingApp {
         }
         let window_height = ctx.input(|input| input.screen_rect().height());
         let window_width = ctx.input(|input| input.screen_rect().width());
+        ctx.set_debug_on_hover(true);
+        // Get current time.
+        let now = crate::timestamp::now();
+        // Frame count for FPS calculation:
+        self.frame_count += 1;
+        // Initialize last_fps_update if it's not set.
+        if self.last_fps_update.is_none() {
+            self.last_fps_update = Some(now);
+        }
+        if let Some(last_update) = self.last_fps_update {
+            let div = 2.0;
+            if now - last_update >= 1000.0/div {
+                // Update FPS, reset the frame count, and update the timestamp.
+                self.fps = self.frame_count as f32 * div as f32;
+                self.frame_count = 0;
+                self.last_fps_update = Some(now);
+                {
+                    // 序にリサイズ
+                    let info = ctx.input(|i| i.screen_rect());
+                    let scale = (info.width()*info.height()*self.scale*self.scale).sqrt() /2000.0 * 1.5;
+                    self.scale = scale;
+                    ctx.set_pixels_per_point(scale);
+                }
+            }
+        }
 
         let cursor_target: f32 = 0.3;
 
@@ -257,16 +295,15 @@ impl eframe::App for TypingApp {
                             );
                             let font_title_version = egui::FontId::new(40.0, egui::FontFamily::Name("app_title".into()));
                             let version_text = format!("ver. {}", env!("CARGO_PKG_VERSION"));
-                            // 画面の右下にバージョン情報を表示
-                            egui::Area::new("version_area".into())
-                                .anchor(egui::Align2::LEFT_TOP, egui::Vec2::new(600.0, 50.0)) // 右下から少し上に移動
-                                .show(ui.ctx(), |ui| {
-                                    ui.label(
-                                        egui::RichText::new(version_text)
-                                            .font(font_title_version)
-                                            .color(ui.style().visuals.text_color()),
-                                    );
-                                });
+                            ui.add_space(30.0);
+                            ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+                                ui.add_space(50.0);
+                                ui.label(
+                                egui::RichText::new(version_text)
+                                        .font(font_title_version)
+                                        .color(ui.style().visuals.text_color()),
+                                );
+                            });
                         });
 
                         ui.heading("Menu");
@@ -847,6 +884,24 @@ impl eframe::App for TypingApp {
                     });
             }
         }
+        egui::Area::new("debug_overlay".into())
+        .fixed_pos(egui::Pos2::new(0.0, 0.0))
+        .interactable(false)
+        .show(ctx, |ui| {
+            let (rect, _) = ui.allocate_exact_size(egui::Vec2::new(80.0, 30.0), egui::Sense::hover());
+            ui.painter().rect_filled(
+                rect,
+                egui::Rounding::same(10),
+                egui::Color32::from_rgba_premultiplied(0, 0, 0, 230),
+            );
+            ui.painter().text(
+                rect.center(),
+                egui::Align2::CENTER_CENTER,
+                &format!("FPS: {}",self.fps),
+                egui::FontId::proportional(20.0),
+                egui::Color32::WHITE,
+            );
+        });
         egui::Area::new("key_event".into())
             .interactable(false)
             .show(ctx, |ui| {
