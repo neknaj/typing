@@ -165,10 +165,6 @@ impl eframe::App for TypingApp {
                             ctx.set_visuals(visuals);
                         }
                         if ui.button("Toggle Fullscreen").clicked() {
-                            #[cfg(not(target_arch = "wasm32"))]
-                            self.toggle_fullscreen(ui);
-
-                            #[cfg(target_arch = "wasm32")]
                             self.toggle_fullscreen(ui);
                         }
                     });
@@ -827,6 +823,32 @@ impl eframe::App for TypingApp {
                     });
             }
         }
+        egui::Area::new("key_event".into())
+            .interactable(false)
+            .show(ctx, |ui| {
+                ctx.input(|i| {
+                    for event in &i.events {
+                        match event {
+                            egui::Event::Key { key, pressed, .. } => {
+                                // キーが押されたときの処理
+                                if *pressed {
+                                    println!("{:?}",key);
+                                    match key {
+                                        egui::Key::F11 => {
+                                            #[cfg(target_arch = "wasm32")]
+                                            self.toggle_fullscreen(ui);
+                                        }
+                                        _ => {}
+                                    }
+                                }
+                            }
+                            egui::Event::Text(text) => {
+                            }
+                            _ => {}
+                        }
+                    }
+                });
+            });
         ctx.request_repaint();
     }
 }

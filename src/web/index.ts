@@ -12,4 +12,18 @@ async function run() {
 
 window.addEventListener("load",()=>{
     window.requestAnimationFrame(run);
-});
+})
+
+document.querySelector("#screen").addEventListener("keydown",(e: KeyboardEvent)=>{
+    if (e.key == "F11") {
+        console.log(e)
+        e.returnValue = false;
+    }
+})
+
+document.addEventListener("keydown",(e: KeyboardEvent)=>{
+    if (e.key == "F11") {
+        console.log(e)
+        e.returnValue = false;
+    }
+})
