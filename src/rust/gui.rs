@@ -1,5 +1,5 @@
 // Import necessary crates and modules
-use eframe::{egui, NativeOptions};
+use eframe::{egui};
 use egui::debug_text::print;
 use egui::{style, vec2, ScrollArea, Vec2};
 use egui_extras::{Column, TableBuilder, Size, StripBuilder};
@@ -21,12 +21,6 @@ use std::collections::HashMap;
 use crate::textrender::{RenderText, RenderLineWithRuby, RenderTypingLine, CharOrientation};
 #[cfg(target_arch = "wasm32")]
 use crate::jsapi;
-
-use winit::{
-    event::{Event, WindowEvent},
-    event_loop::{ControlFlow, EventLoop},
-    window::WindowBuilder,
-};
 
 
 use std::{sync::Mutex, sync::Once};
