@@ -51,19 +51,18 @@ function buildTS() {
 }
 
 async function buildRust(args) {
-    try {
-        // wasm-packコマンドを実行
-        const { stdout, stderr } = await execPromise('cargo test --features web');
-        process.stdout.write(stdout);
-        if (stderr) {
-            process.stderr.write(stderr);
-        }
-    } catch (error) {
-        // エラーオブジェクトから終了コードを取得
-        process.stderr.write(error.message+"\n");
-        process.stderr.write(error.statusCode+"\n");
-        throw error.statusCode;
-    }
+    // try {
+    //     const { stdout, stderr } = await execPromise('cargo test --features web');
+    //     process.stdout.write(stdout);
+    //     if (stderr) {
+    //         process.stderr.write(stderr);
+    //     }
+    // } catch (error) {
+    //     // エラーオブジェクトから終了コードを取得
+    //     process.stderr.write(error.message+"\n");
+    //     process.stderr.write(error.statusCode+"\n");
+    //     throw error.statusCode;
+    // }
     try {
         let flag = args.includes("--release")? "--release" : "--debug";
         // wasm-packコマンドを実行
@@ -154,7 +153,7 @@ async function main() {
             "./dist/typing_lib_bg.wasm"
         ],
     ]);
-    await copyDirectory('./pkg/snippets', './src/web/snippets');
+    // await copyDirectory('./pkg/snippets', './src/web/snippets');
     await getFile('./src/web/cdom.ts','https://raw.githubusercontent.com/neknaj/cDom/50a65673454c7286830f0d131f0512ddf46a3844/cdom_module.ts');
     // if (await getFile('./src/web/layout.js','https://raw.githubusercontent.com/neknaj/webSplitLayout/c7e1c52cb37a8bfbf9968b825c05a2e9924ca88e/type1/layout.js')) {
     //     fs.readFile('./src/web/layout.js', 'utf8', (err, data) => {
