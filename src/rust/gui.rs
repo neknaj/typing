@@ -19,6 +19,9 @@ use crate::update::update;
 use std::collections::HashMap;
 use crate::textrender::{RenderText, RenderLineWithRuby, RenderTypingLine, CharOrientation};
 
+use winit::window::{Fullscreen};
+use winit::event_loop::EventLoop;
+
 #[cfg(target_arch = "wasm32")]
 use std::{sync::Mutex, sync::Once};
 // ファイル内容を一時的に保持するためのstatic変数
@@ -26,6 +29,12 @@ use std::{sync::Mutex, sync::Once};
 static PENDING_CONTENTS: Mutex<Vec<String>> = Mutex::new(Vec::new());
 #[cfg(target_arch = "wasm32")]
 static INIT: Once = Once::new();
+
+use eframe::Frame;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::JsCast;
+#[cfg(target_arch = "wasm32")]
+use web_sys::window;
 
 #[derive(Clone,PartialEq)]
 pub enum TextOrientation {
@@ -40,6 +49,7 @@ pub struct TypingApp {
     text_orientation: TextOrientation,
     selected_index: Option<usize>,
     escape_released: bool, // typing -> pause -> result の escapeコンボを阻止するやつ 2回escapeを押さないとfinishしない
+    fullscreen: bool,
 }
 
 impl Default for TypingApp {
@@ -52,6 +62,7 @@ impl Default for TypingApp {
             selected_index: None,
             dark_mode: true,
             escape_released: true,
+            fullscreen: false,
             typing: Model::Menu(
                 MenuModel {
                     available_contents: vec![],
@@ -75,8 +86,29 @@ impl TypingApp {
     }
 }
 
+impl TypingApp {
+    #[cfg(not(target_arch = "wasm32"))]
+    fn toggle_fullscreen(&mut self, frame: &mut eframe::Frame) {
+        // todo
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    fn toggle_fullscreen_wasm(&mut self) {
+        let window = web_sys::window().expect("no global `window` exists");
+        let document = window.document().expect("should have a document on window");
+        if self.fullscreen {
+            let _ = document.exit_fullscreen();
+        } else {
+            if let Some(body) = document.body() {
+                let _ = body.request_fullscreen();
+            }
+        }
+        self.fullscreen = !self.fullscreen;
+    }
+}
+
 impl eframe::App for TypingApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         // Apply font scaling once
         if (!self.init) {
             let mut style = (*ctx.style()).clone();
@@ -85,6 +117,7 @@ impl eframe::App for TypingApp {
             }
             ctx.set_style(style);
             self.init = true;
+            ctx.set_visuals(egui::Visuals::dark());
         }
         let window_height = ctx.input(|input| input.screen_rect().height());
         let window_width = ctx.input(|input| input.screen_rect().width());
@@ -132,8 +165,12 @@ impl eframe::App for TypingApp {
                             };
                             ctx.set_visuals(visuals);
                         }
-                        if ui.button("Option 2").clicked() {
-                            // Handle Option 2
+                        if ui.button("Toggle Fullscreen").clicked() {
+                            #[cfg(not(target_arch = "wasm32"))]
+                            self.toggle_fullscreen(frame);
+
+                            #[cfg(target_arch = "wasm32")]
+                            self.toggle_fullscreen_wasm();
                         }
                     });
 
