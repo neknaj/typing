@@ -1,5 +1,5 @@
 [package]
-name = "typing"
+name = "neknaj_typing"
 version = "25.4.7"
 edition = "2021"
 authors = ["Neknaj","Bem130"]
