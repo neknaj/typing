@@ -19,6 +19,13 @@ use crate::update::update;
 use std::collections::HashMap;
 use crate::textrender::{RenderText, RenderLineWithRuby, RenderTypingLine, CharOrientation};
 
+#[cfg(target_arch = "wasm32")]
+use std::{sync::Mutex, sync::Once};
+// ファイル内容を一時的に保持するためのstatic変数
+#[cfg(target_arch = "wasm32")]
+static PENDING_CONTENTS: Mutex<Vec<String>> = Mutex::new(Vec::new());
+#[cfg(target_arch = "wasm32")]
+static INIT: Once = Once::new();
 
 #[derive(Clone,PartialEq)]
 pub enum TextOrientation {
@@ -57,6 +64,17 @@ impl Default for TypingApp {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
+impl TypingApp {
+    fn handle_pending_contents(&mut self) {
+        if let Ok(mut contents) = PENDING_CONTENTS.try_lock() {
+            for content in contents.drain(..) {
+                self.typing = update(self.typing.clone(), Msg::Menu(MenuMsg::AddContent(content)));
+            }
+        }
+    }
+}
+
 impl eframe::App for TypingApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Apply font scaling once
@@ -74,6 +92,10 @@ impl eframe::App for TypingApp {
         let cursor_target: f32 = 0.3;
 
         let typing_font_size = 150.0;
+
+        #[cfg(target_arch = "wasm32")]
+        // 保留中のコンテンツを処理
+        self.handle_pending_contents();
 
         match self.typing.clone() {
             Model::Menu(scene) => {
@@ -223,19 +245,17 @@ impl eframe::App for TypingApp {
                                         .pick_files()
                                         .await
                                     {
-                                        // For each selected file, read its content
                                         for file in files {
                                             let bytes = file.read().await;
                                             if let Ok(text) = String::from_utf8(bytes) {
-                                                // Log file content and name to the browser console
-                                                web_sys::console::log_1(&format!("File: {} \nContent: {}", file.file_name(), text).into());
-                                                // In a complete implementation, update the UI state accordingly
+                                                if let Ok(mut contents) = PENDING_CONTENTS.try_lock() {
+                                                    contents.push(text);
+                                                    ctx_clone.request_repaint();
+                                                }
                                             } else {
                                                 web_sys::console::log_1(&"Invalid UTF-8 data.".into());
                                             }
                                         }
-                                    } else {
-                                        web_sys::console::log_1(&"No files selected.".into());
                                     }
                                 });
                             }
