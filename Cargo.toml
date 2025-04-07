@@ -33,7 +33,7 @@ lazy_static = "1.4"
 winit = "0.30"
 
 [[bin]]
-name = "typing_bin"
+name = "typing_gui"
 path = "src/rust/main.rs"
 
 [lib]
