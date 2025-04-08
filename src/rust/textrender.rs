@@ -1086,8 +1086,16 @@ impl egui::Widget for RenderTypingLine {
                         }
                         x_offset += dx;
                     },
+                    (CharOrientation::Horizontal,false) => {
+                        let dx = size.x*0.8;
+                        let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+size.y/20.0+ruby_space);
+                        let mut font = font_main.clone();
+                        font.size = font_main.size*0.85;
+                        render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font, color);
+                        x_offset += dx;
+                    },
                     _ => {
-                        println!("unhandled")
+                        println!("unhandled 1")
                     }
                 }
             }
@@ -1109,7 +1117,7 @@ impl egui::Widget for RenderTypingLine {
                     x_offset += dx;
                 },
                 _ => {
-                    println!("unhandled")
+                    println!("unhandled 2")
                 }
             }
         }
@@ -1143,7 +1151,7 @@ impl egui::Widget for RenderTypingLine {
                     x_offset += dx;
                 },
                 _ => {
-                    println!("unhandled")
+                    println!("unhandled 3")
                 }
             }
         }
