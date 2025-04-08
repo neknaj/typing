@@ -231,7 +231,7 @@ impl eframe::App for TypingApp {
                             if let Some(content) = scene.available_contents.get(idx) {
                                 let mut font = egui::FontSelection::Default.resolve(ui.style());
                                 font.size *= 1.5;
-                                ui.add(RenderText::new(content.title.clone(), CharOrientation::Horizontal).with_font(font));
+                                ui.add(RenderLineWithRuby::new(content.title.clone(), CharOrientation::Horizontal).with_font(font));
                                 let button_height = 40.0;
                                 let button_width = ui.available_width();
                                 // Allocate full available space
@@ -395,7 +395,7 @@ impl eframe::App for TypingApp {
                             for (index, item) in scene.available_contents.iter().enumerate() {
                                 ui.horizontal(|ui| {
                                     // Menu item button: selecting an item sets selected_index
-                                    if ui.add_sized(Vec2::new(button1_width, button_height), egui::Button::new(item.title.clone())).clicked() {
+                                    if ui.add_sized(Vec2::new(button1_width, button_height), egui::Button::new(item.title.to_string().clone())).clicked() {
                                         self.selected_index = Some(index);
                                     }
                                     // Delete button with a fixed small width
@@ -812,7 +812,7 @@ impl eframe::App for TypingApp {
                         ui.vertical_centered(|ui| {
                             let mut font = egui::FontSelection::Default.resolve(ui.style());
                             font.size *= 3.0;
-                            ui.add(RenderText::new(content.title.clone(), CharOrientation::Horizontal).with_font(font));
+                            ui.add(RenderLineWithRuby::new(content.title.clone(), CharOrientation::Horizontal).with_font(font));
                         });
                         ui.add_space(100.0);
 

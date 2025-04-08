@@ -1,10 +1,11 @@
 // parser.rs
 
+use std::fmt;
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone)]
 pub struct Content {
-    pub title: String,
+    pub title: Line,
     pub lines: Vec<Line>,
 }
 
@@ -19,6 +20,37 @@ pub enum Segment {
     Annotated { base: String, reading: String },
 }
 
+
+// Implement the Display trait for Line.
+// We iterate over all segments and output each one.
+impl fmt::Display for Line {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for segment in &self.segments {
+            write!(f, "{}", segment)?;
+        }
+        Ok(())
+    }
+}
+
+
+// Implement the Display trait for Segment.
+// When formatting a Segment, if it is Annotated, only the 'base' is printed.
+impl fmt::Display for Segment {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Segment::Plain { text } => {
+                // Print the text for the Plain variant.
+                write!(f, "{}", text)
+            }
+            Segment::Annotated { base, reading: _ } => {
+                // Print only the base for the Annotated variant.
+                write!(f, "{}", base)
+            }
+        }
+    }
+}
+
+
 // Recursive descent parser implementation with escape support
 pub fn parse_problem(input: &str) -> Content {
     // Split the input into lines
@@ -26,9 +58,13 @@ pub fn parse_problem(input: &str) -> Content {
     // Parse the title line
     let title_line = lines_iter.next().unwrap_or("");
     let title = if title_line.starts_with("#title") {
-        title_line.trim_start_matches("#title").trim().to_string()
+        Line {
+            segments: parse_line(&title_line.trim_start_matches("#title").trim().to_string()),
+        }
     } else {
-        "".to_string()
+        Line {
+            segments: Vec::new(),
+        }
     };
 
     // Parse the remaining lines into Line structures
