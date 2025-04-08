@@ -79,6 +79,7 @@ impl Default for TypingApp {
                     available_contents: vec![
                         parse_problem(&include_str!("../../examples/いろは歌.ntq")),
                         parse_problem(&include_str!("../../examples/平仮名.ntq")),
+                        parse_problem(&include_str!("../../examples/MIT.ntq")),
                     ],
                     selecting: 0,
                     error_messages: vec![],
