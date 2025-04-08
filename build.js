@@ -184,8 +184,8 @@ async function main() {
             "./dist/index.css"
         ],
     ]);
-    await copyDirectory('./examples', './dist/examples');
-    await copyDirectory('./layouts', './dist/layouts');
+    // await copyDirectory('./examples', './dist/examples');
+    // await copyDirectory('./layouts', './dist/layouts');
 }
 
 main()

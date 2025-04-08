@@ -76,7 +76,10 @@ impl Default for TypingApp {
             last_fps_update: None,   // Initialize with None.
             typing: Model::Menu(
                 MenuModel {
-                    available_contents: vec![],
+                    available_contents: vec![
+                        parse_problem(&include_str!("../../examples/いろは歌.ntq")),
+                        parse_problem(&include_str!("../../examples/平仮名.ntq")),
+                    ],
                     selecting: 0,
                     error_messages: vec![],
                     layout: TextConvert { mapping: layout },
