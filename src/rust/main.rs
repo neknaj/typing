@@ -15,7 +15,8 @@ use wgpu;
 // Function to convert a grayscale image to ASCII art.
 fn image_to_ascii(img: &GrayImage) -> String {
     // Define ASCII characters from dark to light.
-    let ascii_chars = ['W', 'W', 'S', '%', '.', ' ', ' ', ' ', ' ', ' '];
+    let mut ascii_chars = "@@@@@@@@@@@@$B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,'\"^`.            ".chars().collect::<Vec<char>>();
+    ascii_chars.reverse();
     let mut ascii_art = String::new();
     for y in 0..img.height() {
         for x in 0..img.width() {
@@ -23,7 +24,7 @@ fn image_to_ascii(img: &GrayImage) -> String {
             let index = (*pixel as f32 / 255.0 * (ascii_chars.len() - 1) as f32).round() as usize;
             // Print each character twice for a better aspect ratio.
             ascii_art.push(ascii_chars[index]);
-            ascii_art.push(ascii_chars[index]);
+            // ascii_art.push(ascii_chars[index]);
         }
         ascii_art.push('\n');
     }
@@ -127,9 +128,10 @@ async fn main() -> std::io::Result<()> {
         // Render egui UI with the updated counter.
         egui_ctx.begin_pass(Default::default());
         CentralPanel::default().show(&egui_ctx, |ui| {
-            ui.heading("Counter App");
-            ui.label(RichText::new(format!("Counter: {}", counter)).size(24.0));
-            ui.label(RichText::new(format!("Press 'Escape' to quit.")).size(15.0));
+            ui.label(RichText::new(format!("カウンタ: {}", counter)).size(25.0));
+            ui.label(RichText::new(format!("いろはにほへどちりぬるをわがよたれぞつねならむうゐのおくやまけふこえて")).size(10.0));
+            ui.label(RichText::new(format!("色は匂へど散りぬるを")).size(15.0));
+            // ui.label(RichText::new(format!("Press 'Escape' to quit.")).size(11.0));
         });
         let full_output = egui_ctx.end_pass();
         let shapes = full_output.shapes;
@@ -196,7 +198,7 @@ async fn main() -> std::io::Result<()> {
         // Extract a subregion for the ASCII art.
         let sub_h = 100;
         let sub_w = 180;
-        let offset_y = 8;
+        let offset_y = 0;
         let mut gray_image = GrayImage::new(sub_w, sub_h);
         for y in offset_y..sub_h + offset_y {
             for x in 0..sub_w {
