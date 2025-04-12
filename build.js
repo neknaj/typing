@@ -134,7 +134,7 @@ async function getFile(savePath,url) {
 
 async function main() {
     { // Cargo.tomlのバージョンを自動で今日の日付にする
-        const today = new Date();
+        const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" })); // JST
         const year = today.getFullYear() % 100;
         const month = today.getMonth() + 1;
         const day = today.getDate();
