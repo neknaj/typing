@@ -157,13 +157,17 @@ impl eframe::App for TypingApp {
                 self.fps = self.frame_count as f32 * div as f32;
                 self.frame_count = 0;
                 self.last_fps_update = Some(now);
-                {
-                    // 序にリサイズ
-                    let info = ctx.input(|i| i.screen_rect());
-                    let scale = (info.width()*info.height()*self.scale*self.scale).sqrt() /2000.0 * 1.5;
-                    self.scale = scale;
-                    ctx.set_pixels_per_point(scale);
-                }
+            }
+        }
+        {
+            // リサイズ
+            let info = ctx.input(|i| i.screen_rect());
+            let scale = (info.width()*info.height()*self.scale*self.scale).sqrt() /2000.0 * 1.5;
+            if ((self.scale / scale).abs() - 1.0).abs() >  0.000001 {
+                self.scale = scale;
+                ctx.request_repaint();
+                ctx.set_pixels_per_point(scale);
+                return;
             }
         }
 
