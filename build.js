@@ -1,5 +1,5 @@
 const esbuild = require('esbuild');
-const { exec } = require('child_process');
+const { exec, spawnSync } = require('child_process');
 const fs = require('fs');
 const util = require('util');
 const path = require('path');
@@ -64,14 +64,25 @@ async function buildRust(args) {
     //     throw error.statusCode;
     // }
     try {
-        let flag = args.includes("--release")? "--release" : "--debug";
-        // wasm-packコマンドを実行
-        const { stdout, stderr } = await execPromise('wasm-pack build '+flag+' --target web --no-default-features --features web');
-        process.stdout.write(stdout);
-        if (stderr) {
-            process.stderr.write(stderr);
+        let flag = args.includes("--release") ? "--release" : "--debug";
+        // Execute the 'wasm-pack' command synchronously with the desired options
+        const result = spawnSync('wasm-pack', [
+            'build',
+            flag,
+            '--target', 'web',
+            '--no-default-features',
+            '--features', 'web'
+        ], {
+            stdio: 'inherit'  // Inherit parent's stdio to support colored output
+        });
+        // Check for errors in execution
+        if (result.error) {
+            console.error(`Error: ${result.error.message}`);
+            process.exit(1);  // Exit with error code 1 if there was an error
+        } else if (result.status !== 0) {
+            console.error(`Error: wasm-pack exited with code ${result.status}`);
+            process.exit(result.status);
         }
-        console.log(flag)
         console.log('Wasm build complete!');
         return true;
     } catch (error) {
