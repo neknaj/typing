@@ -548,11 +548,11 @@ impl eframe::App for TypingApp {
                             .body(|mut body| {
                                 body.row(30.0, |mut row| {
                                     row.col(|ui| { ui.label("Speed"); });
-                                    row.col(|ui| { ui.label(format!("{:.2} KPS", stat.speed)); });
+                                    row.col(|ui| { ui.label(format!("{:.3} KPS", stat.speed)); });
                                 });
                                 body.row(30.0, |mut row| {
                                     row.col(|ui| { ui.label("Accuracy"); });
-                                    row.col(|ui| { ui.label(format!("{:.1}%", stat.accuracy * 100.0)); });
+                                    row.col(|ui| { ui.label(format!("{:.3}%", stat.accuracy * 100.0)); });
                                 });
                                 body.row(30.0, |mut row| {
                                     row.col(|ui| { ui.label("Keystrokes"); });
@@ -560,14 +560,15 @@ impl eframe::App for TypingApp {
                                 });
                                 body.row(30.0, |mut row| {
                                     row.col(|ui| { ui.label("Mistyped"); });
-                                    row.col(|ui| { ui.label(format!("{} ({:.1}%)", stat.miss_count, (stat.miss_count as f64 / (stat.type_count + stat.miss_count) as f64) * 100.0)); });
+                                    row.col(|ui| { ui.label(format!("{} ({:.3}%)", stat.miss_count, (stat.miss_count as f64 / (stat.type_count + stat.miss_count) as f64) * 100.0)); });
                                 });
                                 let total_seconds = stat.total_time / 1000.0;
-                                let minutes = (total_seconds / 60.0).floor();
+                                let hours = (total_seconds / 3600.0).floor();
+                                let minutes = ((total_seconds % 3600.0) / 60.0).floor();
                                 let seconds = total_seconds % 60.0;
                                 body.row(30.0, |mut row| {
                                     row.col(|ui| { ui.label("Time"); });
-                                    row.col(|ui| { ui.label(format!("{:02}:{:02.0}", minutes, seconds)); });
+                                    row.col(|ui| { ui.label(format!("{:02.0}:{:02.0}:{:05.2}", hours, minutes, seconds)); });
                                 });
                             });
                     });
@@ -679,11 +680,11 @@ impl eframe::App for TypingApp {
                             .body(|mut body| {
                                 body.row(30.0, |mut row| {
                                     row.col(|ui| { ui.label("Speed"); });
-                                    row.col(|ui| { ui.label(format!("{:.2} KPS", stat.speed)); });
+                                    row.col(|ui| { ui.label(format!("{:.3} KPS", stat.speed)); });
                                 });
                                 body.row(30.0, |mut row| {
                                     row.col(|ui| { ui.label("Accuracy"); });
-                                    row.col(|ui| { ui.label(format!("{:.1}%", stat.accuracy * 100.0)); });
+                                    row.col(|ui| { ui.label(format!("{:.3}%", stat.accuracy * 100.0)); });
                                 });
                                 body.row(30.0, |mut row| {
                                     row.col(|ui| { ui.label("Keystrokes"); });
@@ -691,14 +692,15 @@ impl eframe::App for TypingApp {
                                 });
                                 body.row(30.0, |mut row| {
                                     row.col(|ui| { ui.label("Mistyped"); });
-                                    row.col(|ui| { ui.label(format!("{} ({:.1}%)", stat.miss_count, (stat.miss_count as f64 / (stat.type_count + stat.miss_count) as f64) * 100.0)); });
+                                    row.col(|ui| { ui.label(format!("{} ({:.3}%)", stat.miss_count, (stat.miss_count as f64 / (stat.type_count + stat.miss_count) as f64) * 100.0)); });
                                 });
                                 let total_seconds = stat.total_time / 1000.0;
-                                let minutes = (total_seconds / 60.0).floor();
+                                let hours = (total_seconds / 3600.0).floor();
+                                let minutes = ((total_seconds % 3600.0) / 60.0).floor();
                                 let seconds = total_seconds % 60.0;
                                 body.row(30.0, |mut row| {
                                     row.col(|ui| { ui.label("Time"); });
-                                    row.col(|ui| { ui.label(format!("{:02}:{:02.0}", minutes, seconds)); });
+                                    row.col(|ui| { ui.label(format!("{:02.0}:{:02.0}:{:05.2}", hours, minutes, seconds)); });
                                 });
                             });
                     });
@@ -829,35 +831,33 @@ impl eframe::App for TypingApp {
                                 .resizable(false)
                                 .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
                                 .column(Column::auto().at_least(100.0))
-                                .column(Column::remainder().at_least(200.0))
+                                .column(Column::remainder().at_least(100.0))
                                 .min_scrolled_height(0.0)
-                                .header(30.0, |mut header| {
-                                    header.col(|ui| { ui.strong("Metric"); });
-                                    header.col(|ui| { ui.strong("Value"); });
-                                })
+                                // .background_color(egui::Color32::from_rgba_premultiplied(0, 0, 0, 180))
                                 .body(|mut body| {
                                     body.row(30.0, |mut row| {
                                         row.col(|ui| { ui.label("Speed"); });
-                                        row.col(|ui| { ui.label(format!("{:.2} KPS", stat.speed)); });
+                                        row.col(|ui| { ui.label(format!("{:.3} KPS", stat.speed)); });
                                     });
                                     body.row(30.0, |mut row| {
                                         row.col(|ui| { ui.label("Accuracy"); });
-                                        row.col(|ui| { ui.label(format!("{:.1}%", stat.accuracy * 100.0)); });
+                                        row.col(|ui| { ui.label(format!("{:.3}%", stat.accuracy * 100.0)); });
                                     });
                                     body.row(30.0, |mut row| {
-                                        row.col(|ui| { ui.label("Total Keystrokes"); });
+                                        row.col(|ui| { ui.label("Keystrokes"); });
                                         row.col(|ui| { ui.label(format!("{}", stat.type_count + stat.miss_count)); });
                                     });
                                     body.row(30.0, |mut row| {
                                         row.col(|ui| { ui.label("Mistyped"); });
-                                        row.col(|ui| { ui.label(format!("{} ({:.1}%)", stat.miss_count, (stat.miss_count as f64 / (stat.type_count + stat.miss_count) as f64) * 100.0)); });
+                                        row.col(|ui| { ui.label(format!("{} ({:.3}%)", stat.miss_count, (stat.miss_count as f64 / (stat.type_count + stat.miss_count) as f64) * 100.0)); });
                                     });
                                     let total_seconds = stat.total_time / 1000.0;
-                                    let minutes = (total_seconds / 60.0).floor();
+                                    let hours = (total_seconds / 3600.0).floor();
+                                    let minutes = ((total_seconds % 3600.0) / 60.0).floor();
                                     let seconds = total_seconds % 60.0;
                                     body.row(30.0, |mut row| {
                                         row.col(|ui| { ui.label("Time"); });
-                                        row.col(|ui| { ui.label(format!("{:02}:{:02.0}", minutes, seconds)); });
+                                        row.col(|ui| { ui.label(format!("{:02.0}:{:02.0}:{:05.2}", hours, minutes, seconds)); });
                                     });
                                 });
                         });
