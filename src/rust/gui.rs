@@ -49,7 +49,7 @@ pub struct TypingApp {
     typing: Model,
     text_orientation: TextOrientation,
     selected_index: Option<usize>,
-    escape_released: bool, // typing -> pause -> result の escapeコンボを阻止するやつ 2回escapeを押さないとfinishしない
+    key_released: bool, // 別シーン間のコンボを阻止するやつ 別シーンではキーを押し直す
     fullscreen: bool,
     fullscreen_flag4filedialog: bool,
     scale: f32,
@@ -67,7 +67,7 @@ impl Default for TypingApp {
             text_orientation: TextOrientation::Horizontal,
             selected_index: None,
             dark_mode: true,
-            escape_released: true,
+            key_released: true,
             fullscreen: false,
             fullscreen_flag4filedialog: false,
             scale: 1.0,
@@ -258,7 +258,7 @@ impl eframe::App for TypingApp {
                                         });
                                     });
                                 });
-                                if ui.add_sized(Vec2::new(button_width, button_height), egui::Button::new("Start")).clicked() {
+                                if ui.add_sized(Vec2::new(button_width, button_height), egui::Button::new("Start")).on_hover_text_at_pointer("[Space]").clicked() {
                                     self.typing = update(self.typing.clone(),Msg::Menu(MenuMsg::MoveCursor(idx)));
                                     self.typing = update(self.typing.clone(),Msg::Menu(MenuMsg::Start));
                                 }
@@ -421,6 +421,29 @@ impl eframe::App for TypingApp {
                             }
                         });
                     });
+                ctx.input(|i| {
+                    for event in &i.events {
+                        match event {
+                            egui::Event::Key { key, pressed, .. } => {
+                                if *pressed && self.key_released {
+                                    // キーが押されたときの処理
+                                    match key {
+                                        egui::Key::Space => {
+                                            if let Some(idx) = self.selected_index {
+                                                self.typing = update(self.typing.clone(),Msg::Menu(MenuMsg::MoveCursor(idx)));
+                                                self.typing = update(self.typing.clone(),Msg::Menu(MenuMsg::Start));
+                                            }
+                                        }
+                                        _ => {}
+                                    }
+                                }
+                            }
+                            egui::Event::Text(text) => {
+                            }
+                            _ => {}
+                        }
+                    }
+                });
             },
             Model::TypingStart(scene) => {
                 let content: Content = scene.content;
@@ -485,20 +508,21 @@ impl eframe::App for TypingApp {
                         for event in &i.events {
                             match event {
                                 egui::Event::Key { key, pressed, .. } => {
-                                    // キーが押されたときの処理
-                                    match key {
-                                        egui::Key::Space => {
-                                            let scrollmax = match self.text_orientation {
-                                                TextOrientation::Horizontal => window_width,
-                                                TextOrientation::Vertical => window_height,
-                                            };
-                                            self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::StartTyping));
-                                            self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::ScrollTo((-scrollmax*cursor_target) as f64, -scrollmax as f64)));
+                                    if *pressed && self.key_released {
+                                        match key {
+                                            egui::Key::Space => {
+                                                let scrollmax = match self.text_orientation {
+                                                    TextOrientation::Horizontal => window_width,
+                                                    TextOrientation::Vertical => window_height,
+                                                };
+                                                self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::StartTyping));
+                                                self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::ScrollTo((-scrollmax*cursor_target) as f64, -scrollmax as f64)));
+                                            }
+                                            egui::Key::Escape => {
+                                                self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::Cancel));
+                                            }
+                                            _ => {}
                                         }
-                                        egui::Key::Escape => {
-                                            self.typing = update(self.typing.clone(),Msg::TypingStart(TypingStartMsg::Cancel));
-                                        }
-                                        _ => {}
                                     }
                                 }
                                 egui::Event::Text(text) => {
@@ -613,20 +637,11 @@ impl eframe::App for TypingApp {
                     for event in &i.events {
                         match event {
                             egui::Event::Key { key, pressed, .. } => {
-                                if *pressed {
+                                if *pressed && self.key_released {
                                     // キーが押されたときの処理
                                     match key {
                                         egui::Key::Escape => {
-                                            self.escape_released = false;
                                             self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::Pause));
-                                        }
-                                        _ => {}
-                                    }
-                                } else {
-                                    // キーが離されたときの処理
-                                    match key {
-                                        egui::Key::Escape => {
-                                            self.escape_released = true;
                                         }
                                         _ => {}
                                     }
@@ -766,24 +781,13 @@ impl eframe::App for TypingApp {
                         for event in &i.events {
                             match event {
                                 egui::Event::Key { key, pressed, .. } => {
-                                    if *pressed {
+                                    if *pressed && self.key_released {
                                         match key {
                                             egui::Key::Space => {
                                                 self.typing = update(self.typing.clone(),Msg::Pause(PauseMsg::Resume));
                                             }
                                             egui::Key::Escape => {
-                                                if self.escape_released {
-                                                    self.typing = update(self.typing.clone(),Msg::Pause(PauseMsg::Cancel));
-                                                }
-                                                self.escape_released = false;
-                                            }
-                                            _ => {}
-                                        }
-                                    }
-                                    else {
-                                        match key {
-                                            egui::Key::Escape => {
-                                                self.escape_released = true;
+                                                self.typing = update(self.typing.clone(),Msg::Pause(PauseMsg::Cancel));
                                             }
                                             _ => {}
                                         }
@@ -872,14 +876,41 @@ impl eframe::App for TypingApp {
                         ui.vertical_centered(|ui| {
                             let button_width = 300.0;
                             let button_height = 50.0;
-                            if ui.add_sized([button_width, button_height], egui::Button::new("Return to Menu")).clicked() {
+                            if ui.add_sized([button_width, button_height], egui::Button::new("Return to Menu")).on_hover_text_at_pointer("[Escape]").clicked() {
                                 self.typing = update(self.typing.clone(), Msg::Result(ResultMsg::BackToMenu));
                             }
                             ui.add_space(20.0);
-                            if ui.add_sized([button_width, button_height], egui::Button::new("Retry")).clicked() {
+                            if ui.add_sized([button_width, button_height], egui::Button::new("Retry")).on_hover_text_at_pointer("[Space]").clicked() {
                                 self.typing = update(self.typing.clone(), Msg::Result(ResultMsg::Retry));
                             }
                         });
+                    });
+                    ctx.input(|i| {
+                        for event in &i.events {
+                            match event {
+                                egui::Event::Key { key, pressed, .. } => {
+                                    if *pressed && self.key_released {
+                                        // キーが押されたときの処理
+                                        match key {
+                                            egui::Key::Space => {
+                                                if let Some(idx) = self.selected_index {
+                                                    self.typing = update(self.typing.clone(), Msg::Result(ResultMsg::Retry));
+                                                }
+                                            }
+                                            egui::Key::Escape => {
+                                                if let Some(idx) = self.selected_index {
+                                                    self.typing = update(self.typing.clone(), Msg::Result(ResultMsg::BackToMenu));
+                                                }
+                                            }
+                                            _ => {}
+                                        }
+                                    }
+                                }
+                                egui::Event::Text(text) => {
+                                }
+                                _ => {}
+                            }
+                        }
                     });
             }
         }
@@ -918,6 +949,10 @@ impl eframe::App for TypingApp {
                                         }
                                         _ => {}
                                     }
+                                    self.key_released = false;
+                                }
+                                else {
+                                    self.key_released = true;
                                 }
                             }
                             egui::Event::Text(text) => {
