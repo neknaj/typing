@@ -291,6 +291,59 @@ impl RenderLineWithRuby {
         self.offset = offset;
         self
     }
+
+    /// Calculate the size of the rendered text.
+    pub fn calc_size(&self, ui: &egui::Ui) -> (f32, f32) {
+        let mut font_main = self
+            .font_id.clone()
+            .unwrap_or_else(|| egui::FontSelection::Default.resolve(ui.style()));
+        let ruby_space = font_main.size * 0.3;
+        font_main.family = egui::FontFamily::Name("main".into());
+
+        let mut total_size = 0.0;
+        let mut max_size: f32 = 0.0;
+
+        // Calculate size for typed segments
+        for (index, segment) in self.line.segments.iter().enumerate() {
+
+            let mut s = match segment {
+                Segment::Plain { text } => text.clone(),
+                Segment::Annotated { base, reading: _ } => base.clone(),
+            };
+
+            if self.orientation == CharOrientation::Vertical {
+                s = s.replace('\u{30fc}', "\u{4e28}");
+            }
+
+            for ch in s.chars() {
+                let galley = ui.painter().layout_no_wrap(ch.to_string(), font_main.clone(), egui::Color32::WHITE);
+                let size = galley.size();
+
+                match (&self.orientation, is_japanese(ch)) {
+                    (CharOrientation::Horizontal, true) => {
+                        let dx = if is_japanese_kana(ch) { size.x * 0.8 } else { size.x };
+                        total_size += dx;
+                        max_size = max_size.max(size.y + ruby_space);
+                    },
+                    (CharOrientation::Horizontal, false) => {
+                        total_size += size.x * 0.8;
+                        max_size = max_size.max(size.y + ruby_space);
+                    },
+                    (CharOrientation::Vertical, true) => {
+                        let dy = if is_japanese_kana(ch) { size.x * 0.85 } else { size.x };
+                        total_size += dy;
+                        max_size = max_size.max(size.x + ruby_space);
+                    },
+                    (CharOrientation::Vertical, false) => {
+                        total_size += size.x * 0.75;
+                        max_size = max_size.max(size.y + ruby_space);
+                    },
+                }
+            }
+        }
+
+        (total_size, max_size)
+    }
 }
 
 impl egui::Widget for RenderLineWithRuby {

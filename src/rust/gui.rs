@@ -173,7 +173,7 @@ impl eframe::App for TypingApp {
 
         let cursor_target: f32 = 0.3;
 
-        let typing_font_size = 150.0;
+        let typing_font_size = window_height/7.0;
 
         match self.typing.clone() {
             Model::Menu(scene) => {
@@ -474,8 +474,15 @@ impl eframe::App for TypingApp {
                             ui.add(RenderLineWithRuby::new(content.lines[0].clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(-window_height*cursor_target));
                         });
                 } else {
+                    egui::Area::new("content_title".into())
+                        .fixed_pos(egui::Pos2::new(0.0, typing_font_size*0.1))
+                        .show(ctx, |ui| {
+                            let line = RenderLineWithRuby::new(content.title.clone(), CharOrientation::Horizontal).with_font(egui::FontId::new(typing_font_size*0.7, egui::FontFamily::Proportional));
+                            let scroll_to = line.calc_size(ui).0;
+                            ui.add(line.with_offset(-window_width*0.5+scroll_to*0.5));
+                        });
                     egui::Area::new("centered_text2".into())
-                        .fixed_pos(egui::Pos2::new(0.0, window_height/2.0-typing_font_size*2.5))
+                        .fixed_pos(egui::Pos2::new(0.0, window_height/2.0-typing_font_size*2.0))
                         .show(ctx, |ui| {
                             ui.add(RenderLineWithRuby::new(content.lines[0].clone(), CharOrientation::Horizontal).with_font(font.clone()).with_offset(-window_width*cursor_target));
                         });
@@ -627,8 +634,15 @@ impl eframe::App for TypingApp {
                             self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::ScrollTo(new as f64, -scrollmax as f64)));
                             ui.add(line);
                         });
+                    egui::Area::new("content_title".into())
+                        .fixed_pos(egui::Pos2::new(0.0, typing_font_size*0.1))
+                        .show(ctx, |ui| {
+                            let line = RenderLineWithRuby::new(content.title.clone(), CharOrientation::Horizontal).with_font(egui::FontId::new(typing_font_size*0.7, egui::FontFamily::Proportional));
+                            let scroll_to = line.calc_size(ui).0;
+                            ui.add(line.with_offset(-window_width*0.5+scroll_to*0.5));
+                        });
                     egui::Area::new("centered_text2".into())
-                    .fixed_pos(egui::Pos2::new(0.0, window_height/2.0-typing_font_size*2.5))
+                    .fixed_pos(egui::Pos2::new(0.0, window_height/2.0-typing_font_size*2.0))
                         .show(ctx, |ui| {
                             ui.add(RenderLineWithRuby::new(content.lines[scene.status.line as usize].clone(), CharOrientation::Horizontal).with_font(font.clone()).with_offset(scene.scroll.scroll as f32));
                         });
@@ -747,8 +761,15 @@ impl eframe::App for TypingApp {
                             self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::ScrollTo(scrollto as f64, -scrollmax as f64)));
                             ui.add(line);
                         });
+                    egui::Area::new("content_title".into())
+                        .fixed_pos(egui::Pos2::new(0.0, typing_font_size*0.1))
+                        .show(ctx, |ui| {
+                            let line = RenderLineWithRuby::new(content.title.clone(), CharOrientation::Horizontal).with_font(egui::FontId::new(typing_font_size*0.7, egui::FontFamily::Proportional));
+                            let scroll_to = line.calc_size(ui).0;
+                            ui.add(line.with_offset(-window_width*0.5+scroll_to*0.5));
+                        });
                     egui::Area::new("centered_text2".into())
-                    .fixed_pos(egui::Pos2::new(0.0, window_height/2.0-typing_font_size*2.5))
+                    .fixed_pos(egui::Pos2::new(0.0, window_height/2.0-typing_font_size*2.0))
                         .show(ctx, |ui| {
                             ui.add(RenderLineWithRuby::new(content.lines[scene.typing_model.status.line as usize].clone(), CharOrientation::Horizontal).with_font(font.clone()).with_offset(scene.typing_model.scroll.scroll as f32));
                         });
