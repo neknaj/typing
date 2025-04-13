@@ -175,8 +175,8 @@ impl eframe::App for TypingApp {
         let cursor_target: f32 = 0.3;
 
         let typing_font_size = match self.text_orientation {
-            TextOrientation::Horizontal => window_height/7.0,
-            TextOrientation::Vertical => window_width/8.0,
+            TextOrientation::Horizontal => (window_height/8.0).min(window_width/8.0),
+            TextOrientation::Vertical => (window_width/8.0).min(window_height/8.0),
         };
 
         match self.typing.clone() {
@@ -631,7 +631,7 @@ impl eframe::App for TypingApp {
                         .fixed_pos(egui::Pos2::new(window_width/2.0-typing_font_size, 0.0))
                         .show(ctx, |ui| {
                             let line = RenderTypingLine::new(content.lines[scene.status.line as usize].clone(), scene.typing_correctness.lines[scene.status.line as usize].clone(), scene.status.clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(scene.scroll.scroll as f32);
-                            let scrollto = line.calc_size(ui).0-window_width*cursor_target;
+                            let scrollto = line.calc_size(ui).0-window_height*cursor_target;
                             let now = scene.scroll.scroll as f32;
                             let d = scrollto-now;
                             let new = now+d* (d*d/(5000000.0+d*d));
