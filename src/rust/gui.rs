@@ -176,7 +176,7 @@ impl eframe::App for TypingApp {
 
         let typing_font_size = match self.text_orientation {
             TextOrientation::Horizontal => window_height/7.0,
-            TextOrientation::Vertical => window_height/10.0,
+            TextOrientation::Vertical => window_width/8.0,
         };
 
         match self.typing.clone() {
@@ -475,7 +475,7 @@ impl eframe::App for TypingApp {
                     egui::Area::new("centent_title".into())
                         .fixed_pos(egui::Pos2::new(window_width-typing_font_size*0.1, 0.0))
                         .show(ctx, |ui| {
-                            let line = RenderLineWithRuby::new(content.title.clone(), CharOrientation::Vertical).with_font(egui::FontId::new(typing_font_size*0.7, egui::FontFamily::Proportional)).with_max(window_width);
+                            let line = RenderLineWithRuby::new(content.title.clone(), CharOrientation::Vertical).with_font(egui::FontId::new(typing_font_size*0.7, egui::FontFamily::Proportional)).with_max(window_height);
                             let scroll_to = line.calc_size(ui).0;
                             ui.add(line.with_offset(-window_height*0.5+scroll_to*0.5));
                         });
@@ -623,7 +623,7 @@ impl eframe::App for TypingApp {
                     egui::Area::new("centent_title".into())
                         .fixed_pos(egui::Pos2::new(window_width-typing_font_size*0.1, 0.0))
                         .show(ctx, |ui| {
-                            let line = RenderLineWithRuby::new(content.title.clone(), CharOrientation::Vertical).with_font(egui::FontId::new(typing_font_size*0.7, egui::FontFamily::Proportional)).with_max(window_width);
+                            let line = RenderLineWithRuby::new(content.title.clone(), CharOrientation::Vertical).with_font(egui::FontId::new(typing_font_size*0.7, egui::FontFamily::Proportional)).with_max(window_height);
                             let scroll_to = line.calc_size(ui).0;
                             ui.add(line.with_offset(-window_height*0.5+scroll_to*0.5));
                         });
