@@ -270,6 +270,7 @@ pub struct RenderLineWithRuby {
     orientation: CharOrientation,
     font_id: Option<egui::FontId>,
     offset: f32,
+    max: f32,
 }
 
 impl RenderLineWithRuby {
@@ -280,6 +281,7 @@ impl RenderLineWithRuby {
             orientation,
             font_id: None,
             offset: 0.0,
+            max: 1000.0,
         }
     }
 
@@ -289,6 +291,10 @@ impl RenderLineWithRuby {
     }
     pub fn with_offset(mut self, offset: f32) -> Self {
         self.offset = offset;
+        self
+    }
+    pub fn with_max(mut self, max: f32) -> Self {
+        self.max = max;
         self
     }
 
@@ -463,74 +469,86 @@ impl egui::Widget for RenderLineWithRuby {
             let mut vert_x_offset = char_sizes[0].1.x;
             // baseの描画
             for (ch, size) in char_sizes {
+                let mut f = true;
+                if x_offset-self.offset+size.x < 0.0 || x_offset-self.offset > self.max {
+                    f = false;
+                }
                 match (&self.orientation,is_japanese(ch)) {
                     (CharOrientation::Horizontal,true) => {
                         let dx = if is_japanese_kana(ch) { size.x*0.8 } else { size.x };
-                        let oy = if is_japanese_kana(ch) { if is_japanese_hiragana(ch) { size.y*0.03 } else { size.y*0.01 } } else { 0.0 };
-                        if is_japanese_kana(ch) && ch != '\u{30fc}' {
-                            let mut pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
-                            if is_japanese_hiragana(ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
-                            if [
-                                '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
-                                '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
-                                ].contains(&ch) {
-                                if is_japanese_hiragana(ch) { font_kana.size = font_main.size*0.8; } else { font_kana.size = font_main.size*0.9; }
-                                pos = egui::pos2(x_offset+dx/2.0-self.offset-size.x/100.0, y_offset+oy+size.y/80.0+ruby_space);
+                        if f {
+                            let oy = if is_japanese_kana(ch) { if is_japanese_hiragana(ch) { size.y*0.03 } else { size.y*0.01 } } else { 0.0 };
+                            if is_japanese_kana(ch) && ch != '\u{30fc}' {
+                                let mut pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
+                                if is_japanese_hiragana(ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
+                                if [
+                                    '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
+                                    '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
+                                    ].contains(&ch) {
+                                    if is_japanese_hiragana(ch) { font_kana.size = font_main.size*0.8; } else { font_kana.size = font_main.size*0.9; }
+                                    pos = egui::pos2(x_offset+dx/2.0-self.offset-size.x/100.0, y_offset+oy+size.y/80.0+ruby_space);
+                                }
+                                render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_kana, color);
                             }
-                            render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_kana, color);
-                        }
-                        else if ch == '\u{30fc}'
-                        {
-                            let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
-                            let mut font = font_main.clone();
-                            font.size = font_main.size*0.8;
-                            render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font, color);
-                        }
-                        else {
-                            let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
-                            render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_main, color);
+                            else if ch == '\u{30fc}'
+                            {
+                                let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
+                                let mut font = font_main.clone();
+                                font.size = font_main.size*0.8;
+                                render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font, color);
+                            }
+                            else {
+                                let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
+                                render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_main, color);
+                            }
                         }
                         x_offset += dx;
                     },
                     (CharOrientation::Horizontal,false) => {
                         let dx = size.x*0.8;
-                        let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+size.y/20.0+ruby_space);
-                        let mut font = font_main.clone();
-                        font.size = font_main.size*0.85;
-                        render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font, color);
+                        if f {
+                            let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+size.y/20.0+ruby_space);
+                            let mut font = font_main.clone();
+                            font.size = font_main.size*0.85;
+                            render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font, color);
+                        }
                         x_offset += dx;
                     },
                     (CharOrientation::Vertical,true) => {
                         let dy = if is_japanese_kana(ch) { size.x*0.85 } else { size.x };
-                        let mut pos = egui::pos2(x_offset, y_offset+dy/2.0-self.offset);
-                        if is_japanese_kana(ch) {
-                            if is_japanese_hiragana(ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
-                            if [
-                                '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
-                                '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
-                                ].contains(&ch) {
-                                if is_japanese_hiragana(ch) { font_kana.size = font_main.size*0.8; } else { font_kana.size = font_main.size*0.9; }
-                                pos = egui::pos2(x_offset+size.x/10.0, y_offset+dy/2.0-size.y/10.0);
+                        if f {
+                            let mut pos = egui::pos2(x_offset, y_offset+dy/2.0-self.offset);
+                            if is_japanese_kana(ch) {
+                                if is_japanese_hiragana(ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
+                                if [
+                                    '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
+                                    '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
+                                    ].contains(&ch) {
+                                    if is_japanese_hiragana(ch) { font_kana.size = font_main.size*0.8; } else { font_kana.size = font_main.size*0.9; }
+                                    pos = egui::pos2(x_offset+size.x/10.0, y_offset+dy/2.0-size.y/10.0);
+                                }
+                                render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_kana, color);
                             }
-                            render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_kana, color);
-                        }
-                        else if ch == '\u{4e28}'
-                        {
-                            let mut font = font_main.clone();
-                            font.size = font_main.size*0.93;
-                            render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font, color);
-                        }
-                        else {
-                            render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_main, color);
+                            else if ch == '\u{4e28}'
+                            {
+                                let mut font = font_main.clone();
+                                font.size = font_main.size*0.93;
+                                render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font, color);
+                            }
+                            else {
+                                render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_main, color);
+                            }
                         }
                         y_offset += dy;
                     },
                     (CharOrientation::Vertical,false) => {
                         let dy = size.x*0.75;
-                        let pos = egui::pos2(x_offset+font_main.size/100.0, y_offset+dy/2.0);
-                        let mut font = font_main.clone();
-                        font.size = font_main.size*0.9;
-                        render_char_at(ui, ch, pos, CharOrientation::Vertical, &font, color);
+                        if f {
+                            let pos = egui::pos2(x_offset+font_main.size/100.0, y_offset+dy/2.0);
+                            let mut font = font_main.clone();
+                            font.size = font_main.size*0.9;
+                            render_char_at(ui, ch, pos, CharOrientation::Vertical, &font, color);
+                        }
                         y_offset += dy;
                     },
                 };
@@ -548,25 +566,31 @@ impl egui::Widget for RenderLineWithRuby {
                                 let s = ch.to_string();
                                 let galley = ui.painter().layout_no_wrap(s, font_ruby.clone(), color);
                                 let size = galley.size();
-                                let dx = galley.rect.width()*0.0;
-                                if is_japanese_kana(ch) && ch != '\u{30fc}' {
-                                    let mut pos = egui::pos2(x_offset_ruby+dx-self.offset, rect.top()+ruby_space*0.5);
-                                    if [
-                                        '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
-                                        '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
-                                        ].contains(&ch) {
-                                        pos = egui::pos2(x_offset_ruby+dx-self.offset-size.x/100.0, rect.top()+ruby_space*0.5+size.y/80.0);
+                                let mut f = true;
+                                if x_offset_ruby-self.offset+size.x < 0.0 || x_offset_ruby-self.offset > self.max {
+                                    f = false;
+                                }
+                                if f {
+                                    let dx = galley.rect.width()*0.0;
+                                    if is_japanese_kana(ch) && ch != '\u{30fc}' {
+                                        let mut pos = egui::pos2(x_offset_ruby+dx-self.offset, rect.top()+ruby_space*0.5);
+                                        if [
+                                            '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
+                                            '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
+                                            ].contains(&ch) {
+                                            pos = egui::pos2(x_offset_ruby+dx-self.offset-size.x/100.0, rect.top()+ruby_space*0.5+size.y/80.0);
+                                        }
+                                        render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_ruby, color);
                                     }
-                                    render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_ruby, color);
-                                }
-                                else if ch == '\u{30fc}'
-                                {
-                                    let pos = egui::pos2(x_offset_ruby+dx-self.offset, rect.top()+ruby_space*0.5);
-                                    render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_ruby, color);
-                                }
-                                else {
-                                    let mut pos = egui::pos2(x_offset_ruby+dx-self.offset, rect.top()+ruby_space*0.5);
-                                    render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_ruby, color);
+                                    else if ch == '\u{30fc}'
+                                    {
+                                        let pos = egui::pos2(x_offset_ruby+dx-self.offset, rect.top()+ruby_space*0.5);
+                                        render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_ruby, color);
+                                    }
+                                    else {
+                                        let mut pos = egui::pos2(x_offset_ruby+dx-self.offset, rect.top()+ruby_space*0.5);
+                                        render_char_at(ui, ch, pos, CharOrientation::Horizontal, &font_ruby, color);
+                                    }
                                 }
                                 x_offset_ruby += w;
                             }
@@ -870,74 +894,86 @@ impl egui::Widget for RenderTypingLine {
                         };
                     // baseの描画
                     for (ch, size) in char_sizes.iter() {
+                        let mut f = true;
+                        if x_offset-self.offset+size.x < 0.0 {
+                            f = false;
+                        }
                         match (&self.orientation,is_japanese(*ch)) {
                             (CharOrientation::Horizontal,true) => {
                                 let dx = if is_japanese_kana(*ch) { size.x*0.8 } else { size.x };
-                                let oy = if is_japanese_kana(*ch) { if is_japanese_hiragana(*ch) { size.y*0.03 } else { size.y*0.01 } } else { 0.0 };
-                                if is_japanese_kana(*ch) && *ch != '\u{30fc}' {
-                                    let mut pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
-                                    if is_japanese_hiragana(*ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
-                                    if [
-                                        '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
-                                        '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
-                                        ].contains(&*ch) {
-                                        if is_japanese_hiragana(*ch) { font_kana.size = font_main.size*0.8; } else { font_kana.size = font_main.size*0.9; }
-                                        pos = egui::pos2(x_offset+dx/2.0-self.offset-size.x/100.0, y_offset+oy+size.y/80.0+ruby_space);
+                                if f {
+                                    let oy = if is_japanese_kana(*ch) { if is_japanese_hiragana(*ch) { size.y*0.03 } else { size.y*0.01 } } else { 0.0 };
+                                    if is_japanese_kana(*ch) && *ch != '\u{30fc}' {
+                                        let mut pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
+                                        if is_japanese_hiragana(*ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
+                                        if [
+                                            '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
+                                            '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
+                                            ].contains(&*ch) {
+                                            if is_japanese_hiragana(*ch) { font_kana.size = font_main.size*0.8; } else { font_kana.size = font_main.size*0.9; }
+                                            pos = egui::pos2(x_offset+dx/2.0-self.offset-size.x/100.0, y_offset+oy+size.y/80.0+ruby_space);
+                                        }
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_kana, *col);
                                     }
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_kana, *col);
-                                }
-                                else if *ch == '\u{30fc}'
-                                {
-                                    let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
-                                    let mut font = font_main.clone();
-                                    font.size = font_main.size*0.8;
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font, *col);
-                                }
-                                else {
-                                    let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_main, *col);
+                                    else if *ch == '\u{30fc}'
+                                    {
+                                        let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
+                                        let mut font = font_main.clone();
+                                        font.size = font_main.size*0.8;
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font, *col);
+                                    }
+                                    else {
+                                        let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_main, *col);
+                                    }
                                 }
                                 x_offset += dx;
                             },
                             (CharOrientation::Horizontal,false) => {
                                 let dx = size.x*0.8;
-                                let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+size.y/20.0+ruby_space);
-                                let mut font = font_main.clone();
-                                font.size = font_main.size*0.85;
-                                render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font, *col);
+                                if f{
+                                    let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+size.y/20.0+ruby_space);
+                                    let mut font = font_main.clone();
+                                    font.size = font_main.size*0.85;
+                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font, *col);
+                                }
                                 x_offset += dx;
                             },
                             (CharOrientation::Vertical,true) => {
                                 let dy = if is_japanese_kana(*ch) { size.x*0.85 } else { size.x };
-                                let mut pos = egui::pos2(x_offset, y_offset+dy/2.0-self.offset);
-                                if is_japanese_kana(*ch) {
-                                    if is_japanese_hiragana(*ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
-                                    if [
-                                        '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
-                                        '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
-                                        ].contains(&*ch) {
-                                        if is_japanese_hiragana(*ch) { font_kana.size = font_main.size*0.8; } else { font_kana.size = font_main.size*0.9; }
-                                        pos = egui::pos2(x_offset-self.offset+size.x/10.0, y_offset+dy/2.0-size.y/10.0);
+                                if f {
+                                    let mut pos = egui::pos2(x_offset, y_offset+dy/2.0-self.offset);
+                                    if is_japanese_kana(*ch) {
+                                        if is_japanese_hiragana(*ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
+                                        if [
+                                            '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
+                                            '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
+                                            ].contains(&*ch) {
+                                            if is_japanese_hiragana(*ch) { font_kana.size = font_main.size*0.8; } else { font_kana.size = font_main.size*0.9; }
+                                            pos = egui::pos2(x_offset-self.offset+size.x/10.0, y_offset+dy/2.0-size.y/10.0);
+                                        }
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_kana, *col);
                                     }
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_kana, *col);
-                                }
-                                else if *ch == '\u{4e28}'
-                                {
-                                    let mut font = font_main.clone();
-                                    font.size = font_main.size*0.93;
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font, *col);
-                                }
-                                else {
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_main, *col);
+                                    else if *ch == '\u{4e28}'
+                                    {
+                                        let mut font = font_main.clone();
+                                        font.size = font_main.size*0.93;
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font, *col);
+                                    }
+                                    else {
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_main, *col);
+                                    }
                                 }
                                 y_offset += dy;
                             },
                             (CharOrientation::Vertical,false) => {
                                 let dy = size.x*0.75;
-                                let pos = egui::pos2(x_offset+font_main.size/100.0, y_offset+dy/2.0);
-                                let mut font = font_main.clone();
-                                font.size = font_main.size*0.9;
-                                render_char_at(ui, *ch, pos, CharOrientation::Vertical, &font, *col);
+                                if f {
+                                    let pos = egui::pos2(x_offset+font_main.size/100.0, y_offset+dy/2.0);
+                                    let mut font = font_main.clone();
+                                    font.size = font_main.size*0.9;
+                                    render_char_at(ui, *ch, pos, CharOrientation::Vertical, &font, *col);
+                                }
                                 y_offset += dy;
                             },
                         };
@@ -953,25 +989,31 @@ impl egui::Widget for RenderTypingLine {
                                 let s = ch.to_string();
                                 let galley = ui.painter().layout_no_wrap(s, font_ruby.clone(), *col);
                                 let size = galley.size();
-                                let dx = galley.rect.width()*0.0;
-                                if is_japanese_kana(*ch) && *ch != '\u{30fc}' {
-                                    let mut pos = egui::pos2(x_offset_ruby+dx-self.offset, rect.top()+ruby_space*0.5);
-                                    if [
-                                        '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
-                                        '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
-                                        ].contains(&ch) {
-                                        pos = egui::pos2(x_offset_ruby+dx-self.offset-size.x/100.0, rect.top()+ruby_space*0.5+size.y/80.0);
+                                let mut f = true;
+                                if x_offset_ruby-self.offset+size.x < 0.0 {
+                                    f = false;
+                                }
+                                if f {
+                                    let dx = galley.rect.width()*0.0;
+                                    if is_japanese_kana(*ch) && *ch != '\u{30fc}' {
+                                        let mut pos = egui::pos2(x_offset_ruby+dx-self.offset, rect.top()+ruby_space*0.5);
+                                        if [
+                                            '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
+                                            '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
+                                            ].contains(&ch) {
+                                            pos = egui::pos2(x_offset_ruby+dx-self.offset-size.x/100.0, rect.top()+ruby_space*0.5+size.y/80.0);
+                                        }
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_ruby, *col);
                                     }
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_ruby, *col);
-                                }
-                                else if *ch == '\u{30fc}'
-                                {
-                                    let pos = egui::pos2(x_offset_ruby+dx-self.offset, rect.top()+ruby_space*0.5);
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_ruby, *col);
-                                }
-                                else {
-                                    let mut pos = egui::pos2(x_offset_ruby+dx-self.offset, rect.top()+ruby_space*0.5);
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_ruby, *col);
+                                    else if *ch == '\u{30fc}'
+                                    {
+                                        let pos = egui::pos2(x_offset_ruby+dx-self.offset, rect.top()+ruby_space*0.5);
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_ruby, *col);
+                                    }
+                                    else {
+                                        let mut pos = egui::pos2(x_offset_ruby+dx-self.offset, rect.top()+ruby_space*0.5);
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_ruby, *col);
+                                    }
                                 }
                                 x_offset_ruby += w;
                             }
@@ -981,27 +1023,33 @@ impl egui::Widget for RenderTypingLine {
                                 let s = ch.to_string();
                                 let galley = ui.painter().layout_no_wrap(s, font_ruby.clone(), *col);
                                 let size = galley.size();
-                                let dx = size.x*0.5;
-                                let dy = size.x*0.25;
-                                let mut pos = egui::pos2(rect.left()+vert_x_offset+dx-self.offset, y_offset+dy);
-                                if is_japanese_kana(*ch) {
-                                    let mut pos = egui::pos2(rect.left()+vert_x_offset+dx-self.offset, y_offset_ruby+dy);
-                                    if [
-                                        '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
-                                        '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
-                                        ].contains(&ch) {
-                                        pos = egui::pos2(rect.left()+vert_x_offset+dx-self.offset+size.x/10.0, y_offset_ruby+dy-size.y/10.0);
+                                let mut f = true;
+                                if x_offset_ruby-self.offset+size.x < 0.0 {
+                                    f = false;
+                                }
+                                if f {
+                                    let dx = size.x*0.5;
+                                    let dy = size.x*0.25;
+                                    let mut pos = egui::pos2(rect.left()+vert_x_offset+dx-self.offset, y_offset+dy);
+                                    if is_japanese_kana(*ch) {
+                                        let mut pos = egui::pos2(rect.left()+vert_x_offset+dx-self.offset, y_offset_ruby+dy);
+                                        if [
+                                            '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
+                                            '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
+                                            ].contains(&ch) {
+                                            pos = egui::pos2(rect.left()+vert_x_offset+dx-self.offset+size.x/10.0, y_offset_ruby+dy-size.y/10.0);
+                                        }
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_ruby, *col);
                                     }
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_ruby, *col);
+                                    else if *ch == '\u{4e28}'
+                                    {
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_ruby, *col);
+                                    }
+                                    else {
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_ruby, *col);
+                                    }
+                                    y_offset_ruby += w;
                                 }
-                                else if *ch == '\u{4e28}'
-                                {
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_ruby, *col);
-                                }
-                                else {
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_ruby, *col);
-                                }
-                                y_offset_ruby += w;
                             }
                         }
                     }
@@ -1009,74 +1057,86 @@ impl egui::Widget for RenderTypingLine {
                 Segment::Plain { text } => {
                     // baseの描画 (rubyは無い)
                     for ((ch, size), col) in char_sizes.iter().zip(char_color.iter()) {
+                        let mut f = true;
+                        if x_offset-self.offset+size.x < 0.0 {
+                            f = false;
+                        }
                         match (&self.orientation,is_japanese(*ch)) {
                             (CharOrientation::Horizontal,true) => {
                                 let dx = if is_japanese_kana(*ch) { size.x*0.8 } else { size.x };
-                                let oy = if is_japanese_kana(*ch) { if is_japanese_hiragana(*ch) { size.y*0.03 } else { size.y*0.01 } } else { 0.0 };
-                                if is_japanese_kana(*ch) && *ch != '\u{30fc}' {
-                                    let mut pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
-                                    if is_japanese_hiragana(*ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
-                                    if [
-                                        '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
-                                        '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
-                                        ].contains(&*ch) {
-                                        if is_japanese_hiragana(*ch) { font_kana.size = font_main.size*0.8; } else { font_kana.size = font_main.size*0.9; }
-                                        pos = egui::pos2(x_offset+dx/2.0-self.offset-size.x/100.0, y_offset+oy+size.y/80.0+ruby_space);
+                                if f {
+                                    let oy = if is_japanese_kana(*ch) { if is_japanese_hiragana(*ch) { size.y*0.03 } else { size.y*0.01 } } else { 0.0 };
+                                    if is_japanese_kana(*ch) && *ch != '\u{30fc}' {
+                                        let mut pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
+                                        if is_japanese_hiragana(*ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
+                                        if [
+                                            '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
+                                            '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
+                                            ].contains(&*ch) {
+                                            if is_japanese_hiragana(*ch) { font_kana.size = font_main.size*0.8; } else { font_kana.size = font_main.size*0.9; }
+                                            pos = egui::pos2(x_offset+dx/2.0-self.offset-size.x/100.0, y_offset+oy+size.y/80.0+ruby_space);
+                                        }
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_kana, *col);
                                     }
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_kana, *col);
-                                }
-                                else if *ch == '\u{30fc}'
-                                {
-                                    let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
-                                    let mut font = font_main.clone();
-                                    font.size = font_main.size*0.8;
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font, *col);
-                                }
-                                else {
-                                    let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_main, *col);
+                                    else if *ch == '\u{30fc}'
+                                    {
+                                        let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
+                                        let mut font = font_main.clone();
+                                        font.size = font_main.size*0.8;
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font, *col);
+                                    }
+                                    else {
+                                        let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+oy+ruby_space);
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_main, *col);
+                                    }
                                 }
                                 x_offset += dx;
                             },
                             (CharOrientation::Horizontal,false) => {
                                 let dx = size.x*0.8;
-                                let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+size.y/20.0+ruby_space);
-                                let mut font = font_main.clone();
-                                font.size = font_main.size*0.85;
-                                render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font, *col);
+                                if f {
+                                    let pos = egui::pos2(x_offset+dx/2.0-self.offset, y_offset+size.y/20.0+ruby_space);
+                                    let mut font = font_main.clone();
+                                    font.size = font_main.size*0.85;
+                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font, *col);
+                                }
                                 x_offset += dx;
                             },
                             (CharOrientation::Vertical,true) => {
                                 let dy = if is_japanese_kana(*ch) { size.x*0.85 } else { size.x };
-                                let mut pos = egui::pos2(x_offset, y_offset+dy/2.0-self.offset);
-                                if is_japanese_kana(*ch) {
-                                    if is_japanese_hiragana(*ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
-                                    if [
-                                        '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
-                                        '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
-                                        ].contains(&*ch) {
-                                        if is_japanese_hiragana(*ch) { font_kana.size = font_main.size*0.8; } else { font_kana.size = font_main.size*0.9; }
-                                        pos = egui::pos2(x_offset-self.offset+size.x/10.0, y_offset+dy/2.0-size.y/10.0);
+                                if f {
+                                    let mut pos = egui::pos2(x_offset, y_offset+dy/2.0-self.offset);
+                                    if is_japanese_kana(*ch) {
+                                        if is_japanese_hiragana(*ch) { font_kana.size = font_main.size*0.85; } else { font_kana.size = font_main.size*0.95; }
+                                        if [
+                                            '\u{3041}','\u{3043}','\u{3045}','\u{3047}','\u{3049}','\u{3063}','\u{3041}','\u{3083}','\u{3085}','\u{3087}','\u{308e}','\u{3095}','\u{3096}','\u{3041}',
+                                            '\u{30a1}','\u{30a3}','\u{30a5}','\u{30a7}','\u{30a9}','\u{30c3}','\u{30e3}','\u{30e5}','\u{30e7}','\u{30ee}','\u{30f5}','\u{30f6}'
+                                            ].contains(&*ch) {
+                                            if is_japanese_hiragana(*ch) { font_kana.size = font_main.size*0.8; } else { font_kana.size = font_main.size*0.9; }
+                                            pos = egui::pos2(x_offset-self.offset+size.x/10.0, y_offset+dy/2.0-size.y/10.0);
+                                        }
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_kana, *col);
                                     }
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_kana, *col);
-                                }
-                                else if *ch == '\u{4e28}'
-                                {
-                                    let mut font = font_main.clone();
-                                    font.size = font_main.size*0.93;
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font, *col);
-                                }
-                                else {
-                                    render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_main, *col);
+                                    else if *ch == '\u{4e28}'
+                                    {
+                                        let mut font = font_main.clone();
+                                        font.size = font_main.size*0.93;
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font, *col);
+                                    }
+                                    else {
+                                        render_char_at(ui, *ch, pos, CharOrientation::Horizontal, &font_main, *col);
+                                    }
                                 }
                                 y_offset += dy;
                             },
                             (CharOrientation::Vertical,false) => {
                                 let dy = size.x*0.75;
-                                let pos = egui::pos2(x_offset+font_main.size/100.0, y_offset+dy/2.0);
-                                let mut font = font_main.clone();
-                                font.size = font_main.size*0.9;
-                                render_char_at(ui, *ch, pos, CharOrientation::Vertical, &font, *col);
+                                if f {
+                                    let pos = egui::pos2(x_offset+font_main.size/100.0, y_offset+dy/2.0);
+                                    let mut font = font_main.clone();
+                                    font.size = font_main.size*0.9;
+                                    render_char_at(ui, *ch, pos, CharOrientation::Vertical, &font, *col);
+                                }
                                 y_offset += dy;
                             },
                         };
