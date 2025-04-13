@@ -78,6 +78,7 @@ impl Default for TypingApp {
                 MenuModel {
                     available_contents: vec![
                         parse_problem(&include_str!("../../examples/いろは歌.ntq")),
+                        parse_problem(&include_str!("../../examples/五十音.ntq")),
                         parse_problem(&include_str!("../../examples/平仮名.ntq")),
                         parse_problem(&include_str!("../../examples/MIT.ntq")),
                     ],
