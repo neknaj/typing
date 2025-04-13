@@ -483,14 +483,14 @@ impl eframe::App for TypingApp {
                 let mut font = egui::FontId::new(typing_font_size, egui::FontFamily::Proportional);
                 if self.text_orientation == TextOrientation::Vertical {
                     egui::Area::new("centent_title".into())
-                        .fixed_pos(egui::Pos2::new(window_width-typing_font_size*0.1, 0.0))
+                        .fixed_pos(egui::Pos2::new(window_width-typing_font_size*0.3, 0.0))
                         .show(ctx, |ui| {
                             let line = RenderLineWithRuby::new(content.title.clone(), CharOrientation::Vertical).with_font(egui::FontId::new(typing_font_size*0.7, egui::FontFamily::Proportional)).with_max(window_height);
                             let scroll_to = line.calc_size(ui).0;
                             ui.add(line.with_offset(-window_height*0.5+scroll_to*0.5));
                         });
                     egui::Area::new("centered_text2".into())
-                        .fixed_pos(egui::Pos2::new(window_width/2.0+typing_font_size, 0.0))
+                        .fixed_pos(egui::Pos2::new(window_width/2.0+typing_font_size*2.0, 0.0))
                         .show(ctx, |ui| {
                             ui.add(RenderLineWithRuby::new(content.lines[0].clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(-window_height*cursor_target).with_max(window_height));
                         });
@@ -631,14 +631,19 @@ impl eframe::App for TypingApp {
 
                 if self.text_orientation == TextOrientation::Vertical {
                     egui::Area::new("centent_title".into())
-                        .fixed_pos(egui::Pos2::new(window_width-typing_font_size*0.1, 0.0))
+                        .fixed_pos(egui::Pos2::new(window_width-typing_font_size*0.3, 0.0))
                         .show(ctx, |ui| {
                             let line = RenderLineWithRuby::new(content.title.clone(), CharOrientation::Vertical).with_font(egui::FontId::new(typing_font_size*0.7, egui::FontFamily::Proportional)).with_max(window_height);
                             let scroll_to = line.calc_size(ui).0;
                             ui.add(line.with_offset(-window_height*0.5+scroll_to*0.5));
                         });
+                    egui::Area::new("centered_text2".into())
+                        .fixed_pos(egui::Pos2::new(window_width/2.0+typing_font_size*2.0, 0.0))
+                        .show(ctx, |ui| {
+                            ui.add(RenderLineWithRuby::new(content.lines[scene.status.line as usize].clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(scene.scroll.scroll as f32).with_max(window_height));
+                        });
                     egui::Area::new("centered_text1".into())
-                        .fixed_pos(egui::Pos2::new(window_width/2.0-typing_font_size, 0.0))
+                        .fixed_pos(egui::Pos2::new(window_width/2.0-typing_font_size*0.5, 0.0))
                         .show(ctx, |ui| {
                             let line = RenderTypingLine::new(content.lines[scene.status.line as usize].clone(), scene.typing_correctness.lines[scene.status.line as usize].clone(), scene.status.clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(scene.scroll.scroll as f32);
                             let scrollto = line.calc_size(ui).0-window_height*cursor_target;
@@ -647,11 +652,6 @@ impl eframe::App for TypingApp {
                             let new = now+d* (d*d/(5000000.0+d*d));
                             self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::ScrollTo(new as f64, -scrollmax as f64)));
                             ui.add(line);
-                        });
-                    egui::Area::new("centered_text2".into())
-                        .fixed_pos(egui::Pos2::new(window_width/2.0+typing_font_size, 0.0))
-                        .show(ctx, |ui| {
-                            ui.add(RenderLineWithRuby::new(content.lines[scene.status.line as usize].clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(scene.scroll.scroll as f32).with_max(window_height));
                         });
                 } else {
                     egui::Area::new("centered_text1".into())
@@ -774,18 +774,25 @@ impl eframe::App for TypingApp {
                     });
 
                 if self.text_orientation == TextOrientation::Vertical {
+                    egui::Area::new("centent_title".into())
+                        .fixed_pos(egui::Pos2::new(window_width-typing_font_size*0.3, 0.0))
+                        .show(ctx, |ui| {
+                            let line = RenderLineWithRuby::new(content.title.clone(), CharOrientation::Vertical).with_font(egui::FontId::new(typing_font_size*0.7, egui::FontFamily::Proportional)).with_max(window_height);
+                            let scroll_to = line.calc_size(ui).0;
+                            ui.add(line.with_offset(-window_height*0.5+scroll_to*0.5));
+                        });
+                    egui::Area::new("centered_text2".into())
+                        .fixed_pos(egui::Pos2::new(window_width/2.0+typing_font_size*2.0, 0.0))
+                        .show(ctx, |ui| {
+                            ui.add(RenderLineWithRuby::new(content.lines[scene.typing_model.status.line as usize].clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(scene.typing_model.scroll.scroll as f32).with_max(window_height));
+                        });
                     egui::Area::new("centered_text1".into())
-                        .fixed_pos(egui::Pos2::new(window_width/2.0-typing_font_size, 0.0))
+                        .fixed_pos(egui::Pos2::new(window_width/2.0-typing_font_size*0.5, 0.0))
                         .show(ctx, |ui| {
                             let line = RenderTypingLine::new(content.lines[scene.typing_model.status.line as usize].clone(), scene.typing_model.typing_correctness.lines[scene.typing_model.status.line as usize].clone(), scene.typing_model.status.clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(scene.typing_model.scroll.scroll as f32);
                             let scrollto = line.calc_size(ui).0+window_height*cursor_target;
                             self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::ScrollTo(scrollto as f64, -scrollmax as f64)));
                             ui.add(line);
-                        });
-                    egui::Area::new("centered_text2".into())
-                        .fixed_pos(egui::Pos2::new(window_width/2.0+typing_font_size, 0.0))
-                        .show(ctx, |ui| {
-                            ui.add(RenderLineWithRuby::new(content.lines[scene.typing_model.status.line as usize].clone(), CharOrientation::Vertical).with_font(font.clone()).with_offset(scene.typing_model.scroll.scroll as f32).with_max(window_height));
                         });
                 } else {
                     egui::Area::new("centered_text1".into())
