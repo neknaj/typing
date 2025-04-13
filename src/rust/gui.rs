@@ -483,7 +483,7 @@ impl eframe::App for TypingApp {
                 let mut font = egui::FontId::new(typing_font_size, egui::FontFamily::Proportional);
                 if self.text_orientation == TextOrientation::Vertical {
                     egui::Area::new("centent_title".into())
-                        .fixed_pos(egui::Pos2::new(window_width-typing_font_size*0.5, 0.0))
+                        .fixed_pos(egui::Pos2::new(window_width-typing_font_size*0.9, 0.0))
                         .show(ctx, |ui| {
                             let line = RenderLineWithRuby::new(content.title.clone(), CharOrientation::Vertical).with_font(egui::FontId::new(typing_font_size*0.7, egui::FontFamily::Proportional)).with_max(window_height);
                             let scroll_to = line.calc_size(ui).0;
@@ -631,7 +631,7 @@ impl eframe::App for TypingApp {
 
                 if self.text_orientation == TextOrientation::Vertical {
                     egui::Area::new("centent_title".into())
-                        .fixed_pos(egui::Pos2::new(window_width-typing_font_size*0.5, 0.0))
+                        .fixed_pos(egui::Pos2::new(window_width-typing_font_size*0.9, 0.0))
                         .show(ctx, |ui| {
                             let line = RenderLineWithRuby::new(content.title.clone(), CharOrientation::Vertical).with_font(egui::FontId::new(typing_font_size*0.7, egui::FontFamily::Proportional)).with_max(window_height);
                             let scroll_to = line.calc_size(ui).0;
@@ -775,7 +775,7 @@ impl eframe::App for TypingApp {
 
                 if self.text_orientation == TextOrientation::Vertical {
                     egui::Area::new("centent_title".into())
-                        .fixed_pos(egui::Pos2::new(window_width-typing_font_size*0.5, 0.0))
+                        .fixed_pos(egui::Pos2::new(window_width-typing_font_size*0.9, 0.0))
                         .show(ctx, |ui| {
                             let line = RenderLineWithRuby::new(content.title.clone(), CharOrientation::Vertical).with_font(egui::FontId::new(typing_font_size*0.7, egui::FontFamily::Proportional)).with_max(window_height);
                             let scroll_to = line.calc_size(ui).0;
