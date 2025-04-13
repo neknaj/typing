@@ -1319,7 +1319,7 @@ impl egui::Widget for RenderTypingLine {
                     let dy = size.x*0.75;
                     let pos = egui::pos2(x_offset+font_main.size/100.0, y_offset+dy/2.0-self.offset);
                     let mut font = font_main.clone();
-                    font.size = font_main.size*0.9;
+                    font.size = font_main.size*0.7;
                     render_char_at(ui, *ch, pos, CharOrientation::Vertical, &font, pending_color);
                     y_offset += dy;
                 },
@@ -1372,7 +1372,7 @@ impl egui::Widget for RenderTypingLine {
                     let dy = size.x*0.75;
                     let pos = egui::pos2(x_offset+font_main.size/100.0, y_offset+dy/2.0-self.offset);
                     let mut font = font_main.clone();
-                    font.size = font_main.size*0.9;
+                    font.size = font_main.size*0.7;
                     render_char_at(ui, ch, pos, CharOrientation::Vertical, &font, wrong_color);
                     y_offset += dy;
                 },
