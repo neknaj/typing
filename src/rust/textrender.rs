@@ -110,16 +110,16 @@ impl egui::Widget for RenderText {
         let mut s = self.text;
         if self.orientation == CharOrientation::Vertical {
             s = s
-                // https://ja.wikipedia.org/wiki/CJK%E4%BA%92%E6%8F%9B%E5%BD%A2
+                // // https://ja.wikipedia.org/wiki/CJK%E4%BA%92%E6%8F%9B%E5%BD%A2
                 .replace('\u{2025}', "\u{fe30}")
                 .replace('\u{2014}', "\u{fe31}")
                 .replace('\u{2013}', "\u{fe32}")
-                .replace('\u{205f}', "\u{fe33}")
-                .replace('\u{2028}', "\u{fe35}")
-                .replace('\u{2079}', "\u{fe36}")
-                .replace('\u{207b}', "\u{fe37}")
-                .replace('\u{307d}', "\u{fe38}")
-                .replace('\u{30114}', "\u{fe39}")
+                .replace('\u{005f}', "\u{fe33}")
+                .replace('\u{0028}', "\u{fe35}")
+                .replace('\u{0029}', "\u{fe36}")
+                .replace('\u{007b}', "\u{fe37}")
+                .replace('\u{007d}', "\u{fe38}")
+                .replace('\u{3014}', "\u{fe39}")
                 .replace('\u{3015}', "\u{fe3a}")
                 .replace('\u{3010}', "\u{fe3b}")
                 .replace('\u{3011}', "\u{fe3c}")
@@ -130,7 +130,7 @@ impl egui::Widget for RenderText {
                 .replace('\u{300c}', "\u{fe41}")
                 .replace('\u{300d}', "\u{fe42}")
                 .replace('\u{300e}', "\u{fe43}")
-                .replace('\u{202f}', "\u{fe44}")
+                .replace('\u{300f}', "\u{fe44}")
                 .replace('\u{005B}', "\u{fe47}")
                 .replace('\u{005D}', "\u{fe48}")
                 // https://ja.wikipedia.org/wiki/%E7%B8%A6%E6%9B%B8%E3%81%8D%E5%BD%A2
@@ -138,7 +138,6 @@ impl egui::Widget for RenderText {
                 .replace('\u{3001}', "\u{fe11}")
                 .replace('\u{3002}', "\u{fe12}")
                 .replace('\u{ff1a}', "\u{fe13}")
-                .replace('\u{003b}', "\u{fe14}")
                 .replace('\u{ff1b}', "\u{fe14}")
                 .replace('\u{ff01}', "\u{fe15}")
                 .replace('\u{ff1f}', "\u{fe16}")
@@ -383,16 +382,16 @@ impl egui::Widget for RenderLineWithRuby {
             };
             if self.orientation == CharOrientation::Vertical {
                 s = s
-                    // https://ja.wikipedia.org/wiki/CJK%E4%BA%92%E6%8F%9B%E5%BD%A2
+                    // // https://ja.wikipedia.org/wiki/CJK%E4%BA%92%E6%8F%9B%E5%BD%A2
                     .replace('\u{2025}', "\u{fe30}")
                     .replace('\u{2014}', "\u{fe31}")
                     .replace('\u{2013}', "\u{fe32}")
-                    .replace('\u{205f}', "\u{fe33}")
-                    .replace('\u{2028}', "\u{fe35}")
-                    .replace('\u{2079}', "\u{fe36}")
-                    .replace('\u{207b}', "\u{fe37}")
-                    .replace('\u{307d}', "\u{fe38}")
-                    .replace('\u{30114}', "\u{fe39}")
+                    .replace('\u{005f}', "\u{fe33}")
+                    .replace('\u{0028}', "\u{fe35}")
+                    .replace('\u{0029}', "\u{fe36}")
+                    .replace('\u{007b}', "\u{fe37}")
+                    .replace('\u{007d}', "\u{fe38}")
+                    .replace('\u{3014}', "\u{fe39}")
                     .replace('\u{3015}', "\u{fe3a}")
                     .replace('\u{3010}', "\u{fe3b}")
                     .replace('\u{3011}', "\u{fe3c}")
@@ -403,7 +402,7 @@ impl egui::Widget for RenderLineWithRuby {
                     .replace('\u{300c}', "\u{fe41}")
                     .replace('\u{300d}', "\u{fe42}")
                     .replace('\u{300e}', "\u{fe43}")
-                    .replace('\u{202f}', "\u{fe44}")
+                    .replace('\u{300f}', "\u{fe44}")
                     .replace('\u{005B}', "\u{fe47}")
                     .replace('\u{005D}', "\u{fe48}")
                     // https://ja.wikipedia.org/wiki/%E7%B8%A6%E6%9B%B8%E3%81%8D%E5%BD%A2
@@ -411,7 +410,6 @@ impl egui::Widget for RenderLineWithRuby {
                     .replace('\u{3001}', "\u{fe11}")
                     .replace('\u{3002}', "\u{fe12}")
                     .replace('\u{ff1a}', "\u{fe13}")
-                    .replace('\u{003b}', "\u{fe14}")
                     .replace('\u{ff1b}', "\u{fe14}")
                     .replace('\u{ff01}', "\u{fe15}")
                     .replace('\u{ff1f}', "\u{fe16}")
@@ -804,16 +802,16 @@ impl egui::Widget for RenderTypingLine {
             };
             if self.orientation == CharOrientation::Vertical {
                 s = s
-                    // https://ja.wikipedia.org/wiki/CJK%E4%BA%92%E6%8F%9B%E5%BD%A2
+                    // // https://ja.wikipedia.org/wiki/CJK%E4%BA%92%E6%8F%9B%E5%BD%A2
                     .replace('\u{2025}', "\u{fe30}")
                     .replace('\u{2014}', "\u{fe31}")
                     .replace('\u{2013}', "\u{fe32}")
-                    .replace('\u{205f}', "\u{fe33}")
-                    .replace('\u{2028}', "\u{fe35}")
-                    .replace('\u{2079}', "\u{fe36}")
-                    .replace('\u{207b}', "\u{fe37}")
-                    .replace('\u{307d}', "\u{fe38}")
-                    .replace('\u{30114}', "\u{fe39}")
+                    .replace('\u{005f}', "\u{fe33}")
+                    .replace('\u{0028}', "\u{fe35}")
+                    .replace('\u{0029}', "\u{fe36}")
+                    .replace('\u{007b}', "\u{fe37}")
+                    .replace('\u{007d}', "\u{fe38}")
+                    .replace('\u{3014}', "\u{fe39}")
                     .replace('\u{3015}', "\u{fe3a}")
                     .replace('\u{3010}', "\u{fe3b}")
                     .replace('\u{3011}', "\u{fe3c}")
@@ -824,7 +822,7 @@ impl egui::Widget for RenderTypingLine {
                     .replace('\u{300c}', "\u{fe41}")
                     .replace('\u{300d}', "\u{fe42}")
                     .replace('\u{300e}', "\u{fe43}")
-                    .replace('\u{202f}', "\u{fe44}")
+                    .replace('\u{300f}', "\u{fe44}")
                     .replace('\u{005B}', "\u{fe47}")
                     .replace('\u{005D}', "\u{fe48}")
                     // https://ja.wikipedia.org/wiki/%E7%B8%A6%E6%9B%B8%E3%81%8D%E5%BD%A2
@@ -832,7 +830,6 @@ impl egui::Widget for RenderTypingLine {
                     .replace('\u{3001}', "\u{fe11}")
                     .replace('\u{3002}', "\u{fe12}")
                     .replace('\u{ff1a}', "\u{fe13}")
-                    .replace('\u{003b}', "\u{fe14}")
                     .replace('\u{ff1b}', "\u{fe14}")
                     .replace('\u{ff01}', "\u{fe15}")
                     .replace('\u{ff1f}', "\u{fe16}")
@@ -1180,16 +1177,16 @@ impl egui::Widget for RenderTypingLine {
             let mut s = text;
             if self.orientation == CharOrientation::Vertical {
                 s = s
-                    // https://ja.wikipedia.org/wiki/CJK%E4%BA%92%E6%8F%9B%E5%BD%A2
+                    // // https://ja.wikipedia.org/wiki/CJK%E4%BA%92%E6%8F%9B%E5%BD%A2
                     .replace('\u{2025}', "\u{fe30}")
                     .replace('\u{2014}', "\u{fe31}")
                     .replace('\u{2013}', "\u{fe32}")
-                    .replace('\u{205f}', "\u{fe33}")
-                    .replace('\u{2028}', "\u{fe35}")
-                    .replace('\u{2079}', "\u{fe36}")
-                    .replace('\u{207b}', "\u{fe37}")
-                    .replace('\u{307d}', "\u{fe38}")
-                    .replace('\u{30114}', "\u{fe39}")
+                    .replace('\u{005f}', "\u{fe33}")
+                    .replace('\u{0028}', "\u{fe35}")
+                    .replace('\u{0029}', "\u{fe36}")
+                    .replace('\u{007b}', "\u{fe37}")
+                    .replace('\u{007d}', "\u{fe38}")
+                    .replace('\u{3014}', "\u{fe39}")
                     .replace('\u{3015}', "\u{fe3a}")
                     .replace('\u{3010}', "\u{fe3b}")
                     .replace('\u{3011}', "\u{fe3c}")
@@ -1200,7 +1197,7 @@ impl egui::Widget for RenderTypingLine {
                     .replace('\u{300c}', "\u{fe41}")
                     .replace('\u{300d}', "\u{fe42}")
                     .replace('\u{300e}', "\u{fe43}")
-                    .replace('\u{202f}', "\u{fe44}")
+                    .replace('\u{300f}', "\u{fe44}")
                     .replace('\u{005B}', "\u{fe47}")
                     .replace('\u{005D}', "\u{fe48}")
                     // https://ja.wikipedia.org/wiki/%E7%B8%A6%E6%9B%B8%E3%81%8D%E5%BD%A2
@@ -1208,7 +1205,6 @@ impl egui::Widget for RenderTypingLine {
                     .replace('\u{3001}', "\u{fe11}")
                     .replace('\u{3002}', "\u{fe12}")
                     .replace('\u{ff1a}', "\u{fe13}")
-                    .replace('\u{003b}', "\u{fe14}")
                     .replace('\u{ff1b}', "\u{fe14}")
                     .replace('\u{ff01}', "\u{fe15}")
                     .replace('\u{ff1f}', "\u{fe16}")
