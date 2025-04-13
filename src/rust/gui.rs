@@ -669,6 +669,10 @@ impl eframe::App for TypingApp {
                         }
                     }
                 });
+                // フォーカスが外れたらPause画面
+                if !ctx.input(|i| i.viewport().focused).unwrap_or(true) {
+                    self.typing = update(self.typing.clone(),Msg::Typing(TypingMsg::Pause));
+                }
             },
             Model::Pause(scene) => {
                 let content: Content = scene.typing_model.content.clone();
