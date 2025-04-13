@@ -205,7 +205,11 @@ impl eframe::App for TypingApp {
                     .show(ctx, |ui| {
                         ui.heading("Settings");
                         // Additional settings controls can be added here.
-                        if ui.button("Toggle Theme").clicked() {
+                        if ui.button("Toggle Fullscreen").clicked() {
+                            self.toggle_fullscreen(ui);
+                        }
+                        ui.label("Color Theme");
+                        if ui.button(if self.dark_mode {"Dark"} else {"Light"}).clicked() {
                             self.dark_mode = !self.dark_mode;
                             let visuals = if self.dark_mode {
                                 egui::Visuals::dark()
@@ -214,8 +218,14 @@ impl eframe::App for TypingApp {
                             };
                             ctx.set_visuals(visuals);
                         }
-                        if ui.button("Toggle Fullscreen").clicked() {
-                            self.toggle_fullscreen(ui);
+                        ui.label("Text Orientation");
+                        if ui.button(if self.text_orientation==TextOrientation::Vertical {"Vertical"} else {"Horizontal"}).clicked() {
+                            if self.text_orientation == TextOrientation::Vertical {
+                                self.text_orientation = TextOrientation::Horizontal;
+                            }
+                            else {
+                                self.text_orientation = TextOrientation::Vertical;
+                            }
                         }
                     });
 
