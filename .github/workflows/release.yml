@@ -57,7 +57,7 @@ jobs:
       - name: Extract crate information
         shell: bash
         run: |
-          echo "PROJECT_NAME=typing-1" >> $GITHUB_ENV
+          echo "PROJECT_NAME=typing_gui" >> $GITHUB_ENV
 
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
