@@ -1,0 +1,93 @@
+name: Release Build
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  auto-release:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Get version from Cargo.toml
+        id: get-version
+        run: |
+          VERSION=$(grep '^version = ' Cargo.toml | cut -d '"' -f 2)
+          echo "version=v${VERSION}" >> $GITHUB_OUTPUT
+
+  build:
+    needs: auto-release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            use-cross: false
+            extension: ""
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            use-cross: true
+            extension: ""
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            use-cross: false
+            extension: ""
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            use-cross: true
+            extension: ""
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            use-cross: false
+            extension: ".exe"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Xcode Command Line Tools (macOS only)
+        if: runner.os == 'macOS'
+        run: |
+          xcode-select --install || echo "Xcode tools already installed"
+
+      - name: Extract crate information
+        shell: bash
+        run: |
+          echo "PROJECT_NAME=typing-1" >> $GITHUB_ENV
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
+          profile: minimal
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: ${{ matrix.use-cross }}
+          command: build
+          args: --release --target ${{ matrix.target }}
+
+      - name: Rename artifacts
+        shell: bash
+        run: |
+          mv target/${{ matrix.target }}/release/${{ env.PROJECT_NAME }}{,-${{ github.ref_name }}-${{ matrix.target }}${{ matrix.extension }}}
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            target/${{ matrix.target }}/release/${{ env.PROJECT_NAME }}-${{ github.ref_name }}-${{ matrix.target }}${{ matrix.extension }}
+          tag_name: ${{ needs.auto-release.outputs.version }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: Release ${{ needs.auto-release.outputs.version }}
+          draft: false
+          prerelease: false
