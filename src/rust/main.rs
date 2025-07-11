@@ -58,6 +58,21 @@ fn main() {
                 egui::FontData::from_static(include_bytes!("../fonts/NotoSerifJP-VariableFont_wght.ttf")).into(),
             );
 
+            fonts.font_data.insert(
+                "ZhiMangXing".to_owned(),
+                egui::FontData::from_static(include_bytes!("../fonts/ZhiMangXing-Regular.ttf")).into(),
+            );
+
+            fonts.font_data.insert(
+                "MaShanZheng".to_owned(),
+                egui::FontData::from_static(include_bytes!("../fonts/MaShanZheng-Regular.ttf")).into(),
+            );
+
+            fonts.font_data.insert(
+                "NotoSerif".to_owned(),
+                egui::FontData::from_static(include_bytes!("../fonts/NotoSerif-SemiBold.ttf")).into(),
+            );
+
             // Configure the Proportional font family with YujiSyuku as primary and NotoSerifJP as fallback
             if let Some(proportional) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
                 proportional.clear();
@@ -66,7 +81,7 @@ fn main() {
 
             fonts.families.insert(
                 egui::FontFamily::Name("main".into()),
-                vec!["Merienda".to_owned(), "YujiSyuku".to_owned(), "ShipporiAntique".to_owned(), "NotoSerifJP".to_owned()],
+                vec!["Merienda".to_owned(),"MaShanZheng".to_owned(),"YujiSyuku".to_owned(), "ShipporiAntique".to_owned(), "NotoSerifJP".to_owned()],
             );
 
             fonts.families.insert(
@@ -76,7 +91,7 @@ fn main() {
 
             fonts.families.insert(
                 egui::FontFamily::Name("ruby".into()),
-                vec!["Merienda".to_owned(), "ShipporiAntique".to_owned(), "YujiSyuku".to_owned(), "KaiseiHarunoUmi".to_owned(), "NotoSerifJP".to_owned()],
+                vec!["NotoSerif".to_owned(),"ShipporiAntique".to_owned(), "YujiSyuku".to_owned(), "KaiseiHarunoUmi".to_owned(), "NotoSerifJP".to_owned()],
             );
 
             fonts.families.insert(
