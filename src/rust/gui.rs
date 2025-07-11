@@ -80,6 +80,7 @@ impl Default for TypingApp {
                         parse_problem(&include_str!("../../examples/いろは歌.ntq")),
                         parse_problem(&include_str!("../../examples/五十音.ntq")),
                         parse_problem(&include_str!("../../examples/平仮名.ntq")),
+                        parse_problem(&include_str!("../../examples/百人一首.ntq")),
                         parse_problem(&include_str!("../../examples/MIT.ntq")),
                     ],
                     selecting: 0,
