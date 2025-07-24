@@ -11,6 +11,8 @@ use std::fs;
 #[cfg(target_arch = "wasm32")]
 use rfd::AsyncFileDialog;
 
+use chrono::{Local, TimeZone};
+
 use crate::model::{Model, MenuModel, TypingStartModel, TypingModel, PauseModel, ResultModel, TypingStatus, TextConvert, ErrorMsg, KeyboardRemapping, TypingScroll,TypingSession};
 use crate::msg::{Msg, MenuMsg, TypingStartMsg, TypingMsg, PauseMsg, ResultMsg};
 use crate::parser::{parse_problem, Content};
@@ -867,6 +869,39 @@ impl eframe::App for TypingApp {
             Model::Result(scene) => {
                 let content: Content = scene.typing_model.content.clone();
                 let stat = calculate_total_metrics(&scene.typing_model);
+
+                // Robustly get the latest timestamp from user_input, fallback if empty
+                let end_time = scene.typing_model.user_input.iter()
+                    .rev()
+                    .find_map(|session| session.inputs.iter().rev().find_map(|input| Some(input.timestamp)))
+                    .unwrap_or(0.0);
+                let end_datetime = Local.timestamp_millis(end_time as i64);
+                let end_time_str = end_datetime.format("%Y-%m-%d %H:%M:%S").to_string();
+                let title_text = format!("{}", content.title);
+let result_text = format!(
+"```neknajtypinggame
+< Neknaj Typing Game >\n\n{}\n─────────────────────────\n\
+ Speed     : {:.3} KPS\n\
+ Accuracy  : {:.3}%\n\
+ Keystrokes: {:<3}\n\
+ Mistyped  : {} ({:.3}%)\n\
+ Time      : {:02.0}:{:02.0}:{:05.2}\n\
+─────────────────────────\n\
+{}\n\
+```
+",
+    title_text,
+    stat.speed,
+    stat.accuracy * 100.0,
+    stat.type_count + stat.miss_count,
+    stat.miss_count,
+    (stat.miss_count as f64 / (stat.type_count + stat.miss_count) as f64) * 100.0,
+    (stat.total_time / 1000.0 / 3600.0).floor(),
+    ((stat.total_time / 1000.0) % 3600.0 / 60.0).floor(),
+    (stat.total_time / 1000.0) % 60.0,
+    end_time_str
+);
+                let mut copy_result = false;
                 egui::CentralPanel::default()
                     .frame(
                         egui::Frame {
@@ -940,6 +975,13 @@ impl eframe::App for TypingApp {
                         ui.vertical_centered(|ui| {
                             let button_width = 300.0;
                             let button_height = 50.0;
+                            if ui.add_sized([button_width, button_height], egui::Button::new("Copy Result")).on_hover_text_at_pointer("[Enter]").clicked() {
+                                copy_result = true;
+                            }
+                            // Enterキーでコピー
+                            if ctx.input(|i| i.key_pressed(egui::Key::Enter)) {
+                            }
+                            ui.add_space(20.0);
                             if ui.add_sized([button_width, button_height], egui::Button::new("Return to Menu")).on_hover_text_at_pointer("[Escape]").clicked() {
                                 self.typing = update(self.typing.clone(), Msg::Result(ResultMsg::BackToMenu));
                             }
@@ -956,6 +998,9 @@ impl eframe::App for TypingApp {
                                     if *pressed && self.key_released {
                                         // キーが押されたときの処理
                                         match key {
+                                            egui::Key::Enter => {
+                                                copy_result = true;
+                                            }
                                             egui::Key::Space => {
                                                 if let Some(idx) = self.selected_index {
                                                     self.typing = update(self.typing.clone(), Msg::Result(ResultMsg::Retry));
@@ -976,6 +1021,26 @@ impl eframe::App for TypingApp {
                             }
                         }
                     });
+                    if copy_result {
+                        #[cfg(not(target_arch = "wasm32"))]
+                        {
+                            ctx.output_mut(|o| o.copied_text = result_text.clone());
+                        }
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            use wasm_bindgen::JsCast;
+                            use web_sys::window;
+                            use wasm_bindgen_futures::spawn_local;
+                            if let Some(win) = window() {
+                                let clipboard = win.navigator().clipboard();
+                                let text = result_text.clone();
+                                let promise = clipboard.write_text(&text);
+                                spawn_local(async move {
+                                    let _ = wasm_bindgen_futures::JsFuture::from(promise).await;
+                                });
+                            }
+                        }
+                    }
             }
         }
         egui::Area::new("debug_overlay".into())
