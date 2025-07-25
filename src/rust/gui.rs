@@ -876,7 +876,13 @@ impl eframe::App for TypingApp {
                     .find_map(|session| session.inputs.iter().rev().find_map(|input| Some(input.timestamp)))
                     .unwrap_or(0.0);
                 let end_datetime = Local.timestamp_millis(end_time as i64);
+                #[cfg(not(target_arch = "wasm32"))]
                 let end_time_str = end_datetime.format("%Y-%m-%d %H:%M:%S").to_string();
+                #[cfg(target_arch = "wasm32")]
+                let end_time_str: String = {
+                    let date = js_sys::Date::new(&wasm_bindgen::JsValue::from_f64(end_time));
+                    date.to_locale_string("ja-JP", &js_sys::Object::new()).into()
+                };
                 let title_text = format!("{}", content.title);
 let result_text = format!(
 "```neknajtypinggame

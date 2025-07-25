@@ -5,6 +5,9 @@ use crate::parser::{Content, Line, Segment};
 use crate::timestamp::now;
 
 pub fn key_input(mut model_: TypingModel, input: char) -> Model {
+    #[cfg(target_arch = "wasm32")]
+    let current_time = js_sys::Date::now();
+    #[cfg(not(target_arch = "wasm32"))]
     let current_time = now();
     let current_line = model_.status.line;
     

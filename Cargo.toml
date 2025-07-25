@@ -1,6 +1,6 @@
 [package]
 name = "neknaj_typing"
-version = "25.7.24"
+version = "25.7.25"
 edition = "2021"
 authors = ["Neknaj","Bem130"]
 license = "MIT"
